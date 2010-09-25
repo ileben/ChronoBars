@@ -660,6 +660,13 @@ function ChronoBars.InitBarMenu (menu, level)
         local curValue = ChronoBars.GetSettingsValue( id, item.title );
         info.text = curValue;
         info.isTitle = true;
+        
+        local titleLimit = 24;
+        if (info.text ~= nil) then
+          if (strlen(info.text) > titleLimit) then
+            info.text = strsub( info.text, 1, titleLimit ).."...";
+          end
+        end
       
       elseif (item.type == "menu") then
         info.hasArrow = true;
