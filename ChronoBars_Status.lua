@@ -435,6 +435,8 @@ function ChronoBars.Bar_UpdateStatusTotem (bar, status, now)
     if (strfind( name , status.name )) then
       status.expires = start + duration;
       status.duration = duration;
+      status.text = name;
+      status.icon = icon;
     else
       status.expires = nil;
       status.duration = nil;
@@ -443,14 +445,6 @@ function ChronoBars.Bar_UpdateStatusTotem (bar, status, now)
     status.expires = nil;
     status.duration = nil;
   end
-
-  --Update bar icon
-  if (icon) then
-    status.icon = icon;
-  end
-  
-  --Update bar text
-  status.text = status.name;
   
 end
 
@@ -616,7 +610,7 @@ function ChronoBars.Bar_UpdateStatusEnchant (bar, status, now, event, ...)
       status.duration = 1800;
       status.expires = now + enchantTime / 1000;
       status.icon = GetItemIcon( itemId );
-      status.text = status.name;
+      status.text = enchantName;
       
     else
       status.duration = nil;

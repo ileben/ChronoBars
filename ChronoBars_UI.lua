@@ -470,8 +470,8 @@ function ChronoBars.Bar_ApplySettings (bar, profile, groupId, barId)
     end
 
     --Reset effect status
+    estatus.text = estatus.name;
     estatus.count = nil;
-    estatus.text = nil;
     estatus.duration = nil;
     estatus.expires = nil;
     estatus.usableCdExpires = nil;
@@ -484,6 +484,7 @@ function ChronoBars.Bar_ApplySettings (bar, profile, groupId, barId)
       bar.status.id = estatus.id;
       bar.status.name = estatus.name;
       bar.status.icon = estatus.icon;
+      bar.status.text = estatus.text;
     end
   end
 
