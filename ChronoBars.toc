@@ -1,0 +1,16 @@
+## Interface: 40000
+## Title: ChronoBars
+## Notes: Bars that track buffs, debuffs, cooldowns, and totems
+## Author: Ivan Leben
+## Version: 1.8b
+## SavedVariables: ChronoBars_Settings
+## SavedVariablesPerCharacter: ChronoBars_CharSettings
+Libs\LibStub\LibStub.lua
+Libs\CallbackHandler-1.0\CallbackHandler-1.0.lua
+Libs\LibSharedMedia-3.0\lib.xml
+ChronoBars.lua
+ChronoBars_UI.lua
+ChronoBars_Status.lua
+ChronoBars_Options.lua
+ChronoBars_GlobalOptions.lua
+
