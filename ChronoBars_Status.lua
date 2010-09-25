@@ -9,6 +9,51 @@ Author: Ivan Leben
 
 local CB = ChronoBars;
 
+function ChronoBars.Bar_InitEffect (bar)
+
+  local set = bar.settings;
+  
+  for i=1,table.getn( bar.effectStatus ) do
+    
+    --Init effect status
+    local estatus = bar.effectStatus[i];
+    
+    if (set.type == CB.EFFECT_TYPE_AURA) then
+      CB.Bar_InitStatusAura( bar, estatus );
+      
+    elseif (set.type == CB.EFFECT_TYPE_MULTI_AURA) then
+      CB.Bar_InitStatusMultiAura( bar, estatus );
+
+    elseif (set.type == CB.EFFECT_TYPE_CD) then
+      CB.Bar_InitStatusCd( bar, estatus );
+
+    elseif (set.type == CB.EFFECT_TYPE_USABLE) then
+      CB.Bar_InitStatusUsable( bar, estatus );
+
+    elseif (set.type == CB.EFFECT_TYPE_TOTEM) then
+      CB.Bar_InitStatusTotem( bar, estatus );
+
+    elseif (set.type == CB.EFFECT_TYPE_CUSTOM) then
+      CB.Bar_InitStatusCustom( bar, estatus );
+      
+    elseif (set.type == CB.EFFECT_TYPE_AUTO) then
+      CB.Bar_InitStatusAuto( bar, estatus );
+      
+    elseif (set.type == CB.EFFECT_TYPE_ENCHANT) then
+      CB.Bar_InitStatusEnchant( bar, estatus );
+    end
+    
+    --Init bar status to first effect
+    if (i == 1) then
+      bar.status.id = estatus.id;
+      bar.status.name = estatus.name;
+      bar.status.icon = estatus.icon;
+      bar.status.text = estatus.text;
+    end
+  end
+  
+end
+
 function ChronoBars.Bar_UpdateEffect (bar, now, event, ...)
 
   local set = bar.settings;
@@ -17,15 +62,9 @@ function ChronoBars.Bar_UpdateEffect (bar, now, event, ...)
   --Walk the list of effects
   for i=1,table.getn( bar.effectStatus ) do
   
-    --Init effect status with current bar status
+    --Update effect status
     local estatus = bar.effectStatus[i];
-    estatus.icon = bar.status.icon;
-    estatus.count = bar.status.count;
-    estatus.text = bar.status.text;
-    estatus.duration = bar.status.duration;
-    estatus.expires = bar.status.expires;
-
-    --Update effect duration and expiration times
+    
     if (set.type == CB.EFFECT_TYPE_AURA) then
       CB.Bar_UpdateStatusAura( bar, estatus, now, event, ... );
       
@@ -49,12 +88,11 @@ function ChronoBars.Bar_UpdateEffect (bar, now, event, ...)
       
     elseif (set.type == CB.EFFECT_TYPE_ENCHANT) then
       CB.Bar_UpdateStatusEnchant( bar, estatus, now, event, ... );
-      
     end
 
     --Check if this effect is the last to expire
-    if (maxExpires == nil or ((not (estatus.expires == nil)) and estatus.expires > maxExpires)) then
-
+    if (maxExpires == nil or (estatus.expires ~= nil and estatus.expires > maxExpires)) then
+      
       --Copy to bar status
       bar.status.icon = estatus.icon;
       bar.status.count = estatus.count;
@@ -71,7 +109,10 @@ function ChronoBars.Bar_UpdateEffect (bar, now, event, ...)
   bar.status.active = newActive;
   
   --Let other bars know that this bar just activated
-  if (bar.status.reactive and set.type ~= CB.EFFECT_TYPE_CUSTOM) then
+  if (bar.status.reactive
+  and set.type ~= CB.EFFECT_TYPE_CUSTOM
+  and set.type ~= CB.EFFECT_TYPE_MULTI_AURA)
+  then
     CB.BroadcastBarEvent( "CHRONOBARS_BAR_ACTIVATED", bar );
   end
   
@@ -124,6 +165,9 @@ end
 
 --Aura
 --=================================================
+
+function ChronoBars.Bar_InitStatusAura (bar, status)
+end
 
 function ChronoBars.Bar_UpdateStatusAura (bar, status, now)
 
@@ -225,24 +269,57 @@ end
 --Multi-Aura
 --=================================================
 
+function ChronoBars.Bar_InitStatusMultiAura (bar, status)
+end
+
 function ChronoBars.Bar_UpdateStatusMultiAura (bar, status, now, event, ...)
   
-  if (not (event == "COMBAT_LOG_EVENT_UNFILTERED")) then return end;
+  if (event == "CHRONOBARS_MULTI_AURA_UPDATE") then
+    
+    --Check if right bar for this aura
+    local targetGuid, targetName, spellName = select( 1, ... );
+    if (bar.targetGuid ~= targetGuid) then return end;
+    if (status.name ~= spellName) then return end;
+    
+    --Update time
+    status.duration = bar.settings.custom.duration;
+    status.expires = now + status.duration;
+    status.text = targetName;
+    return;
+    
+  elseif (event == "CHRONOBARS_MULTI_AURA_REMOVED") then
   
+    --Check if right bar for this aura
+    local targetGuid, targetName, spellName = select( 1, ... );
+    if (bar.targetGuid ~= targetGuid) then return end;
+    if (status.name ~= spellName) then return end;
+    
+    --Remove bar from the group
+    CB.RemoveBar( bar.group, bar );
+    CB.FreeBar( bar );
+    return;
+    
+  elseif (event ~= "COMBAT_LOG_EVENT_UNFILTERED") then return end;
+  
+  --Check the type of combat event
   local combatEvent = select( 2, ... );
   local applied = (combatEvent == "SPELL_AURA_APPLIED");
   local removed = (combatEvent == "SPELL_AURA_REMOVED");
   local refresh = (combatEvent == "SPELL_AURA_REFRESH");
   if (not (applied or removed or refresh)) then return end;
   
+  --Check if source of event is player
   local guid = select( 3, ... );
-  if (not (guid == UnitGUID("player"))) then return end;
+  if (guid ~= UnitGUID("player")) then return end;
   
+  --Check if aura name matches effect
   local spellName = select( 10, ... );
-  if (not (spellName == status.name)) then return end;
+  if (spellName ~= status.name) then return end;
   
+  --Get aura target info
   local targetName = select( 7, ... );
   local targetGuid = select( 6, ... );
+  
   --[[
   if (applied) then
     CB.Print( "Applied "..spellName.." on ".. target.." #"..targetGuid );
@@ -252,6 +329,7 @@ function ChronoBars.Bar_UpdateStatusMultiAura (bar, status, now, event, ...)
     CB.Print( "Refresh "..spellName.." on ".. target.." #"..targetGuid );
   end
   --]]
+  
   if (applied) then
   
     --Add new bar to this group
@@ -264,64 +342,35 @@ function ChronoBars.Bar_UpdateStatusMultiAura (bar, status, now, event, ...)
     CB.Bar_ApplySettings( auraBar, profile, bar.groupId, bar.barId );
     CB.Group_ApplySettings( auraBar.group, profile, auraBar.groupId );
     
-    --Mark the bar active and enable group updates
-    auraBar.status.active = true;
-    auraBar.status.duration = auraBar.settings.custom.duration;
-    auraBar.status.expires = now + auraBar.status.duration;
-    auraBar.status.text = targetName;
-    CB.Group_EnableUpdate( auraBar.group );
+    --Register multi-aura events
+    CB.RegisterBarEvent( auraBar, "CHRONOBARS_MULTI_AURA_UPDATE" );
+    CB.RegisterBarEvent( auraBar, "CHRONOBARS_MULTI_AURA_REMOVED" );
+    
+    --Send update event
+    CB.SendBarEvent( auraBar, "CHRONOBARS_MULTI_AURA_UPDATE",
+      targetGuid, targetName, spellName );
     
   elseif (refresh) then
     
-    --Iterate bars in this group
-    local numBars = table.getn( bar.group.bars );
-    for b=1,numBars do
-    
-      --Check if multi-aura bar
-      local auraBar = bar.group.bars[b];
-      if (auraBar.settings.type == CB.EFFECT_TYPE_MULTI_AURA) then
-      
-        --Check if effect name and target matches
-        if (auraBar.settings.name == bar.settings.name
-        and auraBar.targetGuid == targetGuid) then
-        
-          --Reset time left to maximum
-          auraBar.status.active = true;
-          auraBar.status.duration = auraBar.settings.custom.duration;
-          auraBar.status.expires = now + auraBar.status.duration;
-          CB.Group_EnableUpdate( auraBar.group );
-          break;
-        end
-      end
-    end
+    --Broadcast update event
+    CB.BroadcastBarEvent( "CHRONOBARS_MULTI_AURA_UPDATE",
+      targetGuid, targetName, spellName );
 
   elseif (removed) then
   
-    --Iterate bars in this group
-    local numBars = table.getn( bar.group.bars );
-    for b=1,numBars do
-    
-      --Check if multi-aura bar
-      local auraBar = bar.group.bars[b];
-      if (auraBar.settings.type == CB.EFFECT_TYPE_MULTI_AURA) then
+    --Broadcast removed event
+    CB.BroadcastBarEvent( "CHRONOBARS_MULTI_AURA_REMOVED",
+      targetGuid, targetName, spellName );
       
-        --Check if effect name and target matches
-        if (auraBar.settings.name == bar.settings.name
-        and auraBar.targetGuid == targetGuid) then
-        
-          --Remove bar from the group
-          CB.RemoveBar( bar.group, auraBar );
-          CB.FreeBar( auraBar );
-          break;
-        end
-      end
-    end
   end
   
 end
 
 --Cooldown
 --===================================================
+
+function ChronoBars.Bar_InitStatusCd (bar, status)
+end
 
 function ChronoBars.Bar_UpdateStatusCd (bar, status, now)
 
@@ -362,6 +411,9 @@ end
 
 --Usable
 --===================================================
+
+function ChronoBars.Bar_InitStatusUsable (bar, status)
+end
 
 function ChronoBars.Bar_UpdateStatusUsable (bar, status, now)
 
@@ -424,6 +476,9 @@ end
 --Totem
 --================================================
   
+function ChronoBars.Bar_InitStatusTotem (bar, status)
+end
+
 function ChronoBars.Bar_UpdateStatusTotem (bar, status, now)
 
   local set = bar.settings;
@@ -431,8 +486,9 @@ function ChronoBars.Bar_UpdateStatusTotem (bar, status, now)
 
   --Update bar time
   if (name and start and duration) then
+  
     --The name we get includes totem rank so search for substring
-    if (strfind( name , status.name )) then
+    if (strfind( name, status.name )) then
       status.expires = start + duration;
       status.duration = duration;
       status.text = name;
@@ -450,6 +506,9 @@ end
 
 --Custom
 --===================================================
+
+function ChronoBars.Bar_InitStatusCustom (bar, status)
+end
 
 function ChronoBars.Bar_UpdateStatusCustom (bar, status, now, event, arg1, arg2)
 
@@ -490,6 +549,51 @@ end
 --Auto-Attack
 --===================================================
 
+function ChronoBars.Bar_InitStatusAuto (bar, status)
+
+  local set = bar.settings;
+  if (set.auto.type == CB.AUTO_TYPE_WAND or set.auto.type == CB.AUTO_TYPE_BOW) then
+  
+    --Get the localized name of the ranged attack spell
+    local rangedName;
+    if (set.auto.type == CB.AUTO_TYPE_WAND)
+    then rangedName = GetSpellInfo( 5019 );
+    else rangedName = GetSpellInfo( "75" );
+    end
+    
+    --Init bar text and icon
+    status.text = rangedName;
+    status.icon = GetSpellTexture( rangedName );
+    
+    --Force text to effect name setting
+    bar.settings.name = status.text;
+    status.name = status.text;
+ 
+  elseif (set.auto.type == CB.AUTO_TYPE_MAIN_HAND or set.auto.type == CB.AUTO_TYPE_OFF_HAND) then
+  
+    --Get inventory slot
+    local slotId;
+    
+    if (set.auto.type == CB.AUTO_TYPE_MAIN_HAND) then
+      slotId = GetInventorySlotInfo( "MainHandSlot" );
+      status.text = "Main Hand";
+    
+    elseif (set.auto.type == CB.AUTO_TYPE_OFF_HAND) then
+      slotId = GetInventorySlotInfo( "SecondaryHandSlot" );
+      status.text = "Off Hand";
+    end
+    
+    --Set item icon
+    itemId = GetInventoryItemID( "player", slotId );
+    status.icon = GetItemIcon( itemId );
+    
+    --Force text to effect name setting
+    bar.settings.name = status.text;
+    status.name = status.text;
+    
+  end
+end
+
 function ChronoBars.Bar_UpdateStatusAuto (bar, status, now, event, arg1, arg2, arg3)
   
   local set = bar.settings;
@@ -504,25 +608,17 @@ function ChronoBars.Bar_UpdateStatusAuto (bar, status, now, event, arg1, arg2, a
     elseif (event == "STOP_AUTOREPEAT_SPELL") then
       bar:UnregisterEvent( "UNIT_SPELLCAST_SUCCEEDED" );
       
-    --Check if a spell was cast by player
-    elseif (event == "UNIT_SPELLCAST_SUCCEEDED" and arg1 == "player") then
-    
-      --Get the localized name of the ranged attack spell
-      local rangedName;
-      if (set.auto.type == CB.AUTO_TYPE_WAND)
-      then rangedName = GetSpellInfo( 5019 );
-      else rangedName = GetSpellInfo( "75" );
-      end
+    --Check if player cast ranged spell
+    elseif (event == "UNIT_SPELLCAST_SUCCEEDED"
+    and arg1 == "player" and arg2 == status.name) then
       
-      --Check if ranged spell was cast
-      if (arg2 == rangedName) then
-        local rangedSpeed = UnitRangedDamage( "player" );
-        if (rangedSpeed) then
-          status.duration = rangedSpeed;
-          status.expires = now + status.duration;
-          status.icon = GetSpellTexture( rangedName );
-          status.text = rangedName;
-        end
+      --Get ranged attack speed
+      local rangedSpeed = UnitRangedDamage( "player" );
+      
+      --Update time
+      if (rangedSpeed) then
+        status.duration = rangedSpeed;
+        status.expires = now + status.duration;
       end
     end
     
@@ -535,40 +631,28 @@ function ChronoBars.Bar_UpdateStatusAuto (bar, status, now, event, arg1, arg2, a
     --Unregister combatlog event when autoattack stops
     elseif (event == "PLAYER_LEAVE_COMBAT") then
       bar:UnregisterEvent( "COMBAT_LOG_EVENT_UNFILTERED" );
-      
+    
     --Check if player swinged with weapon
     elseif (event == "COMBAT_LOG_EVENT_UNFILTERED"
     and strsub( arg2, 1, 5 ) == "SWING"
     and arg3 == UnitGUID("player")) then
     
+      --Get attack speed
+      local attackSpeed;
+      
       if (set.auto.type == CB.AUTO_TYPE_MAIN_HAND) then
-      
-        --Get main hand speed and weapon info
-        local mainSpeed, offSpeed = UnitAttackSpeed( "player" );
-        local mainSlotId = GetInventorySlotInfo( "MainHandSlot" );
-        local mainWepId = GetInventoryItemID( "player", mainSlotId );
+        attackSpeed = UnitAttackSpeed( "player" );
         
-        if (mainSpeed) then
-          status.duration = mainSpeed;
-          status.expires = now + status.duration;
-          status.icon = GetItemIcon( mainWepId );
-          status.text = "Main Hand";
-        end
-      
       elseif (set.auto.type == CB.AUTO_TYPE_OFF_HAND) then
-      
-        --Get off hand speed and weapon info
-        local mainSpeed, offSpeed = UnitAttackSpeed( "player" );
-        local offSlotId = GetInventorySlotInfo( "SecondaryHandSlot" );
-        local offWepId = GetInventoryItemID( "player", offSlotId );
-        
-        if (offSpeed) then
-          status.duration = offSpeed;
-          status.expires = now + status.duration;
-          status.icon =  GetItemIcon( offWepId );
-          status.text = "Off Hand";
-        end
+        attackSpeed = select( 2, UnitAttackSpeed( "player" ) );
       end
+      
+      --Update time
+      if (attackSpeed) then
+        status.duration = attackSpeed;
+        status.expires = now + status.duration;
+      end
+        
     end
   end
   
@@ -577,26 +661,40 @@ end
 --Temporary Weapon Enchant
 --===================================================
 
+function ChronoBars.Bar_InitStatusEnchant (bar, status)
+  
+  local set = bar.settings;
+  
+  --Get inventory slot
+  local slotId;
+  
+  if (set.enchant.hand == CB.HAND_MAIN) then
+    slotId = GetInventorySlotInfo( "MainHandSlot" );
+  
+  elseif (set.enchant.hand == CB.HAND_OFF) then
+    slotId = GetInventorySlotInfo( "SecondaryHandSlot" );
+  end
+  
+  --Set item icon
+  local itemId = GetInventoryItemID( "player", slotId );
+  status.icon = GetItemIcon( itemId );
+  
+end
+
 function ChronoBars.Bar_UpdateStatusEnchant (bar, status, now, event, ...)
 
   local set = bar.settings;
-  local enchantOn, enchantTime, enchantCharges;
-  local slotId, itemId;
+  
+  --Get inventory slot and enchant info
+  local slotId, enchantOn, enchantTime, enchantCharges;
   
   if (set.enchant.hand == CB.HAND_MAIN) then
-  
-    --Get main hand enchant and weapon info
-    enchantOn, enchantTime, enchantCharges = GetWeaponEnchantInfo();
     slotId = GetInventorySlotInfo( "MainHandSlot" );
-    itemId = GetInventoryItemID( "player", slotId );
+    enchantOn, enchantTime, enchantCharges = GetWeaponEnchantInfo();
     
   elseif (set.enchant.hand == CB.HAND_OFF) then
-    
-    --Get off hand enchant and weapon info
-    enchantOn, enchantTime, enchantCharges = select( 4, GetWeaponEnchantInfo() );
     slotId = GetInventorySlotInfo( "SecondaryHandSlot" );
-    itemId = GetInventoryItemID( "player", slotId );
-    
+    enchantOn, enchantTime, enchantCharges = select( 4, GetWeaponEnchantInfo() );
   end
   
   --Check if enchant is up
@@ -604,11 +702,14 @@ function ChronoBars.Bar_UpdateStatusEnchant (bar, status, now, event, ...)
   
     --Check if name of the enchant matches
     local enchantName = CB.GetWeaponEnchantName( slotId );
-    if (strfind( enchantName, status.name )) then
+    if (enchantName and strfind( enchantName, status.name )) then
     
       --There is no way to get total duration, assuming 30min
       status.duration = 1800;
       status.expires = now + enchantTime / 1000;
+
+      --Update item icon and enchant name
+      local itemId = GetInventoryItemID( "player", slotId );
       status.icon = GetItemIcon( itemId );
       status.text = enchantName;
       
@@ -623,6 +724,8 @@ function ChronoBars.Bar_UpdateStatusEnchant (bar, status, now, event, ...)
   
 end
 
+--Utility enchant scanning from weapon tooltip
+--========================================================
 
 function ChronoBars.GetWeaponEnchantName (inventorySlotId)
 

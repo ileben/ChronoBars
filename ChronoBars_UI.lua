@@ -391,6 +391,8 @@ function ChronoBars.Bar_Create (name)
   bar:SetScript( "OnDragStart", ChronoBars.Bar_OnDragStart );
   bar:SetScript( "OnDragStop", ChronoBars.Bar_OnDragStop );
   bar:SetScript( "OnMouseDown", ChronoBars.Bar_OnMouseDown );
+  
+  bar.events = {};
 
   return bar;
 
@@ -408,13 +410,13 @@ function ChronoBars.Bar_ApplySettings (bar, profile, groupId, barId)
   bar.gsettings = gsettings;
   bar.settings = settings;
 
-  --Reset bar animation
+  --Init bar animation
   if (bar.anim == nil) then bar.anim = {} end
   bar.anim.ratio = 0;
   bar.anim.blink = 0;
   bar.anim.fade = 0;
 
-  --Reset bar status
+  --Init bar status
   if (bar.status == nil) then bar.status = {} end
   bar.status.id = nil;
   bar.status.name = nil;
@@ -427,7 +429,7 @@ function ChronoBars.Bar_ApplySettings (bar, profile, groupId, barId)
   bar.status.ratio = 0.0;
   bar.status.active = false;
   bar.status.reactive = false;
-  bar.status.visible = false;
+  bar.status.visible = true;
 
   --Init effect status for every name in the comma-separated list
   bar.effectStatus = {};
@@ -469,24 +471,25 @@ function ChronoBars.Bar_ApplySettings (bar, profile, groupId, barId)
       end
     end
 
-    --Reset effect status
+    --Init other vars
     estatus.text = estatus.name;
     estatus.count = nil;
     estatus.duration = nil;
     estatus.expires = nil;
     estatus.usableCdExpires = nil;
-
+    
     --Add to status list
     table.insert( bar.effectStatus, estatus );
-
-    --Init bar status to first spell
+    
+    --Init bar status to first effect
     if (i == 1) then
       bar.status.id = estatus.id;
       bar.status.name = estatus.name;
-      bar.status.icon = estatus.icon;
-      bar.status.text = estatus.text;
     end
   end
+  
+  --Init status default
+  CB.Bar_InitEffect( bar );
 
   --Round graphics to actual pixels
   local pad = CB.RoundToPixel( gsettings.padding );
@@ -841,19 +844,20 @@ function ChronoBars.Bar_UpdateUI (bar, now, interval)
 
   --Find if should blink
   local canBlink = false;
-  if (bar.status.duration == 0) then
-    canBlink = set.style.anim.blinkUsable;
-  else
+  if (bar.status.active) then
+  
+    --Check for infinite duration
+    if (bar.status.duration == 0) then
+      canBlink = set.style.anim.blinkUsable;  
+    else
 
-    --Find start time of fading (half bar or 5 seconds if bar longer)
-    local blinkStart = 0;
-    if (bar.status.duration) then
-      blinkStart = 0.5 * bar.status.duration
+      --Find start time of fading (half bar or 5 seconds if bar longer)
+      local blinkStart = 0.5 * bar.status.duration
       if (blinkStart > 5) then blinkStart = 5 end;
-    end
 
-    --Blink when bar time below threshold
-    canBlink = set.style.anim.blink and (bar.status.left <= blinkStart);
+      --Blink when bar time below threshold
+      canBlink = set.style.anim.blink and (bar.status.left <= blinkStart);
+    end
   end
 
   --Animate blinking
@@ -945,9 +949,14 @@ function ChronoBars.Bar_UpdateUI (bar, now, interval)
     bar.icon:SetTexture( bar.status.icon );
   end
 
-  --Set name and time text
+  --Set time text if active 
+  if (bar.status.active)
+  then bar.txtTime:SetText( CB.FormatTime( bar, bar.status.left ));
+  else bar.txtTime:SetText( "" );
+  end
+  
+  --Set name text
   bar.txtName:SetText( CB.FormatName( bar, bar.status.text, nil, bar.status.count ));
-  bar.txtTime:SetText( CB.FormatTime( bar, bar.status.left ));
 
   --Disable mouse events
   bar:EnableMouse( false );
@@ -1129,6 +1138,7 @@ function ChronoBars.Bar_EnableEvents (bar)
 
   local set = bar.settings;
   bar:SetScript( "OnEvent", ChronoBars.Bar_OnEvent );
+  CB.RegisterBarEvent( bar, "CHRONOBARS_FORCE_UPDATE" );
   
   if (set.type == CB.EFFECT_TYPE_AURA) then
     bar:RegisterEvent( "UNIT_AURA" );
@@ -1172,6 +1182,8 @@ function ChronoBars.Bar_EnableEvents (bar)
   elseif (set.type == CB.EFFECT_TYPE_CUSTOM) then
     if (set.custom.trigger == CB.CUSTOM_TRIGGER_SPELL_CAST) then
       bar:RegisterEvent( "UNIT_SPELLCAST_SUCCEEDED" );
+    elseif (set.custom.trigger == CB.CUSTOM_TRIGGER_BAR_ACTIVE) then
+      CB.RegisterBarEvent( bar, "CHRONOBARS_BAR_ACTIVATED" );
     end
     
   elseif (set.type == CB.EFFECT_TYPE_AUTO) then
@@ -1184,7 +1196,7 @@ function ChronoBars.Bar_EnableEvents (bar)
     end
     
   elseif (set.type == CB.EFFECT_TYPE_ENCHANT) then
-    bar:RegisterEvent( "UNIT_INVENTORY_CHANGED");
+    bar:RegisterEvent( "UNIT_INVENTORY_CHANGED" );
     
     --Enable blacklist timer, since enchant info is not yet correct
     --at the time UNIT_INVENTORY_CHANGED event is fired
@@ -1210,6 +1222,10 @@ function ChronoBars.Bar_DisableEvents (bar)
   bar:UnregisterEvent( "STOP_AUTOREPEAT_SPELL" );
   bar:UnregisterEvent( "UNIT_INVENTORY_CHANGED");
   bar:UnregisterEvent( "COMBAT_LOG_EVENT_UNFILTERED" );
+  CB.UnregisterBarEvent( bar, "CHRONOBARS_FORCE_UPDATE" );
+  CB.UnregisterBarEvent( bar, "CHRONOBARS_BAR_ACTIVATED" );
+  CB.UnregisterBarEvent( bar, "CHRONOBARS_MULTI_AURA_UPDATE" );
+  CB.UnregisterBarEvent( bar, "CHRONOBARS_MULTI_AURA_REMOVED" );
   CB.Bar_DisableEffectTimer( bar );
 end
 
@@ -1255,6 +1271,20 @@ end
 ---------------------------------------------------------------
 -- custom events
 
+function ChronoBars.RegisterBarEvent (bar, event)
+  bar.events[ event ] = true;
+end
+
+function ChronoBars.UnregisterBarEvent (bar, event)
+  bar.events[ event ] = nil;
+end
+
+function ChronoBars.SendBarEvent (bar, event, ...)
+  if (bar.events[ event ]) then
+    CB.Bar_OnEvent( bar, event, ... );
+  end
+end
+
 function ChronoBars.BroadcastBarEvent (event, ...)
 
   --Walk UI groups
@@ -1265,8 +1295,13 @@ function ChronoBars.BroadcastBarEvent (event, ...)
     local numBars = table.getn( CB.groups[g].bars );
     for b = 1, numBars do
     
-      --Send custom event to each bar if enabled
-      if (CB.groups[g].bars[b].settings.enabled) then
+      --Check if a bar was removed by this event
+      if (b > table.getn( CB.groups[g].bars )) then
+        break;
+      end
+    
+      --Send custom event to bar if registered
+      if (CB.groups[g].bars[b].events[ event ]) then
         CB.Bar_OnEvent( CB.groups[g].bars[b], event, ... );
       end
     end
