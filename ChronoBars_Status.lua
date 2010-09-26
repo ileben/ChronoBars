@@ -13,42 +13,56 @@ function ChronoBars.Bar_InitEffect (bar)
 
   local set = bar.settings;
   
-  for i=1,table.getn( bar.effectStatus ) do
+  bar.effectStatus = {};
+  local effectList = { strsplit( ",", set.name ) };
+  for i,n in ipairs( effectList ) do
+    local effectName = strtrim( n );
+    
+    --Add new effect status to list
+    local status = {};
+    status.name = effectName;
+    status.id = tonumber( effectName );
+    status.text = "";
+    status.count = nil;
+    status.duration = nil;
+    status.expires = nil;
+    status.usableCdExpires = nil;
+    table.insert( bar.effectStatus, status );
     
     --Init effect status
-    local estatus = bar.effectStatus[i];
+    local status = bar.effectStatus[i];
     
     if (set.type == CB.EFFECT_TYPE_AURA) then
-      CB.Bar_InitStatusAura( bar, estatus );
+      CB.Bar_InitStatusAura( bar, status );
       
     elseif (set.type == CB.EFFECT_TYPE_MULTI_AURA) then
-      CB.Bar_InitStatusMultiAura( bar, estatus );
+      CB.Bar_InitStatusMultiAura( bar, status );
 
     elseif (set.type == CB.EFFECT_TYPE_CD) then
-      CB.Bar_InitStatusCd( bar, estatus );
+      CB.Bar_InitStatusCd( bar, status );
 
     elseif (set.type == CB.EFFECT_TYPE_USABLE) then
-      CB.Bar_InitStatusUsable( bar, estatus );
+      CB.Bar_InitStatusUsable( bar, status );
 
     elseif (set.type == CB.EFFECT_TYPE_TOTEM) then
-      CB.Bar_InitStatusTotem( bar, estatus );
+      CB.Bar_InitStatusTotem( bar, status );
 
     elseif (set.type == CB.EFFECT_TYPE_CUSTOM) then
-      CB.Bar_InitStatusCustom( bar, estatus );
+      CB.Bar_InitStatusCustom( bar, status );
       
     elseif (set.type == CB.EFFECT_TYPE_AUTO) then
-      CB.Bar_InitStatusAuto( bar, estatus );
+      CB.Bar_InitStatusAuto( bar, status );
       
     elseif (set.type == CB.EFFECT_TYPE_ENCHANT) then
-      CB.Bar_InitStatusEnchant( bar, estatus );
+      CB.Bar_InitStatusEnchant( bar, status );
     end
     
     --Init bar status to first effect
     if (i == 1) then
-      bar.status.id = estatus.id;
-      bar.status.name = estatus.name;
-      bar.status.icon = estatus.icon;
-      bar.status.text = estatus.text;
+      bar.status.id = status.id;
+      bar.status.name = status.name;
+      bar.status.icon = status.icon;
+      bar.status.text = status.text;
     end
   end
   
@@ -63,43 +77,43 @@ function ChronoBars.Bar_UpdateEffect (bar, now, event, ...)
   for i=1,table.getn( bar.effectStatus ) do
   
     --Update effect status
-    local estatus = bar.effectStatus[i];
+    local status = bar.effectStatus[i];
     
     if (set.type == CB.EFFECT_TYPE_AURA) then
-      CB.Bar_UpdateStatusAura( bar, estatus, now, event, ... );
+      CB.Bar_UpdateStatusAura( bar, status, now, event, ... );
       
     elseif (set.type == CB.EFFECT_TYPE_MULTI_AURA) then
-      CB.Bar_UpdateStatusMultiAura( bar, estatus, now, event, ... );
+      CB.Bar_UpdateStatusMultiAura( bar, status, now, event, ... );
 
     elseif (set.type == CB.EFFECT_TYPE_CD) then
-      CB.Bar_UpdateStatusCd( bar, estatus, now, event, ... );
+      CB.Bar_UpdateStatusCd( bar, status, now, event, ... );
 
     elseif (set.type == CB.EFFECT_TYPE_USABLE) then
-      CB.Bar_UpdateStatusUsable( bar, estatus, now, event, ... );
+      CB.Bar_UpdateStatusUsable( bar, status, now, event, ... );
 
     elseif (set.type == CB.EFFECT_TYPE_TOTEM) then
-      CB.Bar_UpdateStatusTotem( bar, estatus, now, event, ... );
+      CB.Bar_UpdateStatusTotem( bar, status, now, event, ... );
 
     elseif (set.type == CB.EFFECT_TYPE_CUSTOM) then
-      CB.Bar_UpdateStatusCustom( bar, estatus, now, event, ... );
+      CB.Bar_UpdateStatusCustom( bar, status, now, event, ... );
       
     elseif (set.type == CB.EFFECT_TYPE_AUTO) then
-      CB.Bar_UpdateStatusAuto( bar, estatus, now, event, ... );
+      CB.Bar_UpdateStatusAuto( bar, status, now, event, ... );
       
     elseif (set.type == CB.EFFECT_TYPE_ENCHANT) then
-      CB.Bar_UpdateStatusEnchant( bar, estatus, now, event, ... );
+      CB.Bar_UpdateStatusEnchant( bar, status, now, event, ... );
     end
 
     --Check if this effect is the last to expire
-    if (maxExpires == nil or (estatus.expires ~= nil and estatus.expires > maxExpires)) then
+    if (maxExpires == nil or (status.expires ~= nil and status.expires > maxExpires)) then
       
       --Copy to bar status
-      bar.status.icon = estatus.icon;
-      bar.status.count = estatus.count;
-      bar.status.text = estatus.text;
-      bar.status.duration = estatus.duration;
-      bar.status.expires = estatus.expires;
-      maxExpires = estatus.expires;
+      bar.status.icon = status.icon;
+      bar.status.count = status.count;
+      bar.status.text = status.text;
+      bar.status.duration = status.duration;
+      bar.status.expires = status.expires;
+      maxExpires = status.expires;
     end
   end
   
@@ -167,6 +181,18 @@ end
 --=================================================
 
 function ChronoBars.Bar_InitStatusAura (bar, status)
+
+  --Init bar name and icon by spell id or name
+  if (status.id) then
+    status.name = select( 1, GetSpellInfo( status.id ) );
+    status.icon = select( 3, GetSpellInfo( status.id ) );
+  else
+    status.icon = GetSpellTexture( status.name );
+  end
+  
+  --Init bar text
+  status.text = status.name;
+  
 end
 
 function ChronoBars.Bar_UpdateStatusAura (bar, status, now)
@@ -270,6 +296,18 @@ end
 --=================================================
 
 function ChronoBars.Bar_InitStatusMultiAura (bar, status)
+
+  --Init bar name and icon by spell id or name
+  if (status.id) then
+    status.name = select( 1, GetSpellInfo( status.id ) );
+    status.icon = select( 3, GetSpellInfo( status.id ) );
+  else
+    status.icon = GetSpellTexture( status.name );
+  end
+  
+  --Init bar text
+  status.text = status.name;
+  
 end
 
 function ChronoBars.Bar_UpdateStatusMultiAura (bar, status, now, event, ...)
@@ -370,18 +408,53 @@ end
 --===================================================
 
 function ChronoBars.Bar_InitStatusCd (bar, status)
+
+  if (bar.settings.cd.type == CB.CD_TYPE_SPELL) then
+  
+    --Init bar name and icon by spell id or name
+    if (status.id) then
+      status.name = select( 1, GetSpellInfo( status.id ) );
+      status.icon = select( 3, GetSpellInfo( status.id ) );
+    else
+      status.icon = GetSpellTexture( status.name );
+    end
+    
+  elseif (bar.settings.cd.type == CB.CD_TYPE_ITEM) then
+  
+    --Init bar name and icon by item id or name
+    if (status.id) then
+      status.name = select( 1,  GetItemInfo( status.id ) );
+      status.icon = select( 10, GetItemInfo( status.id ) );
+    else
+      status.icon = GetItemIcon( status.name );
+    end
+  end
+  
+  --Init bar text
+  status.text = status.name;
+  
 end
 
 function ChronoBars.Bar_UpdateStatusCd (bar, status, now)
 
   local set = bar.settings;
-  local start = nil;
-  local duration = nil;
+  local start, duration;
 
-  --Get cooldown times (works with name and ID)
-  if (status.isItem)
-  then start, duration = GetItemCooldown( status.name );
-  else start, duration = GetSpellCooldown( status.name );
+  if (set.cd.type == CB.CD_TYPE_SPELL) then
+
+    --Get spell cooldown by ID or name
+    if (status.id)
+    then start, duration = GetSpellCooldown( status.id );
+    else start, duration = GetSpellCooldown( status.name );
+    end
+    
+  elseif (set.cd.type == CB.CD_TYPE_ITEM) then
+  
+    --Get item cooldown by ID or name
+    if (status.id)
+    then start, duration = GetItemCooldown( status.id );
+    else start, duration = GetItemCooldown( status.name );
+    end
   end
 
   --Update bar time unless it is a global cooldown.
@@ -403,9 +476,6 @@ function ChronoBars.Bar_UpdateStatusCd (bar, status, now)
       status.duration = nil;
     end
   end
-
-  --Update bar text
-  status.text = status.name;
   
 end
 
@@ -413,6 +483,31 @@ end
 --===================================================
 
 function ChronoBars.Bar_InitStatusUsable (bar, status)
+
+  if (bar.settings.usable.type == CB.USABLE_TYPE_SPELL) then
+  
+    --Init bar name and icon by spell id or name
+    if (status.id) then
+      status.name = select( 1, GetSpellInfo( status.id ) );
+      status.icon = select( 3, GetSpellInfo( status.id ) );
+    else
+      status.icon = GetSpellTexture( status.name );
+    end
+    
+  elseif (bar.settings.usable.type == CB.USABLE_TYPE_ITEM) then
+  
+    --Init bar name and icon by item id or name
+    if (status.id) then
+      status.name = select( 1,  GetItemInfo( status.id ) );
+      status.icon = select( 10, GetItemInfo( status.id ) );
+    else
+      status.icon = GetItemIcon( status.name );
+    end
+  end
+  
+  --Init bar text
+  status.text = status.name;
+  
 end
 
 function ChronoBars.Bar_UpdateStatusUsable (bar, status, now)
@@ -420,18 +515,40 @@ function ChronoBars.Bar_UpdateStatusUsable (bar, status, now)
   local set = bar.settings;
   local usable, start, duration;
 
-  --Check if it is usable in general
-  if (status.isItem)
-  then usable = IsUsableItem( status.name );
-  else usable = IsUsableSpell( status.name );
+  if (set.usable.type == CB.USABLE_TYPE_SPELL) then
+
+    --Check if spell usable by ID or name
+    if (status.id)
+    then usable = IsUsableSpell( status.id );
+    else usable = IsUsableSpell( status.name );
+    end
+    
+  elseif (set.usable.type == CB.USABLE_TYPE_ITEM) then
+  
+    --Check if item usable by ID or name
+    if (status.id)
+    then usable = IsUsableItem( status.id );
+    else usable = IsUsableItem( status.name );
+    end
   end
 
   if (set.usable.includeCd) then
-  
-    --Get spell or item cooldown
-    if (status.isItem)
-    then start, duration = GetItemCooldown( status.name );
-    else start, duration = GetSpellCooldown( status.name );
+    
+    if (set.usable.type == CB.USABLE_TYPE_SPELL) then
+
+      --Get spell cooldown by ID or name
+      if (status.id)
+      then start, duration = GetSpellCooldown( status.id );
+      else start, duration = GetSpellCooldown( status.name );
+      end
+      
+    elseif (set.usable.type == CB.USABLE_TYPE_ITEM) then
+    
+      --Get item cooldown by ID or name
+      if (status.id)
+      then start, duration = GetItemCooldown( status.id );
+      else start, duration = GetItemCooldown( status.name );
+      end
     end
     
     --Update usable cd unless it is global cooldown
@@ -477,6 +594,18 @@ end
 --================================================
   
 function ChronoBars.Bar_InitStatusTotem (bar, status)
+
+  --Init bar name and icon by spell id or name
+  if (status.id) then
+    status.name = select( 1, GetSpellInfo( status.id ) );
+    status.icon = select( 3, GetSpellInfo( status.id ) );
+  else
+    status.icon = GetSpellTexture( status.name );
+  end
+  
+  --Init bar text
+  status.text = status.name;
+  
 end
 
 function ChronoBars.Bar_UpdateStatusTotem (bar, status, now)
@@ -513,7 +642,7 @@ function ChronoBars.Bar_InitStatusCustom (bar, status)
   
   if (set.custom.trigger == CB.CUSTOM_TRIGGER_SPELL_CAST) then
   
-    --Init bar name and icon by id or spell name
+    --Init bar name and icon by spell id or name
     if (status.id) then
       status.name = select( 1, GetSpellInfo( status.id ) );
       status.icon = select( 3, GetSpellInfo( status.id ) );
@@ -599,7 +728,7 @@ function ChronoBars.Bar_InitStatusAuto (bar, status)
     else rangedName = GetSpellInfo( "75" );
     end
     
-    --Init bar text and icon to match spell
+    --Init bar name and text and icon to match spell
     status.name = rangedName;
     status.text = status.name;
     status.icon = GetSpellTexture( rangedName );

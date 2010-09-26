@@ -430,65 +430,8 @@ function ChronoBars.Bar_ApplySettings (bar, profile, groupId, barId)
   bar.status.active = false;
   bar.status.reactive = false;
   bar.status.visible = true;
-
-  --Init effect status for every name in the comma-separated list
-  bar.effectStatus = {};
-  local effectList = { strsplit( ",", settings.name ) };
-  for i,n in ipairs( effectList ) do
-
-    local setName = strtrim( n );
-    local estatus = {};
-
-    --Check if working with item or spell
-    estatus.isItem =
-    (
-      (settings.type == ChronoBars.EFFECT_TYPE_CD and
-      settings.cd.type == ChronoBars.CD_TYPE_ITEM)
-      or
-      (settings.type == ChronoBars.EFFECT_TYPE_USABLE and
-      settings.usable.type == ChronoBars.USABLE_TYPE_ITEM)
-    );
-
-    --Translate item or spell ID to name and find its icon
-    estatus.id = tonumber( setName );
-    if (estatus.id) then
-
-      --These don't work for spells in player's spellbook if name given
-      if (estatus.isItem) then
-        estatus.name, _, _, _, _, _, _, _, _,
-        estatus.icon = GetItemInfo( setName );
-      else
-        estatus.name, _,
-        estatus.icon = GetSpellInfo( setName );
-      end
-    else
-
-      --These work for spells in player's spellbook with name but not with id
-      estatus.name = setName;
-      if (estatus.isItem)
-      then estatus.icon = GetItemIcon( setName );
-      else estatus.icon = GetSpellTexture( setName );
-      end
-    end
-
-    --Init other vars
-    estatus.text = "";
-    estatus.count = nil;
-    estatus.duration = nil;
-    estatus.expires = nil;
-    estatus.usableCdExpires = nil;
-    
-    --Add to status list
-    table.insert( bar.effectStatus, estatus );
-    
-    --Init bar status to first effect
-    if (i == 1) then
-      bar.status.id = estatus.id;
-      bar.status.name = estatus.name;
-    end
-  end
   
-  --Init status default
+  --Init effect status
   CB.Bar_InitEffect( bar );
 
   --Round graphics to actual pixels
