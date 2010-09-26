@@ -725,6 +725,7 @@ end
 function ChronoBars.ModeRun ()
 
   CB.designMode = false;
+  CB.UpdateSettings();
 
   --Get the character's active profile
   local profile = ChronoBars.GetActiveProfile();
@@ -772,13 +773,17 @@ function ChronoBars.UpdateSettings ()
 
     --Walk profile bars
     for b = 1, table.getn( profile.groups[g].bars ) do
+    
+      --Only add disabled bars in design mode
+      if (profile.groups[g].bars[b].enabled or CB.designMode) then
+      
+        --Add new UI bar
+        local bar = CB.NewBar();
+        CB.AddBar( grp, bar );
 
-      --Add new UI bar
-      local bar = CB.NewBar();
-      CB.AddBar( grp, bar );
-
-      --Apply bar settings
-      CB.Bar_ApplySettings( bar, profile, g, b );
+        --Apply bar settings
+        CB.Bar_ApplySettings( bar, profile, g, b );
+      end
     end
 
     --Apply group settings

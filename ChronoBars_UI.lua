@@ -472,7 +472,7 @@ function ChronoBars.Bar_ApplySettings (bar, profile, groupId, barId)
     end
 
     --Init other vars
-    estatus.text = estatus.name;
+    estatus.text = "";
     estatus.count = nil;
     estatus.duration = nil;
     estatus.expires = nil;
@@ -573,7 +573,7 @@ function ChronoBars.Bar_ApplySettings (bar, profile, groupId, barId)
   end
 
   --Name / id / count text
-  local nameString = ChronoBars.FormatName( bar, settings.name, nil, 2, settings.aura.order );
+  local nameString = ChronoBars.FormatName( bar, bar.status.name, nil, 2, settings.aura.order );
   bar.txtName:SetFont( fontPath, settings.style.fontSize );
   bar.txtName:SetText( nameString );
 

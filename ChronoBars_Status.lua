@@ -508,6 +508,45 @@ end
 --===================================================
 
 function ChronoBars.Bar_InitStatusCustom (bar, status)
+
+  local set = bar.settings;
+  
+  if (set.custom.trigger == CB.CUSTOM_TRIGGER_SPELL_CAST) then
+  
+    --Init bar name and icon by id or spell name
+    if (status.id) then
+      status.name = select( 1, GetSpellInfo( status.id ) );
+      status.icon = select( 3, GetSpellInfo( status.id ) );
+    else
+      status.icon = GetSpellTexture( status.name );
+    end
+  
+  elseif (set.custom.trigger == CB.CUSTOM_TRIGGER_BAR_ACTIVE) then
+     
+    --Walk UI groups
+    local numGroups = table.getn( CB.groups );
+    for g = 1, numGroups do
+      
+      --Walk UI bars
+      local numBars = table.getn( CB.groups[g].bars );
+      for b = 1, numBars do
+      
+        --Look for bar with matching effect name in settings
+        local otherBar = CB.groups[g].bars[b];
+        if (strfind( otherBar.settings.name, status.name )) then
+        
+          --Copy icon from matching bar
+          if (otherBar.status.icon) then
+            status.icon = otherBar.status.icon;
+          end
+        end
+      end
+    end
+  end
+  
+  --Init bar text
+  status.text = status.name;
+  
 end
 
 function ChronoBars.Bar_UpdateStatusCustom (bar, status, now, event, arg1, arg2)
@@ -517,6 +556,7 @@ function ChronoBars.Bar_UpdateStatusCustom (bar, status, now, event, arg1, arg2)
 
   if (set.custom.trigger == CB.CUSTOM_TRIGGER_SPELL_CAST) then
   
+    --Check if spell with matching name was cast
     if (event == "UNIT_SPELLCAST_SUCCEEDED" and arg1 == "player") then
       local spellName = arg2;
       if (spellName == status.name) then
@@ -526,6 +566,7 @@ function ChronoBars.Bar_UpdateStatusCustom (bar, status, now, event, arg1, arg2)
     
   elseif (set.custom.trigger == CB.CUSTOM_TRIGGER_BAR_ACTIVE) then
   
+    --Check if bar with matching name just activated
     if (event == "CHRONOBARS_BAR_ACTIVATED") then
       local otherBar = arg1;
       if (strfind( otherBar.settings.name, status.name )) then
@@ -540,9 +581,6 @@ function ChronoBars.Bar_UpdateStatusCustom (bar, status, now, event, arg1, arg2)
     status.duration = set.custom.duration;
     status.expires = now + set.custom.duration;
   end
-  
-  --Update bar text
-  status.text = status.name;
   
 end
 
@@ -561,36 +599,31 @@ function ChronoBars.Bar_InitStatusAuto (bar, status)
     else rangedName = GetSpellInfo( "75" );
     end
     
-    --Init bar text and icon
-    status.text = rangedName;
+    --Init bar text and icon to match spell
+    status.name = rangedName;
+    status.text = status.name;
     status.icon = GetSpellTexture( rangedName );
-    
-    --Force text to effect name setting
-    bar.settings.name = status.text;
-    status.name = status.text;
  
   elseif (set.auto.type == CB.AUTO_TYPE_MAIN_HAND or set.auto.type == CB.AUTO_TYPE_OFF_HAND) then
   
-    --Get inventory slot
+    --Get inventory slot and init bar name and text
     local slotId;
     
     if (set.auto.type == CB.AUTO_TYPE_MAIN_HAND) then
       slotId = GetInventorySlotInfo( "MainHandSlot" );
-      status.text = "Main Hand";
-    
+      status.name = "Main Hand";
+      status.text = status.name;
+      
     elseif (set.auto.type == CB.AUTO_TYPE_OFF_HAND) then
       slotId = GetInventorySlotInfo( "SecondaryHandSlot" );
-      status.text = "Off Hand";
+      status.name = "Off Hand";
+      status.text = status.name;
     end
     
-    --Set item icon
+    --Init bar icon to match item
     itemId = GetInventoryItemID( "player", slotId );
     status.icon = GetItemIcon( itemId );
-    
-    --Force text to effect name setting
-    bar.settings.name = status.text;
-    status.name = status.text;
-    
+
   end
 end
 
@@ -675,7 +708,7 @@ function ChronoBars.Bar_InitStatusEnchant (bar, status)
     slotId = GetInventorySlotInfo( "SecondaryHandSlot" );
   end
   
-  --Set item icon
+  --Init bar icon to match item
   local itemId = GetInventoryItemID( "player", slotId );
   status.icon = GetItemIcon( itemId );
   
