@@ -92,7 +92,8 @@ ChronoBars.Menu_AuraSettings = {
 
 ChronoBars.Menu_MultiAuraSettings = {
   
-  { text="Aura duration...",   type="numinput",   var="bar|custom.duration", input="Aura duration (seconds):" },
+  { text="Aura type",              type="menu",       menu="root|Menu_AuraType" },
+  { text="Estimate duration...",   type="numinput",   var="bar|custom.duration", input="Estimated aura duration (seconds):" },
 };
 
 ChronoBars.Menu_AuraType = {

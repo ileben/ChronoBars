@@ -312,24 +312,48 @@ end
 
 function ChronoBars.Bar_UpdateStatusMultiAura (bar, status, now, event, ...)
   
-  if (event == "CHRONOBARS_MULTI_AURA_UPDATE") then
+  local set = bar.settings;
+  
+  if (event == "UNIT_AURA") then
+  
+    --Check if right bar for this aura
+    local unitId = select( 1, ... );
+    local unitGuid = UnitGUID( unitId );
+    if (unitGuid ~= bar.targetGuid) then return end;
+    
+    --Update time with true aura info
+    local filter = set.aura.type.."|PLAYER";
+    status.duration, status.expires = select( 6, UnitAura( unitId, status.name, nil, filter ));
+    return;
+    
+  elseif (event == "CHRONOBARS_MULTI_AURA_UPDATE") then
     
     --Check if right bar for this aura
-    local targetGuid, targetName, spellName = select( 1, ... );
-    if (bar.targetGuid ~= targetGuid) then return end;
-    if (status.name ~= spellName) then return end;
+    local unitGuid, unitName, unitId, spellName, auraType = select( 1, ... );
+    if (unitGuid ~= bar.unitGuid) then return end;
+    if (spellName ~= status.name) then return end;
+    if (unitId) then
+      
+      --Update time with true aura info if possible
+      local filter = set.aura.type .. "|PLAYER";
+      status.duration, status.expires = select( 6, UnitAura( unitId, status.name, nil, filter ));
+      
+    else
+      
+      --Update time with estimated value
+      status.duration = bar.settings.custom.duration;
+      status.expires = now + status.duration;
+    end
     
-    --Update time
-    status.duration = bar.settings.custom.duration;
-    status.expires = now + status.duration;
-    status.text = targetName;
+    --Update bar text with name of the unit
+    status.text = unitName;
     return;
     
   elseif (event == "CHRONOBARS_MULTI_AURA_REMOVED") then
   
     --Check if right bar for this aura
-    local targetGuid, targetName, spellName = select( 1, ... );
-    if (bar.targetGuid ~= targetGuid) then return end;
+    local unitGuid, unitName, unitId, spellName = select( 1, ... );
+    if (bar.unitGuid ~= unitGuid) then return end;
     if (status.name ~= spellName) then return end;
     
     --Remove bar from the group
@@ -354,43 +378,29 @@ function ChronoBars.Bar_UpdateStatusMultiAura (bar, status, now, event, ...)
   local spellName = select( 10, ... );
   if (spellName ~= status.name) then return end;
   
-  --Get aura target info
-  local targetName = select( 7, ... );
-  local targetGuid = select( 6, ... );
+  --Check if aura type matches effect
+  local auraType = select( 12, ... );
+  if (auraType == "BUFF"   and set.aura.type ~= CB.AURA_TYPE_BUFF) then return end;
+  if (auraType == "DEBUFF" and set.aura.type ~= CB.AURA_TYPE_DEBUFF) then return end;
   
-  --[[
-  if (applied) then
-    CB.Print( "Applied "..spellName.." on ".. target.." #"..targetGuid );
-  elseif (removed) then
-    CB.Print( "Removed "..spellName.." on ".. target.." #"..targetGuid );
-  elseif (refresh) then
-    CB.Print( "Refresh "..spellName.." on ".. target.." #"..targetGuid );
+  --Get aura type and destination info
+  local unitGuid = select( 6, ... );
+  local unitName = select( 7, ... );
+  local unitFlags = select( 8, ... );
+  
+  --Get UnitID from UnitFlags
+  local unitId;
+  if (bit.band( unitFlags, COMBATLOG_OBJECT_TARGET) > 0) then
+    unitId = "target";
+  elseif (bit.band( unitFlags, COMBATLOG_OBJECT_FOCUS) > 0) then
+    unitId = "focus";
   end
-  --]]
   
   if (applied) then
-  
-    local targetFlags = select( 8, ... );
-    if (bit.band( targetFlags, COMBATLOG_OBJECT_TARGET ) > 0) then
-      CB.Print( "TARGET!" );
-    end
-    
-    local auraIndex = 1;
-    while true do
-
-      --Get aura info by index
-      name, _, icon, count, _, duration, expires, caster, _, _, id =
-        UnitAura( targetGuid, auraIndex, "HARMFUL" );
-      if (not name) then break end;
-      auraIndex = auraIndex + 1;
-      
-      CB.Print( "Aura: "..name );
-    end
-    
     
     --Add new bar to this group
     local auraBar = CB.NewBar();
-    auraBar.targetGuid = targetGuid;
+    auraBar.unitGuid = unitGuid;
     CB.AddBar( bar.group, auraBar );
     
     --Apply same settings as this bar to the new bar
@@ -401,22 +411,24 @@ function ChronoBars.Bar_UpdateStatusMultiAura (bar, status, now, event, ...)
     --Register multi-aura events
     CB.RegisterBarEvent( auraBar, "CHRONOBARS_MULTI_AURA_UPDATE" );
     CB.RegisterBarEvent( auraBar, "CHRONOBARS_MULTI_AURA_REMOVED" );
+    auraBar:RegisterEvent( "UNIT_AURA" );
+    auraBar:SetScript( "OnEvent", ChronoBars.Bar_OnEvent );
     
     --Send update event
     CB.SendBarEvent( auraBar, "CHRONOBARS_MULTI_AURA_UPDATE",
-      targetGuid, targetName, spellName );
+      unitGuid, unitName, unitId, spellName );
     
   elseif (refresh) then
     
     --Broadcast update event
     CB.BroadcastBarEvent( "CHRONOBARS_MULTI_AURA_UPDATE",
-      targetGuid, targetName, spellName );
+      unitGuid, unitName, unitId, spellName );
 
   elseif (removed) then
   
     --Broadcast removed event
     CB.BroadcastBarEvent( "CHRONOBARS_MULTI_AURA_REMOVED",
-      targetGuid, targetName, spellName );
+      unitGuid, unitName, unitId, spellName );
       
   end
   
