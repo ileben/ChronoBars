@@ -370,6 +370,24 @@ function ChronoBars.Bar_UpdateStatusMultiAura (bar, status, now, event, ...)
   
   if (applied) then
   
+    local targetFlags = select( 8, ... );
+    if (bit.band( targetFlags, COMBATLOG_OBJECT_TARGET ) > 0) then
+      CB.Print( "TARGET!" );
+    end
+    
+    local auraIndex = 1;
+    while true do
+
+      --Get aura info by index
+      name, _, icon, count, _, duration, expires, caster, _, _, id =
+        UnitAura( targetGuid, auraIndex, "HARMFUL" );
+      if (not name) then break end;
+      auraIndex = auraIndex + 1;
+      
+      CB.Print( "Aura: "..name );
+    end
+    
+    
     --Add new bar to this group
     local auraBar = CB.NewBar();
     auraBar.targetGuid = targetGuid;
