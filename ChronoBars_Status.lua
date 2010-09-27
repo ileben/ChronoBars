@@ -313,125 +313,139 @@ end
 function ChronoBars.Bar_UpdateStatusMultiAura (bar, status, now, event, ...)
   
   local set = bar.settings;
+  local applied, removed, refresh;
+  local unitGuid, unitName, unitId;
+  local duration, expires;
+  local auraBar;
   
-  if (event == "UNIT_AURA") then
+  if (event == "CHRONOBARS_MULTI_AURA_UPDATE") then
   
     --Check if right bar for this aura
-    local unitId = select( 1, ... );
-    local unitGuid = UnitGUID( unitId );
-    if (unitGuid ~= bar.targetGuid) then return end;
-    
-    --Update time with true aura info
-    local filter = set.aura.type.."|PLAYER";
-    status.duration, status.expires = select( 6, UnitAura( unitId, status.name, nil, filter ));
-    return;
-    
-  elseif (event == "CHRONOBARS_MULTI_AURA_UPDATE") then
-    
-    --Check if right bar for this aura
-    local unitGuid, unitName, unitId, spellName, auraType = select( 1, ... );
+    local unitGuid, unitName, unitId, spellName, duration, expires = select( 1, ... );
     if (unitGuid ~= bar.unitGuid) then return end;
     if (spellName ~= status.name) then return end;
-    if (unitId) then
-      
-      --Update time with true aura info if possible
-      local filter = set.aura.type .. "|PLAYER";
-      status.duration, status.expires = select( 6, UnitAura( unitId, status.name, nil, filter ));
-      
-    else
-      
-      --Update time with estimated value
-      status.duration = bar.settings.custom.duration;
-      status.expires = now + status.duration;
-    end
     
-    --Update bar text with name of the unit
+    --Update time and text
+    status.duration = duration;
+    status.expires = expires;
     status.text = unitName;
     return;
+  
+  elseif (event == "COMBAT_LOG_EVENT_UNFILTERED") then
+  
+    --Check the type of combat event
+    local combatEvent = select( 2, ... );
+    applied = (combatEvent == "SPELL_AURA_APPLIED");
+    removed = (combatEvent == "SPELL_AURA_REMOVED");
+    refresh = (combatEvent == "SPELL_AURA_REFRESH");
+    if (not (applied or removed or refresh)) then return end;
     
-  elseif (event == "CHRONOBARS_MULTI_AURA_REMOVED") then
-  
-    --Check if right bar for this aura
-    local unitGuid, unitName, unitId, spellName = select( 1, ... );
-    if (bar.unitGuid ~= unitGuid) then return end;
-    if (status.name ~= spellName) then return end;
+    --Check if source of event is player
+    local srcGuid = select( 3, ... );
+    if (srcGuid ~= UnitGUID("player")) then return end;
     
-    --Remove bar from the group
-    CB.RemoveBar( bar.group, bar );
-    CB.FreeBar( bar );
-    return;
+    --Check if aura name matches effect
+    local spellName = select( 10, ... );
+    if (spellName ~= status.name) then return end;
     
-  elseif (event ~= "COMBAT_LOG_EVENT_UNFILTERED") then return end;
-  
-  --Check the type of combat event
-  local combatEvent = select( 2, ... );
-  local applied = (combatEvent == "SPELL_AURA_APPLIED");
-  local removed = (combatEvent == "SPELL_AURA_REMOVED");
-  local refresh = (combatEvent == "SPELL_AURA_REFRESH");
-  if (not (applied or removed or refresh)) then return end;
-  
-  --Check if source of event is player
-  local guid = select( 3, ... );
-  if (guid ~= UnitGUID("player")) then return end;
-  
-  --Check if aura name matches effect
-  local spellName = select( 10, ... );
-  if (spellName ~= status.name) then return end;
-  
-  --Check if aura type matches effect
-  local auraType = select( 12, ... );
-  if (auraType == "BUFF"   and set.aura.type ~= CB.AURA_TYPE_BUFF) then return end;
-  if (auraType == "DEBUFF" and set.aura.type ~= CB.AURA_TYPE_DEBUFF) then return end;
-  
-  --Get aura type and destination info
-  local unitGuid = select( 6, ... );
-  local unitName = select( 7, ... );
-  local unitFlags = select( 8, ... );
-  
-  --Get UnitID from UnitFlags
-  local unitId;
-  if (bit.band( unitFlags, COMBATLOG_OBJECT_TARGET) > 0) then
-    unitId = "target";
-  elseif (bit.band( unitFlags, COMBATLOG_OBJECT_FOCUS) > 0) then
-    unitId = "focus";
+    --Check if aura type matches effect
+    local auraType = select( 12, ... );
+    if (auraType == "BUFF"   and set.aura.type ~= CB.AURA_TYPE_BUFF) then return end;
+    if (auraType == "DEBUFF" and set.aura.type ~= CB.AURA_TYPE_DEBUFF) then return end;
+    
+    --Get unit info
+    unitGuid = select( 6, ... );
+    unitName = select( 7, ... );
+    
+    --Get UnitID from UnitFlags
+    local unitFlags = select( 8, ... );
+    if (bit.band( unitFlags, COMBATLOG_OBJECT_TARGET) > 0) then
+      unitId = "target";
+    elseif (bit.band( unitFlags, COMBATLOG_OBJECT_FOCUS) > 0) then
+      unitId = "focus";
+    end
+    
+    if (applied or refresh) then
+      if (unitId) then
+      
+        --Update time with true aura info
+        local filter = set.aura.type .. "|PLAYER";
+        duration, expires = select( 6, UnitAura( unitId, status.name, nil, filter ));
+        if (duration == nil or expires == nil) then return end;
+      else
+        
+        --Update time with estimated value
+        duration = bar.settings.custom.duration;
+        expires = now + status.duration;
+      end
+    end
+    
+  else
+    
+    --Get UnitID
+    if (event == "UNIT_AURA") then
+      unitId = select( 1, ... );
+    elseif (event == "PLAYER_TARGET_CHANGED") then  
+      unitId = "target";
+    elseif (event == "PLAYER_FOCUS_CHANGED") then
+      unitId = "focus";
+    end
+    
+    --Get unit info from UnitID
+    if (unitId == nil) then return end;
+    unitGuid = UnitGUID( unitId );
+    unitName = UnitName( unitId );
+    if (unitGuid == nil) then return end;
+    
+    --Update time with true aura info
+    local filter = set.aura.type .. "|PLAYER";
+    duration, expires = select( 6, UnitAura( unitId, status.name, nil, filter ));
+    if (duration == nil or expires == nil) then return end;
+    
+    --We only use these events for application
+    applied = true;
+    
   end
   
-  if (applied) then
+  --Check for existing bar
+  if (bar.auraBars) then
+    auraBar = bar.auraBars[ unitGuid ];
+  end
+  
+  if (applied or refresh) then
+    if (auraBar == nil) then
     
-    --Add new bar to this group
-    local auraBar = CB.NewBar();
-    auraBar.unitGuid = unitGuid;
-    CB.AddBar( bar.group, auraBar );
-    
-    --Apply same settings as this bar to the new bar
-    local profile = CB.GetActiveProfile();
-    CB.Bar_ApplySettings( auraBar, profile, bar.groupId, bar.barId );
-    CB.Group_ApplySettings( auraBar.group, profile, auraBar.groupId );
-    
-    --Register multi-aura events
-    CB.RegisterBarEvent( auraBar, "CHRONOBARS_MULTI_AURA_UPDATE" );
-    CB.RegisterBarEvent( auraBar, "CHRONOBARS_MULTI_AURA_REMOVED" );
-    auraBar:RegisterEvent( "UNIT_AURA" );
-    auraBar:SetScript( "OnEvent", ChronoBars.Bar_OnEvent );
+      --Add new bar to this group
+      auraBar = CB.NewBar();
+      auraBar.unitGuid = unitGuid;
+      CB.AddBar( bar.group, auraBar );
+      
+      --Apply same settings as this bar to the new bar
+      local profile = CB.GetActiveProfile();
+      CB.Bar_ApplySettings( auraBar, profile, bar.groupId, bar.barId );
+      CB.Group_ApplySettings( auraBar.group, profile, auraBar.groupId );
+      
+      --Register update event
+      CB.RegisterBarEvent( auraBar, "CHRONOBARS_MULTI_AURA_UPDATE" );
+      
+      --Store in a table for fast lookup by guid
+      if (bar.auraBars == nil) then bar.auraBars = {}; end
+      bar.auraBars[ unitGuid ] = auraBar;
+    end
     
     --Send update event
     CB.SendBarEvent( auraBar, "CHRONOBARS_MULTI_AURA_UPDATE",
-      unitGuid, unitName, unitId, spellName );
-    
-  elseif (refresh) then
-    
-    --Broadcast update event
-    CB.BroadcastBarEvent( "CHRONOBARS_MULTI_AURA_UPDATE",
-      unitGuid, unitName, unitId, spellName );
-
+      unitGuid, unitName, unitId, status.name, duration, expires );
+  
   elseif (removed) then
   
-    --Broadcast removed event
-    CB.BroadcastBarEvent( "CHRONOBARS_MULTI_AURA_REMOVED",
-      unitGuid, unitName, unitId, spellName );
-      
-  end
+    --Remove bar from the group
+    if (auraBar ~= nil) then    
+      CB.RemoveBar( auraBar.group, auraBar );
+      CB.FreeBar( auraBar );
+    end
   
+  end
 end
 
 --Cooldown

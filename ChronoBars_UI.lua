@@ -1103,6 +1103,9 @@ function ChronoBars.Bar_EnableEvents (bar)
     
   elseif (set.type == CB.EFFECT_TYPE_MULTI_AURA) then
     bar:RegisterEvent( "COMBAT_LOG_EVENT_UNFILTERED" );
+    bar:RegisterEvent( "UNIT_AURA" );
+    bar:RegisterEvent( "PLAYER_TARGET_CHANGED" );
+    bar:RegisterEvent( "PLAYER_FOCUS_CHANGED" );
 
   elseif (set.type == CB.EFFECT_TYPE_CD) then
     bar:RegisterEvent( "SPELL_UPDATE_COOLDOWN" );
