@@ -376,7 +376,7 @@ function ChronoBars.Bar_UpdateStatusMultiAura (bar, status, now, event, ...)
         
         --Update time with estimated value
         duration = bar.settings.custom.duration;
-        expires = now + status.duration;
+        expires = now + duration;
       end
     end
     
@@ -407,18 +407,23 @@ function ChronoBars.Bar_UpdateStatusMultiAura (bar, status, now, event, ...)
     
   end
   
-  --Check for existing bar
-  if (bar.auraBars) then
-    auraBar = bar.auraBars[ unitGuid ];
+  --Init table for bar lookup by guid
+  if (bar.auraBars == nil) then
+    bar.auraBars = {}
   end
   
+  --Check for existing bar
+  auraBar = bar.auraBars[ unitGuid ];
   if (applied or refresh) then
     if (auraBar == nil) then
     
       --Add new bar to this group
       auraBar = CB.NewBar();
-      auraBar.unitGuid = unitGuid;
       CB.AddBar( bar.group, auraBar );
+      
+      --Store into lookup table by guid
+      auraBar.unitGuid = unitGuid;
+      bar.auraBars[ unitGuid ] = auraBar;
       
       --Apply same settings as this bar to the new bar
       local profile = CB.GetActiveProfile();
@@ -427,10 +432,6 @@ function ChronoBars.Bar_UpdateStatusMultiAura (bar, status, now, event, ...)
       
       --Register update event
       CB.RegisterBarEvent( auraBar, "CHRONOBARS_MULTI_AURA_UPDATE" );
-      
-      --Store in a table for fast lookup by guid
-      if (bar.auraBars == nil) then bar.auraBars = {}; end
-      bar.auraBars[ unitGuid ] = auraBar;
     end
     
     --Send update event
@@ -438,13 +439,14 @@ function ChronoBars.Bar_UpdateStatusMultiAura (bar, status, now, event, ...)
       unitGuid, unitName, unitId, status.name, duration, expires );
   
   elseif (removed) then
-  
-    --Remove bar from the group
     if (auraBar ~= nil) then    
+    
+      --Remove bar from the group
       CB.RemoveBar( auraBar.group, auraBar );
       CB.FreeBar( auraBar );
+      bar.auraBars[ unitGuid ] = nil;
+      
     end
-  
   end
 end
 
