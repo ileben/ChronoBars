@@ -94,6 +94,7 @@ ChronoBars.Menu_MultiAuraSettings = {
   
   { text="Aura type",              type="menu",       menu="root|Menu_AuraType" },
   { text="Estimate duration...",   type="numinput",   var="bar|custom.duration", input="Estimated aura duration (seconds):" },
+  { text="Only if cast by self",   type="toggle",     var="bar|aura.byPlayer" },
 };
 
 ChronoBars.Menu_AuraType = {

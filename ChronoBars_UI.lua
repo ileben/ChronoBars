@@ -264,54 +264,92 @@ end
 --Bar and Group hierarchy
 --================================================================================
 
-function ChronoBars.AddGroup (grp)
+function ChronoBars.UI_AddGroup ()
+  local grp = CB.NewGroup();
   table.insert( CB.groups, grp );
   grp:Show();
+  return grp;
 end
 
-function ChronoBars.AddBar (grp, bar)
+function ChronoBars.UI_AddBar (grp)
+  local bar = CB.NewBar();
   table.insert( grp.bars, bar );
   bar.group = grp;
   bar:Show();
+  return bar;
 end
 
-function ChronoBars.RemoveGroup (grp)
+function ChronoBars.UI_RemoveGroup (grp)
   local numGroups = table.getn( CB.groups );
   for g=1,numGroups do
     if (CB.groups[g] == grp) then
-      CB.RemoveAllBars( grp );
-      table.remove( CB.groups, g );
+      CB.UI_RemoveAllBars( grp );
       grp:Hide();
+      CB.FreeGroup( grp );
+      table.remove( CB.groups, g );
       return;
     end
   end
 end
 
-function ChronoBars.RemoveBar (grp, bar)
-  local numBars = table.getn( grp.bars );
+function ChronoBars.UI_RemoveBar (bar)
+  local numBars = table.getn( bar.group.bars );
   for b=1,numBars do
-    if (grp.bars[b] == bar) then
-      table.remove( grp.bars, b );
+    if (bar.group.bars[b] == bar) then
       bar:Hide();
+      CB.FreeBar( bar );
+      table.remove( bar.group.bars, b );
       return;
     end
   end
 end
 
-function ChronoBars.RemoveAllGroups ()
-  local numGroups = table.getn( CB.groups );
-  for g=numGroups,1,-1 do
-    CB.RemoveAllBars( CB.groups[g] );
-    CB.groups[ g ]:Hide();
-    table.remove( CB.groups );
-  end
-end
-
-function ChronoBars.RemoveAllBars (grp)
+function ChronoBars.UI_RemoveAllBars (grp)
   local numBars = table.getn( grp.bars );
   for b=numBars,1,-1 do
     grp.bars[ b ]:Hide();
+    CB.FreeBar( grp.bars[ b ] );
     table.remove( grp.bars );
+  end
+end
+
+function ChronoBars.UI_RemoveAllGroups ()
+
+  local numGroups = table.getn( CB.groups );
+  for g=numGroups,1,-1 do
+  
+    local numBars = table.getn( CB.groups[g].bars );
+    for b=numBars,1,-1 do
+    
+      CB.groups[ g ].bars[ b ]:Hide();
+      table.remove( CB.groups[g].bars );
+    end
+    
+    CB.groups[ g ]:Hide();
+    table.remove( CB.groups );
+  end
+  
+  CB.FreeAllBars();
+  CB.FreeAllGroups();
+end
+
+function ChronoBars.UI_RemoveBarWhenInactive (bar)
+  bar.removeInactive = true;
+end
+
+function ChronoBars.UI_RemoveInactiveBars (grp)
+  local numBars = table.getn( grp.bars );
+  for b=numBars,1,-1 do
+  
+    local bar = grp.bars[b];
+    if ((not bar.status.active)
+    and (not bar.status.visible)
+    and bar.removeInactive) then
+  
+      CB.UI_RemoveBar( bar );
+      bar.removeInactive = false;
+      
+    end
   end
 end
 
@@ -428,7 +466,6 @@ function ChronoBars.Bar_ApplySettings (bar, profile, groupId, barId)
   bar.status.left = 0.0;
   bar.status.ratio = 0.0;
   bar.status.active = false;
-  bar.status.reactive = false;
   bar.status.visible = true;
   
   --Init effect status
@@ -1072,6 +1109,9 @@ function ChronoBars.Group_OnUpdate (grp)
     CB.Group_DisableUpdate( grp );
   end
   
+  --Check if any inactive bars should be removed
+  CB.UI_RemoveInactiveBars( grp );
+  
 end
 
 -------------------------------------------------------------
@@ -1104,8 +1144,11 @@ function ChronoBars.Bar_EnableEvents (bar)
   elseif (set.type == CB.EFFECT_TYPE_MULTI_AURA) then
     bar:RegisterEvent( "COMBAT_LOG_EVENT_UNFILTERED" );
     bar:RegisterEvent( "UNIT_AURA" );
+    bar:RegisterEvent( "UNIT_TARGET" );
     bar:RegisterEvent( "PLAYER_TARGET_CHANGED" );
     bar:RegisterEvent( "PLAYER_FOCUS_CHANGED" );
+    bar:RegisterEvent( "UPDATE_MOUSEOVER_UNIT" );
+    CB.RegisterBarEvent( bar, "CHRONOBARS_BAR_DEACTIVATED" );
 
   elseif (set.type == CB.EFFECT_TYPE_CD) then
     bar:RegisterEvent( "SPELL_UPDATE_COOLDOWN" );
@@ -1155,6 +1198,7 @@ function ChronoBars.Bar_DisableEvents (bar)
   bar:UnregisterEvent( "UNIT_AURA" );
   bar:UnregisterEvent( "UNIT_TARGET" );
   bar:UnregisterEvent( "UNIT_PET" );
+  bar:UnregisterEvent( "UPDATE_MOUSEOVER_UNIT" );
   bar:UnregisterEvent( "PLAYER_TARGET_CHANGED" );
   bar:UnregisterEvent( "PLAYER_FOCUS_CHANGED" );
   bar:UnregisterEvent( "PLAYER_TOTEM_UPDATE" );
@@ -1170,8 +1214,8 @@ function ChronoBars.Bar_DisableEvents (bar)
   bar:UnregisterEvent( "COMBAT_LOG_EVENT_UNFILTERED" );
   CB.UnregisterBarEvent( bar, "CHRONOBARS_FORCE_UPDATE" );
   CB.UnregisterBarEvent( bar, "CHRONOBARS_BAR_ACTIVATED" );
+  CB.UnregisterBarEvent( bar, "CHRONOBARS_BAR_DEACTIVATED" );
   CB.UnregisterBarEvent( bar, "CHRONOBARS_MULTI_AURA_UPDATE" );
-  CB.UnregisterBarEvent( bar, "CHRONOBARS_MULTI_AURA_REMOVED" );
   CB.Bar_DisableEffectTimer( bar );
 end
 
@@ -1187,7 +1231,7 @@ function ChronoBars.Bar_EnableEffectTimer (bar)
     bar.timer.anim:SetDuration( CB.BLACKLIST_TIMER_INTERVAL );
     
     bar.timer.group:SetScript( "OnLoop",
-      function (self) CB.Bar_OnEvent( self.bar, "CHRONOBARS_FORCE_UPDATE" ) end);
+      function (self) CB.SendBarEvent( self.bar, "CHRONOBARS_FORCE_UPDATE" ) end);
   end
   
   if (not bar.timer.group:IsPlaying()) then
@@ -1196,7 +1240,7 @@ function ChronoBars.Bar_EnableEffectTimer (bar)
 end
 
 function ChronoBars.Bar_DisableEffectTimer (bar)
-  if (not (bar.timer == nil)) then
+  if (bar.timer ~= nil) then
     bar.timer.group:Stop();
   end
 end
@@ -1240,11 +1284,6 @@ function ChronoBars.BroadcastBarEvent (event, ...)
     --Walk UI bars
     local numBars = table.getn( CB.groups[g].bars );
     for b = 1, numBars do
-    
-      --Check if a bar was removed by this event
-      if (b > table.getn( CB.groups[g].bars )) then
-        break;
-      end
     
       --Send custom event to bar if registered
       if (CB.groups[g].bars[b].events[ event ]) then

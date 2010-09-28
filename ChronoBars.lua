@@ -756,10 +756,8 @@ function ChronoBars.UpdateSettings ()
   --Update pixel-perfect state
   CB.FindPixelRatio();
   
-  --Remove and release all groups and bars
-  CB.RemoveAllGroups();
-  CB.FreeAllGroups();
-  CB.FreeAllBars();
+  --Remove all groups and bars
+  CB.UI_RemoveAllGroups();
 
   --Get the character's active profile
   local profile = CB.GetActiveProfile();
@@ -768,8 +766,7 @@ function ChronoBars.UpdateSettings ()
   for g = 1, table.getn( profile.groups ) do
 
     --Add new UI group
-    local grp = CB.NewGroup();
-    CB.AddGroup( grp );
+    local grp = CB.UI_AddGroup();
 
     --Walk profile bars
     for b = 1, table.getn( profile.groups[g].bars ) do
@@ -778,8 +775,7 @@ function ChronoBars.UpdateSettings ()
       if (profile.groups[g].bars[b].enabled or CB.designMode) then
       
         --Add new UI bar
-        local bar = CB.NewBar();
-        CB.AddBar( grp, bar );
+        local bar = CB.UI_AddBar( grp );
 
         --Apply bar settings
         CB.Bar_ApplySettings( bar, profile, g, b );

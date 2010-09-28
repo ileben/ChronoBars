@@ -117,17 +117,20 @@ function ChronoBars.Bar_UpdateEffect (bar, now, event, ...)
     end
   end
   
-  --Check if bar active and if it just activated
+  --Check if bar active and if the active status changed
   local newActive = (bar.status.duration ~= nil and bar.status.expires ~= nil);
-  bar.status.reactive = (newActive and (not bar.status.active));
+  local reActive = (newActive and (not bar.status.active));
+  local deActive = ((not newActive) and bar.status.active);
   bar.status.active = newActive;
   
-  --Let other bars know that this bar just activated
-  if (bar.status.reactive
-  and set.type ~= CB.EFFECT_TYPE_CUSTOM
-  and set.type ~= CB.EFFECT_TYPE_MULTI_AURA)
-  then
+  --Let other bars know if this bar just activated
+  if (reActive and set.type ~= CB.EFFECT_TYPE_CUSTOM) then
     CB.BroadcastBarEvent( "CHRONOBARS_BAR_ACTIVATED", bar );
+  end
+  
+  --Let other bars know if this bar just deactivated
+  if (deActive) then
+    CB.BroadcastBarEvent( "CHRONOBARS_BAR_DEACTIVATED", bar );
   end
   
 end
@@ -150,6 +153,7 @@ function ChronoBars.Bar_UpdateTime (bar, now)
       bar.status.duration = nil;
       bar.status.expires = nil;
       bar.status.active = false;
+      CB.BroadcastBarEvent( "CHRONOBARS_BAR_DEACTIVATED", bar );
 
     else
 
@@ -297,6 +301,16 @@ end
 
 function ChronoBars.Bar_InitStatusMultiAura (bar, status)
 
+  --Init guid lookup table
+  if (bar.auraBars == nil) then
+    bar.auraBars = {}
+  end
+  
+  --Clear guid lookup table
+  for k,v in pairs( bar.auraBars ) do
+    bar.auraBars[ k ] = nil;
+  end
+  
   --Init bar name and icon by spell id or name
   if (status.id) then
     status.name = select( 1, GetSpellInfo( status.id ) );
@@ -316,19 +330,27 @@ function ChronoBars.Bar_UpdateStatusMultiAura (bar, status, now, event, ...)
   local applied, removed, refresh;
   local unitGuid, unitName, unitId;
   local duration, expires;
-  local auraBar;
   
   if (event == "CHRONOBARS_MULTI_AURA_UPDATE") then
-  
-    --Check if right bar for this aura
-    local unitGuid, unitName, unitId, spellName, duration, expires = select( 1, ... );
-    if (unitGuid ~= bar.unitGuid) then return end;
-    if (spellName ~= status.name) then return end;
-    
+     
     --Update time and text
+    local unitGuid, unitName, unitId, spellName, duration, expires = select( 1, ... );
     status.duration = duration;
     status.expires = expires;
     status.text = unitName;
+    return;
+    
+  elseif (event == "CHRONOBARS_BAR_DEACTIVATED") then
+  
+    --Check if deactivated bar belongs to this multi-aura bar
+    local auraBar = select( 1, ... );
+    if (auraBar.multiBar == bar) then
+      
+      --Remove bar from the guid lookup table
+      bar.auraBars[ auraBar.unitGuid ] = nil;
+      auraBar.unitGuid = nil;
+      auraBar.multiBar = nil;
+    end
     return;
   
   elseif (event == "COMBAT_LOG_EVENT_UNFILTERED") then
@@ -365,19 +387,31 @@ function ChronoBars.Bar_UpdateStatusMultiAura (bar, status, now, event, ...)
       unitId = "focus";
     end
     
-    if (applied or refresh) then
-      if (unitId) then
+    if (removed) then
+    
+      --Check for existing bar
+      local auraBar = bar.auraBars[ unitGuid ];
+      if (auraBar ~= nil) then
       
-        --Update time with true aura info
-        local filter = set.aura.type .. "|PLAYER";
-        duration, expires = select( 6, UnitAura( unitId, status.name, nil, filter ));
-        if (duration == nil or expires == nil) then return end;
-      else
-        
-        --Update time with estimated value
-        duration = bar.settings.custom.duration;
-        expires = now + duration;
+        --Send update event
+        CB.SendBarEvent( auraBar, "CHRONOBARS_MULTI_AURA_UPDATE",
+          unitGuid, unitName, unitId, status.name, nil, nil );
       end
+      return;
+      
+    elseif (unitId) then
+    
+      --Update time with true aura info
+      local filter = set.aura.type;
+      if (set.aura.byPlayer) then filter = filter.."|PLAYER"; end
+      duration, expires = select( 6, UnitAura( unitId, status.name, nil, filter ));
+      if (duration == nil or expires == nil) then return end;
+      
+    else
+      
+      --Update time with estimated value
+      duration = bar.settings.custom.duration;
+      expires = now + duration;
     end
     
   else
@@ -385,20 +419,25 @@ function ChronoBars.Bar_UpdateStatusMultiAura (bar, status, now, event, ...)
     --Get UnitID
     if (event == "UNIT_AURA") then
       unitId = select( 1, ... );
-    elseif (event == "PLAYER_TARGET_CHANGED") then  
+    elseif (event == "UNIT_TARGET") then
+      if (select( 1, ... ) == "player") then return end;
+      unitId = select( 1, ... ) .. "target";
+    elseif (event == "PLAYER_TARGET_CHANGED") then
       unitId = "target";
     elseif (event == "PLAYER_FOCUS_CHANGED") then
       unitId = "focus";
-    end
+    elseif (event == "UPDATE_MOUSEOVER_UNIT") then
+      unitId = "mouseover";
+    else return end
     
     --Get unit info from UnitID
-    if (unitId == nil) then return end;
     unitGuid = UnitGUID( unitId );
     unitName = UnitName( unitId );
     if (unitGuid == nil) then return end;
     
     --Update time with true aura info
-    local filter = set.aura.type .. "|PLAYER";
+    local filter = set.aura.type;
+    if (set.aura.byPlayer) then filter = filter.."|PLAYER"; end
     duration, expires = select( 6, UnitAura( unitId, status.name, nil, filter ));
     if (duration == nil or expires == nil) then return end;
     
@@ -407,47 +446,32 @@ function ChronoBars.Bar_UpdateStatusMultiAura (bar, status, now, event, ...)
     
   end
   
-  --Init table for bar lookup by guid
-  if (bar.auraBars == nil) then
-    bar.auraBars = {}
+  --Check for existing bar and create new if missing
+  local auraBar = bar.auraBars[ unitGuid ];
+  if (auraBar == nil) then
+    
+    --Add new bar to this group
+    auraBar = CB.UI_AddBar( bar.group, auraBar );
+    CB.UI_RemoveBarWhenInactive( auraBar );
+    
+    --Store into guid lookup table
+    auraBar.multiBar = bar;
+    auraBar.unitGuid = unitGuid;
+    bar.auraBars[ unitGuid ] = auraBar;
+    
+    --Apply same settings as this bar to the new bar
+    local profile = CB.GetActiveProfile();
+    CB.Bar_ApplySettings( auraBar, profile, bar.groupId, bar.barId );
+    CB.Group_ApplySettings( auraBar.group, profile, auraBar.groupId );
+    
+    --Register update event
+    CB.RegisterBarEvent( auraBar, "CHRONOBARS_MULTI_AURA_UPDATE" );
   end
+
+  --Send update event
+  CB.SendBarEvent( auraBar, "CHRONOBARS_MULTI_AURA_UPDATE",
+    unitGuid, unitName, unitId, status.name, duration, expires );
   
-  --Check for existing bar
-  auraBar = bar.auraBars[ unitGuid ];
-  if (applied or refresh) then
-    if (auraBar == nil) then
-    
-      --Add new bar to this group
-      auraBar = CB.NewBar();
-      CB.AddBar( bar.group, auraBar );
-      
-      --Store into lookup table by guid
-      auraBar.unitGuid = unitGuid;
-      bar.auraBars[ unitGuid ] = auraBar;
-      
-      --Apply same settings as this bar to the new bar
-      local profile = CB.GetActiveProfile();
-      CB.Bar_ApplySettings( auraBar, profile, bar.groupId, bar.barId );
-      CB.Group_ApplySettings( auraBar.group, profile, auraBar.groupId );
-      
-      --Register update event
-      CB.RegisterBarEvent( auraBar, "CHRONOBARS_MULTI_AURA_UPDATE" );
-    end
-    
-    --Send update event
-    CB.SendBarEvent( auraBar, "CHRONOBARS_MULTI_AURA_UPDATE",
-      unitGuid, unitName, unitId, status.name, duration, expires );
-  
-  elseif (removed) then
-    if (auraBar ~= nil) then    
-    
-      --Remove bar from the group
-      CB.RemoveBar( auraBar.group, auraBar );
-      CB.FreeBar( auraBar );
-      bar.auraBars[ unitGuid ] = nil;
-      
-    end
-  end
 end
 
 --Cooldown
