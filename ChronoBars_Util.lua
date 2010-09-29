@@ -9,6 +9,42 @@ Author: Ivan Leben
 
 local CB = ChronoBars;
 
+--Clear table contents
+--=========================================================
+
+function ChronoBars.Util_ClearTable (t)
+  while (table.getn( t ) > 0) do
+    table.remove( t );
+  end
+end
+
+function ChronoBars.Util_ClearTableKeys (t)
+  for k,v in pairs(t) do
+    t[ k ] = nil;
+  end
+end
+
+--Capture list into table without creating a new one
+--=========================================================
+
+function ChronoBars.Util_CaptureList (t, ...)
+
+  --Get first value in the list
+  local i = 1;
+  local v = select( i, ... );
+  
+  --Loop until end of list
+  while v ~= nil do
+  
+    --Insert value at the end of the table
+    table.insert( t, v );
+  
+    --Get next value
+    i = i + 1;
+    v = select( i, ... );
+  end
+end
+
 
 --Spell icon cache
 --========================================================

@@ -645,7 +645,7 @@ function ChronoBars.Bar_ApplySettings (bar, profile, groupId, barId)
 
   --Enable for mouse events
   bar:EnableMouse( true );
-   
+  
   --Update bounds of children frames
   CB.Bar_UpdateChildBounds( bar );
   
@@ -656,7 +656,6 @@ function ChronoBars.Bar_ApplySettings (bar, profile, groupId, barId)
   end
   
   bar.boundsUpdater:SetScript( "OnUpdate", ChronoBars.Bar_OnUpdateBounds );
-  
 end
 
 function ChronoBars.Bar_OnUpdateBounds (self)
@@ -667,18 +666,20 @@ end
 function ChronoBars.Bar_UpdateChildBounds (bar)
   
   local l=nil; local r=nil; local b=nil; local t=nil;
-  local children = { bar:GetRegions() };-- + bar:GetChildren() !!!
-  local numChildren = table.getn(children);
-  --CB.Print( "numChildren "..numChildren );
+  if (bar.children == nil) then bar.children = {} end;
+  CB.Util_ClearTable( bar.children );
+  CB.Util_CaptureList( bar.children, bar:GetRegions() );
+  --CB.Util_CaptureList( bar.children, bar:GetChildren() );
   
+  local numChildren = table.getn( bar.children );
   for c=1,numChildren do
     
-    if (children[c]:IsShown()) then
+    if (bar.children[c]:IsShown()) then
     
-      local cl = children[c]:GetLeft() - bar:GetLeft();
-      local cr = children[c]:GetRight() - bar:GetLeft();
-      local ct = children[c]:GetTop() - bar:GetBottom();
-      local cb = children[c]:GetBottom() - bar:GetBottom();
+      local cl = bar.children[c]:GetLeft() - bar:GetLeft();
+      local cr = bar.children[c]:GetRight() - bar:GetLeft();
+      local ct = bar.children[c]:GetTop() - bar:GetBottom();
+      local cb = bar.children[c]:GetBottom() - bar:GetBottom();
       
       if (l==nil or cl < l) then l = cl; end
       if (r==nil or cr > r) then r = cr; end

@@ -13,21 +13,38 @@ function ChronoBars.Bar_InitEffect (bar)
 
   local set = bar.settings;
   
-  bar.effectStatus = {};
-  local effectList = { strsplit( ",", set.name ) };
-  for i,n in ipairs( effectList ) do
-    local effectName = strtrim( n );
+  --Create new effect names table if missing
+  if (bar.effectNames == nil) then
+    bar.effectNames = {};
+  end
+  
+  --Create new effects table if missing
+  if (bar.effectStatus == nil) then
+    bar.effectStatus = {};
+  end
+
+  --Get the list of effect names
+  CB.Util_ClearTable( bar.effectNames );
+  CB.Util_CaptureList( bar.effectNames, strsplit( ",", set.name ) );
+  bar.numEffectStatus = table.getn( bar.effectNames );
+  
+  --Walk the list of effects
+  for i=1,bar.numEffectStatus do
     
-    --Add new effect status to list
-    local status = {};
-    status.name = effectName;
-    status.id = tonumber( effectName );
+    --Add new effect status if missing
+    if (bar.effectStatus[ i ] == nil) then
+      bar.effectStatus[ i ] = {};
+    end
+    
+    --Reset effect status
+    local status = bar.effectStatus[ i ];
+    status.name = strtrim( bar.effectNames[ i ] );
+    status.id = tonumber( status.name );
     status.text = "";
     status.count = nil;
     status.duration = nil;
     status.expires = nil;
     status.usableCdExpires = nil;
-    table.insert( bar.effectStatus, status );
     
     --Init effect status
     local status = bar.effectStatus[i];
@@ -74,7 +91,7 @@ function ChronoBars.Bar_UpdateEffect (bar, now, event, ...)
   local maxExpires = nil;
 
   --Walk the list of effects
-  for i=1,table.getn( bar.effectStatus ) do
+  for i=1,bar.numEffectStatus do
   
     --Update effect status
     local status = bar.effectStatus[i];
