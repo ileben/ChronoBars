@@ -13,4 +13,4 @@ ChronoBars_UI.lua
 ChronoBars_Status.lua
 ChronoBars_Options.lua
 ChronoBars_GlobalOptions.lua
-
+ChronoBars_Util.lua
