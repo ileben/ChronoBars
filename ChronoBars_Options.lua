@@ -288,6 +288,7 @@ ChronoBars.Menu_BarCopy = {
   { text="Font",                     type="value", var="temp|font",        value="bar|style.lsmFontHandle" },
   { text="Font Size",                type="value", var="temp|fontSize",    value="bar|style.fontSize" },
   { text="Visibility",               type="value", var="temp|visibility",  value="bar|style.visibility" },
+  { text="Animation",                type="value", var="temp|anim",        value="bar|style.anim" },
   { text="Entire Style",             type="value", var="temp|style",       value="bar|style" },
   { text="Style Except Front Color", type="value", var="temp|style",       value="bar|style" },
   { text="All Bar Settings",         type="func",  func="MenuFunc_CopyBar" },
@@ -303,6 +304,7 @@ ChronoBars.Menu_BarPaste = {
   { text="Font",                     type="value", var="bar|style.lsmFontHandle", value="temp|font" },
   { text="Font Size",                type="value", var="bar|style.fontSize",      value="temp|fontSize" },
   { text="Visibility",               type="value", var="bar|style.visibility",    value="temp|visibility" },
+  { text="Animation",                type="value", var="bar|style.anim",          value="temp|anim" },
   { text="Entire Style",             type="value", var="bar|style",               value="temp|style" },
   { text="Style Except Front Color", type="func",  func="MenuFunc_PasteStyleExceptFg" },
   { text="All Bar Settings",         type="func",  func="MenuFunc_PasteBar" },
@@ -318,6 +320,7 @@ ChronoBars.Menu_BarCopyToAll = {
   { text="Font",                     type="func",  func="MenuFunc_CopyToAll", value="const|bar|style.lsmFontHandle" },
   { text="Font Size",                type="func",  func="MenuFunc_CopyToAll", value="const|bar|style.fontSize" },
   { text="Visibility",               type="func",  func="MenuFunc_CopyToAll", value="const|bar|style.visibility" },
+  { text="Animation",                type="func",  func="MenuFunc_CopyToAll", value="const|bar|style.anim" },
   { text="Entire Style",             type="func",  func="MenuFunc_CopyToAll", value="const|bar|style" },
   { text="Style Except Front Color", type="func",  func="MenuFunc_CopyToAll", value="const|styleExceptFg" },
   { text="All Bar Settings",         type="func",  func="MenuFunc_CopyToAll", value="const|all" },
@@ -332,11 +335,12 @@ ChronoBars.Menu_Visibility = {
 
 ChronoBars.Menu_Animation = {
 
-  { text="Slide up when activated",   type="toggle",  var="bar|style.anim.up" },
-  { text="Slide down when consumed",  type="toggle",  var="bar|style.anim.down" },
-  { text="Blink when running out",    type="toggle",  var="bar|style.anim.blink" },
-  { text="Blink when usable",         type="toggle",  var="bar|style.anim.blinkUsable" },
-  { text="Fade out when expired",     type="toggle",  var="bar|style.anim.fade" },
+  { text="Slide up when activated",             type="toggle",  var="bar|style.anim.up" },
+  { text="Slide down when consumed",            type="toggle",  var="bar|style.anim.down" },
+  { text="Blink slowly when running out",       type="toggle",  var="bar|style.anim.blinkSlow" },
+  { text="Blink quickly when almost expired",   type="toggle",  var="bar|style.anim.blinkFast" },
+  { text="Blink when usable",                   type="toggle",  var="bar|style.anim.blinkUsable" },
+  { text="Fade out when expired",               type="toggle",  var="bar|style.anim.fade" },
 };
 
 ChronoBars.Menu_New = {

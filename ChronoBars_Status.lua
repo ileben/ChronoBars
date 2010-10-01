@@ -130,7 +130,12 @@ function ChronoBars.Bar_UpdateEffect (bar, now, event, ...)
       bar.status.text = status.text;
       bar.status.duration = status.duration;
       bar.status.expires = status.expires;
-      maxExpires = status.expires;
+      
+      --Update maximum expiration time
+      if (status.expires ~= nil)
+      then maxExpires = status.expires;
+      else maxExpires = 0;
+      end
     end
   end
   

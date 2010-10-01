@@ -825,19 +825,33 @@ function ChronoBars.Bar_UpdateUI (bar, now, interval)
 
   --Find if should blink
   local canBlink = false;
+  local blinkSpeed = 0.0;
   if (bar.status.active) then
   
-    --Check for infinite duration
-    if (bar.status.duration == 0) then
-      canBlink = set.style.anim.blinkUsable;
-    else
+    --Check if usability blinking applies
+    if (set.type == CB.EFFECT_TYPE_USABLE) then
+      if (set.style.anim.blinkUsable) then
+        canBlink = true;
+        blinkSpeed = 3.0;
+      end
+    
+    --Check if bar has infinite duration
+    elseif (bar.status.duration > 0) then
 
-      --Find start time of fading (half bar or 5 seconds if bar longer)
-      local blinkStart = 0.5 * bar.status.duration
-      if (blinkStart > 5) then blinkStart = 5 end;
+      --Find time to start blinking (half bar or 5 seconds if bar longer)
+      local blinkSlow = 0.5 * bar.status.duration
+      if (blinkSlow > 5) then blinkSlow = 5 end;
+      local blinkFast = 1.0;
 
       --Blink when bar time below threshold
-      canBlink = set.style.anim.blink and (bar.status.left <= blinkStart);
+      if (set.style.anim.blinkFast and bar.status.left <= blinkFast) then
+        canBlink = true;
+        blinkSpeed = 10.0;
+        
+      elseif (set.style.anim.blinkSlow and bar.status.left <= blinkSlow) then
+        canBlink = true;
+        blinkSpeed = 3.0;
+      end
     end
   end
 
@@ -845,13 +859,16 @@ function ChronoBars.Bar_UpdateUI (bar, now, interval)
   if (canBlink) then
 
     --Alpha is absolute of [1,-1] for back-and-forth animation
-    local dBlink = interval * 3.0;
+    local dBlink = interval * blinkSpeed;
     bar.anim.blink = bar.anim.blink - dBlink;
     if (bar.anim.blink < -1.0) then
       bar.anim.blink = 1;
     end
-  else
-    bar.anim.blink = 0;
+  
+  --Infinite bar blinks full portion, other bars blink expired portion
+  elseif (bar.status.duration == 0)
+  then bar.anim.blink = 1;
+  else bar.anim.blink = 0;
   end
 
   --Animate fading (fade out when bar expires)
@@ -903,20 +920,19 @@ function ChronoBars.Bar_UpdateUI (bar, now, interval)
     bar.fg:SetPoint( "BOTTOMLEFT", p + offW, p );
   end
 
-  --Set front alpha to match blink
-  local blinkA = math.abs( bar.anim.blink );
+  --Get front color and blink alpha
   local f = set.style.fgColor;
-  local fa = 0.5 * blinkA * f.a;
+  local blinkA = math.abs( bar.anim.blink );
 
   --Apply blink to full portion if no-duration, exhausted portion otherwise
   if (bar.status.duration == 0) then
     bar.fg:SetGradientAlpha( "HORIZONTAL",
-      f.r,f.g,f.b, fa,
-      f.r,f.g,f.b, fa );
+      f.r,f.g,f.b, blinkA * f.a,
+      f.r,f.g,f.b, blinkA * f.a );
   else
     bar.fgBlink:SetGradientAlpha( "HORIZONTAL",
-      f.r,f.g,f.b, fa,
-      f.r,f.g,f.b, fa );
+      f.r,f.g,f.b, 0.75 * blinkA * f.a,
+      f.r,f.g,f.b, 0.75 * blinkA * f.a );
   end
 
   --Set entire bar alpha to match fade
@@ -928,7 +944,7 @@ function ChronoBars.Bar_UpdateUI (bar, now, interval)
   end
 
   --Set time text if active 
-  if (bar.status.active)
+  if (bar.status.active and bar.status.duration > 0)
   then bar.txtTime:SetText( CB.FormatTime( bar, bar.status.left ));
   else bar.txtTime:SetText( "" );
   end

@@ -11,7 +11,7 @@ ChronoBars = {}
 local CB = ChronoBars;
 
 ChronoBars.VERSION = "1.9";
-ChronoBars.UPGRADE_LIST = { "1.2","1.3","1.4","1.5","1.6","1.8", "1.9" };
+ChronoBars.UPGRADE_LIST = { "1.2","1.3","1.4","1.5","1.6","1.8", "1.9", "1.10" };
 
 -- Define constants
 --==============================================================
@@ -156,7 +156,8 @@ ChronoBars.DEFAULT_BAR = {
                   anim  = {
                             up = true,
                             down = true,
-                            blink = true,
+                            blinkSlow = true,
+                            blinkFast = true,
                             blinkUsable = true,
                             fade = true,
                           },
@@ -447,8 +448,64 @@ end
 function ChronoBars.UpgradeChar_1_9 ()
 end
 
+-- 1.10
+
+function ChronoBars.Upgrade_1_10 ()
+
+  for pname, profile in pairs( ChronoBars_Settings.profiles ) do
+    for g=1,table.getn( profile.groups ) do
+      local grp = profile.groups[g];
+
+      for b=1,table.getn( profile.groups[g].bars ) do
+        local bar = profile.groups[g].bars[b];
+
+          if (bar.style.anim.blinkSlow == nil) then
+            bar.style.anim.blinkSlow = bar.style.anim.blink;
+          end
+          
+          if (bar.style.anim.blinkFast == nil) then
+            bar.style.anim.blinkFast = CB.DEFAULT_BAR.style.anim.blinkFast;
+          end
+          
+        end
+    end
+  end
+end
+
+function ChronoBars.UpgradeChar_1_10 ()
+end
 
 -- Check for upgrade
+
+function ChronoBars.CompareVersions (old, new)
+
+  --Return false if both version the same
+  if (new == old) then return false end
+  
+  --Walk through all the numbers in the version
+  local newNumbers = { strsplit( ".", new ) };
+  local oldNumbers = { strsplit( ".", old ) };
+  for i=1,table.getn(newNumbers) do
+    
+    --New version is bigger if all previous numbers same
+    --and new version has additional numbers to old one
+    if (i > table.getn(oldNumbers)) then return true end
+    
+    --Convert both strings to numbers
+    local newNum = tonumber( newNumbers[i] );
+    local oldNum = tonumber( oldNumbers[i] );
+    
+    --New version is bigger or smaller if
+    --current number is bigger or smaller
+    if (newNum > oldNum) then return true end
+    if (newNum < oldNum) then return false end
+    
+  end
+  
+  --Old version is bigger if all previous numbers same
+  --and old version has additional numbers to new one
+  return false;
+end
 
 function ChronoBars.CheckSettings()
    
@@ -478,9 +535,9 @@ function ChronoBars.CheckSettings()
   for i=1,table.getn( ChronoBars.UPGRADE_LIST ) do
     
     local nextVersion = ChronoBars.UPGRADE_LIST[i];
-    if (curVersion < nextVersion) then
-      
-      ChronoBars.Print( "Upgrading settings from version "
+    if (CB.CompareVersions( curVersion, nextVersion )) then
+
+      CB.Print( "Upgrading settings from version "
         ..curVersion.." to "..nextVersion );
       
       local verString = string.gsub( nextVersion, "[.]", "_" );
@@ -488,7 +545,7 @@ function ChronoBars.CheckSettings()
       local func = ChronoBars[ funcName ];
       
       if (func) then func() else
-        ChronoBars.Print( "Missing upgrade function!" );
+        CB.Print( "Missing upgrade function!" );
       end
       
       curVersion = nextVersion;
@@ -500,8 +557,8 @@ function ChronoBars.CheckSettings()
   for i=1,table.getn( ChronoBars.UPGRADE_LIST ) do
     
     local nextVersion = ChronoBars.UPGRADE_LIST[i];
-    if (curVersion < nextVersion) then
-      
+    if (CB.CompareVersions( curVersion, nextVersion )) then
+    
       ChronoBars.Print( "Upgrading character settings from version "
         ..curVersion.." to "..nextVersion );
       

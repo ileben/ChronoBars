@@ -56,6 +56,13 @@ function ChronoBars.Util_GetSpellIcon (spellName)
     CB.iconCache = {};
   end
   
+  --Try get it from the player's spellbook first
+  local icon = GetSpellTexture( spellName );
+  if (icon ~= nil) then
+    CB.iconCache[ spellName ] = icon;
+    return icon;
+  end
+  
   --Check for cached value
   local icon = CB.iconCache[ spellName ];
   if (icon ~= nil) then
@@ -63,13 +70,6 @@ function ChronoBars.Util_GetSpellIcon (spellName)
     then return icon;
     else return nil;
     end
-  end
-  
-  --Try get it from the player's spellbook first
-  icon = GetSpellTexture( spellName );
-  if (icon ~= nil) then
-    CB.iconCache[ spellName ] = icon;
-    return icon;
   end
   
   --Search through all the spell IDs
