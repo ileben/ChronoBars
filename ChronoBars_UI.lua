@@ -343,7 +343,7 @@ function ChronoBars.UI_RemoveInactiveBars (grp)
   
     local bar = grp.bars[b];
     if ((not bar.status.active)
-    and (not bar.status.visible)
+    and (not bar.status.animating)
     and bar.removeInactive) then
   
       CB.UI_RemoveBar( bar );
@@ -466,7 +466,7 @@ function ChronoBars.Bar_ApplySettings (bar, profile, groupId, barId)
   bar.status.left = 0.0;
   bar.status.ratio = 0.0;
   bar.status.active = false;
-  bar.status.visible = true;
+  bar.status.animating = true;
   
   --Init effect status
   CB.Bar_InitEffect( bar );
@@ -829,7 +829,7 @@ function ChronoBars.Bar_UpdateUI (bar, now, interval)
   
     --Check for infinite duration
     if (bar.status.duration == 0) then
-      canBlink = set.style.anim.blinkUsable;  
+      canBlink = set.style.anim.blinkUsable;
     else
 
       --Find start time of fading (half bar or 5 seconds if bar longer)
@@ -855,8 +855,8 @@ function ChronoBars.Bar_UpdateUI (bar, now, interval)
   end
 
   --Animate fading (fade out when bar expires)
-  if (set.style.anim.fade) then
-    if (bar.status.ratio == 0 and set.style.visibility ~= CB.VISIBLE_ALWAYS) then
+  if (set.style.anim.fade and set.style.visibility ~= CB.VISIBLE_ALWAYS) then
+    if (bar.status.ratio == 0) then
 
       local dFade = interval * 3.0;
       bar.anim.fade = bar.anim.fade - dFade;
@@ -867,18 +867,15 @@ function ChronoBars.Bar_UpdateUI (bar, now, interval)
     else bar.anim.fade = 1; end
   else bar.anim.fade = 1; end
 
-  --Bar is visible if time is left and animations are done
-  bar.status.visible = true;
-  if (set.style.visibility ~= CB.VISIBLE_ALWAYS) then
-    if (set.style.anim.fade) then
-      bar.status.visible = (bar.anim.fade > 0.0);
-    elseif (set.style.anim.down) then
-      bar.status.visible = (bar.anim.ratio > 0.0);
-    else
-      bar.status.visible = (bar.status.ratio > 0.0);
-    end
+  --Bar is animating if time is left or animations aren't done yet
+  if (set.style.anim.fade and set.style.visibility ~= CB.VISIBLE_ALWAYS) then
+    bar.status.animating = (bar.anim.fade > 0.0);
+  elseif (set.style.anim.down) then
+    bar.status.animating = (bar.anim.ratio > 0.0);
+  else
+    bar.status.animating = (bar.status.ratio > 0.0);
   end
-
+  
   --UI
   --===============================
 
@@ -970,7 +967,7 @@ function ChronoBars.Group_UpdateUI (grp, now, interval)
   local numBars = table.getn( grp.bars );
 
   local L=0; local R=0; local B=0; local T=0;
-  grp.numVisibleBars = 0;
+  local numVisibleBars = 0;
 
   --Copy bars to sorted array
   for b = 1, numBars do
@@ -988,10 +985,10 @@ function ChronoBars.Group_UpdateUI (grp, now, interval)
   --Update bar positions
   for b = 1, numBars do
     local bar = grp.sortedBars[b];
-    if (bar.status.visible) then
+    if (bar.status.animating or bar.settings.style.visibility == CB.VISIBLE_ALWAYS) then
 
       --Hide everything but first visible if priority group
-      if (grp.settings.layout == CB.LAYOUT_PRIORITY and grp.numVisibleBars > 0) then
+      if (numVisibleBars > 0 and grp.settings.layout == CB.LAYOUT_PRIORITY) then
         bar:Hide();
       else
 
@@ -1000,26 +997,25 @@ function ChronoBars.Group_UpdateUI (grp, now, interval)
         if (grp.settings.layout == CB.LAYOUT_KEEP) then
           offset = (b-1) * (h+s);
         elseif (grp.settings.layout == CB.LAYOUT_STACK) then
-          offset = grp.numVisibleBars * (h+s);
+          offset = numVisibleBars * (h+s);
         end
 
         --Grow group up or down
         bar:ClearAllPoints();
         bar:SetPoint( "LEFT", 0,0 );
 
-        if (grp.settings.grow == ChronoBars.GROW_UP) then
-          bar:SetPoint( "BOTTOM", 0, offset );
-        else
-          bar:SetPoint( "TOP", 0, -offset );
+        if (grp.settings.grow == ChronoBars.GROW_UP)
+        then bar:SetPoint( "BOTTOM", 0, offset );
+        else bar:SetPoint( "TOP", 0, -offset );
         end
 
         --Show visible bar
         bar:Show();
-        grp.numVisibleBars = grp.numVisibleBars + 1;
+        numVisibleBars = numVisibleBars + 1;
         
         --Update group bounds
-        if (grp.numVisibleBars == 1 or bar.boundsL < L) then L = bar.boundsL; end
-        if (grp.numVisibleBars == 1 or bar.boundsR > R) then R = bar.boundsR; end
+        if (numVisibleBars == 1 or bar.boundsL < L) then L = bar.boundsL; end
+        if (numVisibleBars == 1 or bar.boundsR > R) then R = bar.boundsR; end
         T = offset + h;
         
       end
@@ -1032,7 +1028,7 @@ function ChronoBars.Group_UpdateUI (grp, now, interval)
   end
   
   --Stretch background to cover all bars
-  if (grp.numVisibleBars > 0 and grp.settings.style.bgColor.a > 0) then
+  if (numVisibleBars > 0 and grp.settings.style.bgColor.a > 0) then
     
     if (grp.settings.grow == ChronoBars.GROW_UP) then
       grp.bg:SetPoint( "TOPRIGHT",   grp, "BOTTOMLEFT", R+m, T+m );
@@ -1090,23 +1086,25 @@ function ChronoBars.Group_OnUpdate (grp)
   
   --Walk all bars in the group
   local numBars = table.getn( grp.bars );
+  local numAnimatingBars = 0;
   for b = 1, numBars do
     
-    --Check if bar effect active
+    --Check if bar active
     local bar = grp.bars[b];
-    if (bar.status.active or bar.status.visible) then
+    if (bar.status.active or bar.status.animating) then
      
-      --Update time status and UI
+      --Update time left and animate UI
       CB.Bar_UpdateTime( bar, now );
       CB.Bar_UpdateUI( bar, now, interval );
+      numAnimatingBars = numAnimatingBars + 1;
     end
   end
   
-  --Update group (after bars to sort active bars)
+  --Update group (after bars to sort visible bars)
   CB.Group_UpdateUI( grp, now, interval );
   
-  --Disable group update if no bars visible
-  if (grp.numVisibleBars == 0) then
+  --Disable group update if no bars animating
+  if (numAnimatingBars == 0) then
     CB.Group_DisableUpdate( grp );
   end
   
