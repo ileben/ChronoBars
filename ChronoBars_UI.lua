@@ -763,8 +763,8 @@ function ChronoBars.Group_ApplySettings (grp, profile, groupId)
     bar:SetPoint( "LEFT", 0,0 );
 
     if (settings.grow == ChronoBars.GROW_UP)
-    then bar:SetPoint( "BOTTOM", 0, offset );
-    else bar:SetPoint( "TOP", 0, -offset );
+    then bar:SetPoint( "BOTTOM", grp, "BOTTOM", 0, offset );
+    else bar:SetPoint( "TOP",    grp, "BOTTOM", 0, -offset );
     end
 
     if (b == 1 or bar.boundsL < L) then L = bar.boundsL; end
