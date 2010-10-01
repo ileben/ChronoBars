@@ -10,7 +10,7 @@ Author: Ivan Leben
 ChronoBars = {}
 local CB = ChronoBars;
 
-ChronoBars.VERSION = "1.10";
+ChronoBars.VERSION = "1.11";
 ChronoBars.UPGRADE_LIST = { "1.2","1.3","1.4","1.5","1.6","1.8", "1.9", "1.10" };
 
 -- Define constants
