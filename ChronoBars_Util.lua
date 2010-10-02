@@ -179,3 +179,46 @@ end
 function ChronoBars.Util_GetTooltopLineRight (tooltip, index)
   return tooltip.text[ index ].right;
 end
+
+
+--[[
+--Obsolete, but keeping it around just in case it
+--comes in handy one day
+
+function ChronoBars.Bar_UpdateChildBounds (bar)
+  
+  local l=nil; local r=nil; local b=nil; local t=nil;
+  if (bar.children == nil) then bar.children = {} end;
+  CB.Util_ClearTable( bar.children );
+  CB.Util_CaptureList( bar.children, bar:GetRegions() );
+  --CB.Util_CaptureList( bar.children, bar:GetChildren() );
+  
+  local numChildren = table.getn( bar.children );
+  for c=1,numChildren do
+    
+    if (bar.children[c]:IsShown()) then
+    
+      local cl = bar.children[c]:GetLeft() - bar:GetLeft();
+      local cr = bar.children[c]:GetRight() - bar:GetLeft();
+      local ct = bar.children[c]:GetTop() - bar:GetBottom();
+      local cb = bar.children[c]:GetBottom() - bar:GetBottom();
+      
+      if (l==nil or cl < l) then l = cl; end
+      if (r==nil or cr > r) then r = cr; end
+      if (b==nil or cb < b) then b = cb; end
+      if (t==nil or ct > t) then t = ct; end
+      
+    end
+  end
+  
+  if (l == nil) then l = 0; end
+  if (r == nil) then r = 0; end
+  if (b == nil) then b = 0; end
+  if (t == nil) then t = 0; end
+  bar.boundsL = l;
+  bar.boundsR = r;
+  bar.boundsB = b;
+  bar.boundsT = t;
+  
+end
+--]]

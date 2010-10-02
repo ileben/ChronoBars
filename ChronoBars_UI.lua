@@ -649,150 +649,8 @@ function ChronoBars.Bar_ApplySettings (bar, profile, groupId, barId)
   --Enable for mouse events
   bar:EnableMouse( true );
   
-  --Update bounds of children frames
-  CB.Bar_UpdateChildBounds( bar );
-  
-  --HACKY Workaround - need to wait for next OnUpdate for the bounds to return correct values
-  if (bar.boundsUpdater == nil) then
-    bar.boundsUpdater = CreateFrame( "Frame", bar:GetName().."Updater", nil );
-    bar.boundsUpdater.bar = bar;
-  end
-  
-  bar.boundsUpdater:SetScript( "OnUpdate", ChronoBars.Bar_OnUpdateBounds );
 end
 
-function ChronoBars.Bar_OnUpdateBounds (self)
-  CB.Bar_UpdateChildBounds( self.bar );
-  self:SetScript( "OnUpdate", nil );
-end
-
-function ChronoBars.Bar_UpdateChildBounds (bar)
-  
-  local l=nil; local r=nil; local b=nil; local t=nil;
-  if (bar.children == nil) then bar.children = {} end;
-  CB.Util_ClearTable( bar.children );
-  CB.Util_CaptureList( bar.children, bar:GetRegions() );
-  --CB.Util_CaptureList( bar.children, bar:GetChildren() );
-  
-  local numChildren = table.getn( bar.children );
-  for c=1,numChildren do
-    
-    if (bar.children[c]:IsShown()) then
-    
-      local cl = bar.children[c]:GetLeft() - bar:GetLeft();
-      local cr = bar.children[c]:GetRight() - bar:GetLeft();
-      local ct = bar.children[c]:GetTop() - bar:GetBottom();
-      local cb = bar.children[c]:GetBottom() - bar:GetBottom();
-      
-      if (l==nil or cl < l) then l = cl; end
-      if (r==nil or cr > r) then r = cr; end
-      if (b==nil or cb < b) then b = cb; end
-      if (t==nil or ct > t) then t = ct; end
-      
-    end
-  end
-  
-  if (l == nil) then l = 0; end
-  if (r == nil) then r = 0; end
-  if (b == nil) then b = 0; end
-  if (t == nil) then t = 0; end
-  bar.boundsL = l;
-  bar.boundsR = r;
-  bar.boundsB = b;
-  bar.boundsT = t;
-  
-end
-
-
-function ChronoBars.Group_Create (name)
-
-  local grp = CreateFrame( "Frame", name, UIParent );
-  grp:SetPoint( "BOTTOMLEFT", UIParent, "BOTTOMLEFT", 0,0 );
-  grp:SetWidth( 2 );
-  grp:SetHeight( 2 );
-  grp:Hide();
-
-  local bg = grp:CreateTexture( nil, "BACKGROUND" );
-  grp.bg = bg;
-
-  grp:EnableMouse( true );
-  grp:SetMovable( true );
-
-  grp.bars = {};
-  grp.sortedBars = {};
-  return grp;
-
-end
-
-
-function ChronoBars.Group_ApplySettings (grp, profile, groupId)
-
-  --Get group settings
-  local settings = profile.groups[ groupId ];
-
-  --Store handy references
-  grp.groupId = groupId;
-  grp.settings = settings;
-  
-  --Reset group update times
-  grp.initUpdate = false;
-  grp.nextUpdate = 0;
-
-  --Init complex variables
-  local x = CB.RoundToPixel( GetScreenWidth()/2 + settings.x );
-  local y = CB.RoundToPixel( GetScreenHeight()/2 + settings.y );
-  local w = CB.RoundToPixel( settings.width );
-  local h = CB.RoundToPixel( settings.height );
-  local s = CB.RoundToPixel( settings.spacing );
-  local m = CB.RoundToPixel( settings.margin );
-  local p = CB.RoundToPixel( settings.padding );
-
-  --Position group
-  grp:ClearAllPoints();
-  grp:SetPoint( "BOTTOMLEFT", UIParent, "BOTTOMLEFT", x,y );
-
-  --Position bars
-  local L=0; local R=0; local B=0; local T=0;
-  local numBars = table.getn( grp.bars );
-  for b = 1, numBars do
-
-    local bar = grp.bars[b];
-    bar:SetParent( grp );
-    bar:SetWidth( w );
-    bar:SetHeight( h );
-
-    local offset = (b-1) * (h+s);
-    bar:ClearAllPoints();
-    bar:SetPoint( "LEFT", 0,0 );
-
-    if (settings.grow == ChronoBars.GROW_UP)
-    then bar:SetPoint( "BOTTOM", grp, "BOTTOM", 0, offset );
-    else bar:SetPoint( "TOP",    grp, "BOTTOM", 0, -offset );
-    end
-
-    if (b == 1 or bar.boundsL < L) then L = bar.boundsL; end
-    if (b == 1 or bar.boundsR > R) then R = bar.boundsR; end
-    T = offset + h;
-  end
-  
-  --Stretch background to cover all bars
-  grp.bg:ClearAllPoints();
-  
-  if (grp.settings.grow == ChronoBars.GROW_UP) then
-    grp.bg:SetPoint( "TOPRIGHT",   grp, "BOTTOMLEFT", R+m, T+m );
-    grp.bg:SetPoint( "BOTTOMLEFT", grp, "BOTTOMLEFT", L-m, 0-m );
-  else
-    grp.bg:SetPoint( "TOPRIGHT",   grp, "BOTTOMLEFT", R+m, 0+m );
-    grp.bg:SetPoint( "BOTTOMLEFT", grp, "BOTTOMLEFT", L-m, -T-m );
-  end
-  
-  grp.bg:Show();
-  
-  --Back color
-  local bgcol = settings.style.bgColor;
-  grp.bg:SetTexture( bgcol.r, bgcol.g, bgcol.b, bgcol.a );
-  
-end
 
 function ChronoBars.Bar_UpdateUI (bar, now, interval)
 
@@ -976,6 +834,126 @@ function ChronoBars_BarGreater (a,b)
   end
 end
 
+
+function ChronoBars.Group_Create (name)
+
+  local grp = CreateFrame( "Frame", name, UIParent );
+  grp:SetPoint( "BOTTOMLEFT", UIParent, "BOTTOMLEFT", 0,0 );
+  grp:SetWidth( 2 );
+  grp:SetHeight( 2 );
+  grp:Hide();
+
+  local bg = grp:CreateTexture( nil, "BACKGROUND" );
+  grp.bg = bg;
+
+  grp:EnableMouse( true );
+  grp:SetMovable( true );
+
+  grp.bars = {};
+  grp.sortedBars = {};
+  return grp;
+
+end
+
+function ChronoBars.Group_UpdateBounds (grp, bar, L, R, B, T)
+  
+  local barL = L;
+  local barR = R;
+  local barB = B;
+  local barT = T;
+  
+  if (barL == nil) then
+    barL = bar;
+    barR = bar;
+    barB = bar;
+    barT = bar;
+  end
+  
+  if (grp.settings.grow == ChronoBars.GROW_UP)
+  then barT = bar;
+  else barB = bar;
+  end
+  
+  if (bar.settings.style.showIcon) then
+    if (bar.settings.style.iconSide == CB.SIDE_LEFT)
+    then barL = bar;
+    else barR = bar;
+    end
+  end
+  
+  return barL, barR, barB, barT;
+  
+end
+
+function ChronoBars.Group_ApplySettings (grp, profile, groupId)
+
+  --Get group settings
+  local settings = profile.groups[ groupId ];
+
+  --Store handy references
+  grp.groupId = groupId;
+  grp.settings = settings;
+  
+  --Reset group update times
+  grp.initUpdate = false;
+  grp.nextUpdate = 0;
+
+  --Init complex variables
+  local x = CB.RoundToPixel( GetScreenWidth()/2 + settings.x );
+  local y = CB.RoundToPixel( GetScreenHeight()/2 + settings.y );
+  local w = CB.RoundToPixel( settings.width );
+  local h = CB.RoundToPixel( settings.height );
+  local s = CB.RoundToPixel( settings.spacing );
+  local m = CB.RoundToPixel( settings.margin );
+  local p = CB.RoundToPixel( settings.padding );
+
+  --Position group
+  grp:ClearAllPoints();
+  grp:SetPoint( "BOTTOMLEFT", UIParent, "BOTTOMLEFT", x,y );
+
+  --Position bars
+  local barL, barR, barT, barB;
+  local numBars = table.getn( grp.bars );
+  for b = 1, numBars do
+
+    local bar = grp.bars[b];
+    bar:SetParent( grp );
+    bar:SetWidth( w );
+    bar:SetHeight( h );
+
+    local offset = (b-1) * (h+s);
+    bar:ClearAllPoints();
+    bar:SetPoint( "LEFT", 0,0 );
+
+    if (settings.grow == ChronoBars.GROW_UP)
+    then bar:SetPoint( "BOTTOM", grp, "BOTTOM", 0, offset );
+    else bar:SetPoint( "TOP",    grp, "BOTTOM", 0, -offset );
+    end
+
+    --Update group bounds
+    barL, barR, barB, barT =
+      CB.Group_UpdateBounds( grp, bar, barL, barR, barB, barT );
+  end
+  
+  --Stretch background to cover all bars
+  if (numBars > 0) then
+  
+    grp.bg:ClearAllPoints();
+    grp.bg:SetPoint( "LEFT",   barL.bg, "LEFT",   -m,  0 );
+    grp.bg:SetPoint( "RIGHT",  barR.bg, "RIGHT",   m,  0 );
+    grp.bg:SetPoint( "BOTTOM", barB.bg, "BOTTOM",  0, -m );
+    grp.bg:SetPoint( "TOP",    barT.bg, "TOP",     0,  m );
+    grp.bg:Show();
+    
+  else grp.bg:Hide(); end
+  
+  --Back color
+  local bgcol = settings.style.bgColor;
+  grp.bg:SetTexture( bgcol.r, bgcol.g, bgcol.b, bgcol.a );
+  
+end
+
+
 function ChronoBars.Group_UpdateUI (grp, now, interval)
 
   local x = CB.RoundToPixel( grp:GetLeft() );
@@ -985,8 +963,8 @@ function ChronoBars.Group_UpdateUI (grp, now, interval)
   local s = CB.RoundToPixel( grp.settings.spacing );
   local numBars = table.getn( grp.bars );
 
-  local L=0; local R=0; local B=0; local T=0;
   local numVisibleBars = 0;
+  local barL, barR, barT, barB;
 
   --Copy bars to sorted array
   for b = 1, numBars do
@@ -1033,9 +1011,8 @@ function ChronoBars.Group_UpdateUI (grp, now, interval)
         numVisibleBars = numVisibleBars + 1;
         
         --Update group bounds
-        if (numVisibleBars == 1 or bar.boundsL < L) then L = bar.boundsL; end
-        if (numVisibleBars == 1 or bar.boundsR > R) then R = bar.boundsR; end
-        T = offset + h;
+        barL, barR, barB, barT =
+          CB.Group_UpdateBounds( grp, bar, barL, barR, barB, barT );
         
       end
     else
@@ -1049,19 +1026,14 @@ function ChronoBars.Group_UpdateUI (grp, now, interval)
   --Stretch background to cover all bars
   if (numVisibleBars > 0 and grp.settings.style.bgColor.a > 0) then
     
-    if (grp.settings.grow == ChronoBars.GROW_UP) then
-      grp.bg:SetPoint( "TOPRIGHT",   grp, "BOTTOMLEFT", R+m, T+m );
-      grp.bg:SetPoint( "BOTTOMLEFT", grp, "BOTTOMLEFT", L-m, 0-m );
-    else
-      grp.bg:SetPoint( "TOPRIGHT",   grp, "BOTTOMLEFT", R+m, 0+m );
-      grp.bg:SetPoint( "BOTTOMLEFT", grp, "BOTTOMLEFT", L-m, -T-m );
-    end
-    
+    grp.bg:ClearAllPoints();
+    grp.bg:SetPoint( "LEFT",   barL.bg, "LEFT",   -m,  0 );
+    grp.bg:SetPoint( "RIGHT",  barR.bg, "RIGHT",   m,  0 );
+    grp.bg:SetPoint( "BOTTOM", barB.bg, "BOTTOM",  0, -m );
+    grp.bg:SetPoint( "TOP",    barT.bg, "TOP",     0,  m );
     grp.bg:Show();
     
-  else
-    grp.bg:Hide();
-  end
+  else grp.bg:Hide(); end
   
 end
 
