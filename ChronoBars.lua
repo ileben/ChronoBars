@@ -10,8 +10,8 @@ Author: Ivan Leben
 ChronoBars = {}
 local CB = ChronoBars;
 
-ChronoBars.VERSION = "1.11";
-ChronoBars.UPGRADE_LIST = { "1.2","1.3","1.4","1.5","1.6","1.8", "1.9", "1.10" };
+ChronoBars.VERSION = "1.12";
+ChronoBars.UPGRADE_LIST = { "1.2","1.3","1.4","1.5","1.6","1.8", "1.9", "1.10", "1.12" };
 
 -- Define constants
 --==============================================================
@@ -67,6 +67,10 @@ ChronoBars.HAND_OFF   = 2;
 
 ChronoBars.SIDE_LEFT    = 1;
 ChronoBars.SIDE_RIGHT   = 2;
+
+ChronoBars.JUSTIFY_LEFT   = 1;
+ChronoBars.JUSTIFY_CENTER = 2;
+ChronoBars.JUSTIFY_RIGHT  = 3;
 
 ChronoBars.TIME_SINGLE   = 1;
 ChronoBars.TIME_DECIMAL  = 2;
@@ -137,6 +141,7 @@ ChronoBars.DEFAULT_BAR = {
                   showCd         = true,
                   showUsable     = true,
                   showSpark      = true,
+                  nameJustify    = ChronoBars.JUSTIFY_LEFT,
                   timeSide       = ChronoBars.SIDE_RIGHT,
                   countSide      = ChronoBars.SIDE_RIGHT,
                   fullSide       = ChronoBars.SIDE_RIGHT,
@@ -473,6 +478,32 @@ function ChronoBars.Upgrade_1_10 ()
 end
 
 function ChronoBars.UpgradeChar_1_10 ()
+end
+
+-- 1.12
+
+function ChronoBars.Upgrade_1_12 ()
+
+  for pname, profile in pairs( ChronoBars_Settings.profiles ) do
+    for g=1,table.getn( profile.groups ) do
+      local grp = profile.groups[g];
+
+      for b=1,table.getn( profile.groups[g].bars ) do
+        local bar = profile.groups[g].bars[b];
+          
+          if (bar.style.nameJustify == nil) then
+            if (bar.style.timeSide == CB.SIDE_RIGHT)
+            then bar.style.nameJustify = CB.JUSTIFY_LEFT;
+            else bar.style.nameJustify = CB.JUSTIFY_RIGHT;
+            end
+          end
+          
+        end
+    end
+  end
+end
+
+function ChronoBars.UpgradeChar_1_12 ()
 end
 
 -- Check for upgrade

@@ -210,6 +210,7 @@ ChronoBars.Menu_BarStyle = {
 
   { type="title", title="Style" },
   { text="Show",                  type="menu",      menu="root|Menu_BarShow" },
+  { text="Name Align",             type="menu",      menu="root|Menu_Justify" },
   { text="Count Side",            type="menu",      menu="root|Menu_CountSide" },
   { text="Time Side",             type="menu",      menu="root|Menu_TimeSide" },
   { text="Full Side",             type="menu",      menu="root|Menu_FullSide" },
@@ -233,6 +234,13 @@ ChronoBars.Menu_BarStyle = {
   { type="separator" },
   { text="Visibility",            type="menu",      menu="root|Menu_Visibility" },
   { text="Animation",             type="menu",      menu="root|Menu_Animation" },
+};
+
+ChronoBars.Menu_Justify = {
+  { type="title",   title="Alignment" },
+  { text="Left",    type="option",  var="bar|style.nameJustify",  option = ChronoBars.JUSTIFY_LEFT },
+  { text="Center",  type="option",  var="bar|style.nameJustify",  option = ChronoBars.JUSTIFY_CENTER },
+  { text="Right",   type="option",  var="bar|style.nameJustify",  option = ChronoBars.JUSTIFY_RIGHT },
 };
 
 ChronoBars.Menu_IconSide = {

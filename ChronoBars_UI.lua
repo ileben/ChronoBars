@@ -526,7 +526,7 @@ function ChronoBars.Bar_ApplySettings (bar, profile, groupId, barId)
     bar.fgBlink:SetPoint( "BOTTOMLEFT", pad, pad );
     bar.fgBlink:SetPoint( "TOPRIGHT", bar.fg, "TOPLEFT", 0,0 );
   end
-
+  
   --Time text
   local timeString;
   if (settings.type == ChronoBars.EFFECT_TYPE_CUSTOM)
@@ -560,12 +560,7 @@ function ChronoBars.Bar_ApplySettings (bar, profile, groupId, barId)
   local tcol = settings.style.textColor;
   bar.txtName:SetTextColor( tcol.r, tcol.g, tcol.b, tcol.a );
   bar.txtName:ClearAllPoints();
-
-  if (settings.style.timeSide == CB.SIDE_RIGHT)
-  then bar.txtName:SetJustifyH( "LEFT" );
-  else bar.txtName:SetJustifyH( "RIGHT" );
-  end
-
+  
   if (settings.style.timeSide == CB.SIDE_RIGHT) then
     bar.txtName:SetPoint( "BOTTOMLEFT", pad + 2, pad );
     bar.txtName:SetPoint( "TOPRIGHT", bar.txtTime, "TOPLEFT", -2, 0 );
@@ -573,6 +568,14 @@ function ChronoBars.Bar_ApplySettings (bar, profile, groupId, barId)
   elseif (settings.style.timeSide == CB.SIDE_LEFT) then
     bar.txtName:SetPoint( "BOTTOMLEFT", bar.txtTime, "BOTTOMRIGHT", 2, 0 );
     bar.txtName:SetPoint( "TOPRIGHT", -pad - 2, -pad );
+  end
+  
+  if (settings.style.nameJustify == CB.JUSTIFY_LEFT) then
+    bar.txtName:SetJustifyH( "LEFT" );
+  elseif (settings.style.nameJustify == CB.JUSTIFY_CENTER) then
+    bar.txtName:SetJustifyH( "CENTER" );
+  elseif (settings.style.nameJustify == CB.JUSTIFY_RIGHT) then
+    bar.txtName:SetJustifyH( "RIGHT" );
   end
 
   bar.txtName:Show();
@@ -948,8 +951,8 @@ function ChronoBars.Bar_UpdateUI (bar, now, interval)
   then bar.txtTime:SetText( CB.FormatTime( bar, bar.status.left ));
   else bar.txtTime:SetText( "" );
   end
-  
-  --Set name text
+
+  --Set name text  
   bar.txtName:SetText( CB.FormatName( bar, bar.status.text, nil, bar.status.count ));
 
   --Disable mouse events
@@ -1021,8 +1024,8 @@ function ChronoBars.Group_UpdateUI (grp, now, interval)
         bar:SetPoint( "LEFT", 0,0 );
 
         if (grp.settings.grow == ChronoBars.GROW_UP)
-        then bar:SetPoint( "BOTTOM", 0, offset );
-        else bar:SetPoint( "TOP", 0, -offset );
+        then bar:SetPoint( "BOTTOM", grp, "BOTTOM", 0, offset );
+        else bar:SetPoint( "TOP",    grp, "BOTTOM", 0, -offset );
         end
 
         --Show visible bar
