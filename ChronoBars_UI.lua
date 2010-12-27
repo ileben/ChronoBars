@@ -967,10 +967,10 @@ function ChronoBars.Group_UpdateUI (grp, now, interval)
   local barL, barR, barT, barB;
 
   --Copy bars to sorted array
+  CB.Util_ClearTable( grp.sortedBars );
   for b = 1, numBars do
-    grp.sortedBars[ b ] = grp.bars[ b ];
+    table.insert( grp.sortedBars, grp.bars[ b ] );
   end
-  grp.sortedBars[ numBars+1 ] = nil;
 
   --Sort bars by time left
   if (grp.settings.sorting == CB.SORT_ASCENDING) then

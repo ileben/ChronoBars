@@ -13,8 +13,10 @@ local CB = ChronoBars;
 --=========================================================
 
 function ChronoBars.Util_ClearTable (t)
-  while (table.getn( t ) > 0) do
+  local len = table.getn( t );
+  while len > 0 do
     table.remove( t );
+    len = len - 1;
   end
 end
 
