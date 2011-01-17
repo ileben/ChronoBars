@@ -1143,6 +1143,7 @@ function ChronoBars.Bar_EnableEvents (bar)
   elseif (set.type == CB.EFFECT_TYPE_CD) then
     bar:RegisterEvent( "SPELL_UPDATE_COOLDOWN" );
     bar:RegisterEvent( "ACTIONBAR_UPDATE_COOLDOWN" );
+    bar:RegisterEvent( "PET_BAR_UPDATE_COOLDOWN" );
     
   elseif (set.type == CB.EFFECT_TYPE_USABLE) then
     bar:RegisterEvent( "SPELL_UPDATE_USABLE" );

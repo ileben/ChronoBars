@@ -501,6 +501,9 @@ end
 
 function ChronoBars.Bar_InitStatusCd (bar, status)
 
+  --if (bar.settings.cd.type == CB.CD_TYPE_SPELL or
+      --bar.settings.cd.type == CB.CD_TYPE_PET_SPELL) then
+      
   if (bar.settings.cd.type == CB.CD_TYPE_SPELL) then
   
     --Init bar name and icon by spell id or name
@@ -531,9 +534,12 @@ function ChronoBars.Bar_UpdateStatusCd (bar, status, now)
 
   local set = bar.settings;
   local start, duration;
-
+  
+  --if (set.cd.type == CB.CD_TYPE_SPELL or
+      --set.cd.type == CB.CD_TYPE_PET_SPELL) then
+      
   if (set.cd.type == CB.CD_TYPE_SPELL) then
-
+      
     --Get spell cooldown by ID or name
     if (status.id)
     then start, duration = GetSpellCooldown( status.id );
