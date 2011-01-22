@@ -2,7 +2,7 @@
 ## Title: ChronoBars
 ## Notes: Bars that track buffs, debuffs, cooldowns, and totems
 ## Author: Ivan Leben
-## Version: 1.12
+## Version: 1.13
 ## SavedVariables: ChronoBars_Settings
 ## SavedVariablesPerCharacter: ChronoBars_CharSettings
 Libs\LibStub\LibStub.lua
