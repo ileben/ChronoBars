@@ -667,6 +667,7 @@ function ChronoBars.InitBarMenu (menu, level)
       info.arg1 = item;
       info.arg2 = id;
       info.disabled = false;
+      info.hasArrow = false;
       info.keepShownOnClick = true;
       
       --Type-specific initialization
@@ -708,20 +709,37 @@ function ChronoBars.InitBarMenu (menu, level)
         info.func = ChronoBars.BarMenu_OnClickToggle;
         
       elseif (item.type == "color") then
+      
+        --Create a closure that passes item to color function
+        if (item.colorFunc == nil) then
+          item.colorFunc = function ()
+            ChronoBars.BarMenu_OnColorChange( item );
+          end
+        end
+        
+        --Create a closure that passes item to cancel function
+        if (item.cancelFunc == nil) then
+          item.cancelFunc = function (old)
+            ChronoBars.BarMenu_OnColorCancel( item, old );
+          end
+        end
+        
+        --These values will get passed to ColorPickerFrame
         local curValue = ChronoBars.GetSettingsValue( id, item.var );
-        info.hasColorSwatch = 1;
-        info.hasOpacity = true;
         info.r = curValue.r;
         info.g = curValue.g;
         info.b = curValue.b;
         info.opacity = 1 - curValue.a;
-        info.notClickable = true;
-        --[[
-        info.swatchFunc = ChronoBars.BarMenu_ColorFunc;
-        info.opacityFunc = ChronoBars.BarMenu_ColorFunc;
-        info.cancelFunc = ChronoBars.BarMenu_ColorCancelFunc;
-        --]]
-        --info.func = ChronoBars.BarMenu_OnClickColor;
+        info.hasColorSwatch = 1;
+        info.hasOpacity = true;
+        info.swatchFunc = item.colorFunc;
+        info.opacityFunc = item.colorFunc;
+        info.cancelFunc = item.cancelFunc;
+
+        --This will open the picker when text is clicked, not just the colored square
+        info.func = UIDropDownMenuButton_OpenColorPicker;
+        info.arg1 = nil;
+        info.arg2 = nil;
         
       elseif (item.type == "input" or item.type == "numinput") then
         info.func = ChronoBars.BarMenu_OnClickInput;
@@ -840,56 +858,19 @@ function ChronoBars.BarMenu_OnClickColor (info, item, id)
 end
 --]]
 
-function ChronoBars.BarMenu_OnClickColor (info)
-  ChronoBars.Debug( "OpenColorPicker" );
-  
-  CB.Print( "COOOLOOOOOOR" );
-  
-  --CB.Print( "Item: "..tostring(info.arg1) );
+function ChronoBars.BarMenu_OnColorChange (item)
 
-  --Store the menu item and bar id this color picker refers to
-  ColorPickerFrame.item = info.arg1;
-  ColorPickerFrame.id = info.arg2;
-  
-  --Set up callbacks only after the references are set
-  ColorPickerFrame.func = ChronoBars.BarMenu_ColorFunc;
-  ColorPickerFrame.opacityFunc = ChronoBars.BarMenu_ColorFunc;
-  ColorPickerFrame.cancelFunc = ChronoBars.BarMenu_ColorCancelFunc;
-  
-end
-
---This will trigger BarMenu_OnClickColor whenever a color picker is opened from a drop down menu
-hooksecurefunc( "UIDropDownMenuButton_OpenColorPicker", ChronoBars.BarMenu_OnClickColor );
-
-function ChronoBars.BarMenu_ColorFunc ()
-
-  local id = ColorPickerFrame.id;
-  local item = ColorPickerFrame.item;
-  if ((not id) or (not item)) then return end;
-    
   local newR, newG, newB = ColorPickerFrame:GetColorRGB();
   local newA = OpacitySliderFrame:GetValue();
   
-  ChronoBars.Debug(
-    "Setting '"..item.var.."' to "..
-    "r"..string.format("%.1f",newR)..
-    ",g"..string.format("%.1f",newG)..
-    ",b"..string.format("%.1f",newB)..
-    ",a"..string.format("%.1f",newA)
-  );
-  
-  ChronoBars.SetSettingsValue( id, item.var, { r = newR, g = newG, b = newB, a = (1-newA) } );
+  ChronoBars.SetSettingsValue( CB.MenuId, item.var, { r = newR, g = newG, b = newB, a = (1-newA) } );
   ChronoBars.UpdateSettings();
 
 end
 
-function ChronoBars.BarMenu_ColorCancelFunc (old)
+function ChronoBars.BarMenu_OnColorCancel (item, old)
   
-  local id = ColorPickerFrame.id;
-  local item = ColorPickerFrame.item;
-  if ((not id) or (not item)) then return end;
-  
-  ChronoBars.SetSettingsValue( id, item.var, { r = old.r, g = old.g, b = old.b, a = (1-old.opacity) } );
+  ChronoBars.SetSettingsValue( CB.MenuId, item.var, { r = old.r, g = old.g, b = old.b, a = (1-old.opacity) } );
   ChronoBars.UpdateSettings();
   
 end
