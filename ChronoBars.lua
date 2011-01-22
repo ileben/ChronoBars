@@ -840,7 +840,7 @@ function ChronoBars.ModeRun ()
 end
 
 function ChronoBars.UpdateSettings ()
-  
+   
   --Update pixel-perfect state
   CB.FindPixelRatio();
   

@@ -182,10 +182,51 @@ function ChronoBars.Util_GetTooltopLineRight (tooltip, index)
   return tooltip.text[ index ].right;
 end
 
+--Refresh a context menu by closing and reopening it
+--=======================================================
+
+function ChronoBars.Util_UpdateMenu (menu)
+
+  --Check if the current menu frame matches the given menu and is shown
+	if not (UIDROPDOWNMENU_OPEN_MENU == menu and DropDownList1:IsShown()) then
+    return false
+  end
+    
+  --Store current level and close all menu levels
+  local lastMenuLevel = UIDROPDOWNMENU_MENU_LEVEL;
+  CloseDropDownMenus()
+ 
+  --Reopen the first menu level at the same position
+  local x = DropDownList1:GetLeft();
+  local y = DropDownList1:GetBottom()
+  ToggleDropDownMenu( 1, nil, menu, UIParent, x, y  );
+  
+  --Iterate through all menu levels
+  for l = 2, lastMenuLevel do
+  
+    --Get the frame of this menu level
+    local menuFrame = _G['DropDownList'..l];
+    if (menuFrame) then
+    
+      --Get the parent button of this menu level
+      local _, buttonFrame = menuFrame:GetPoint();
+      if (buttonFrame) then
+    
+        --Reopen this menu level with the same button as its anchor point
+        ToggleDropDownMenu( l, buttonFrame.value, nil, nil, nil, nil, nil, buttonFrame );
+        
+      end
+    end
+  end
+  
+  return true
+end
+
 
 --[[
 --Obsolete, but keeping it around just in case it
 --comes in handy one day
+========================================================
 
 function ChronoBars.Bar_UpdateChildBounds (bar)
   

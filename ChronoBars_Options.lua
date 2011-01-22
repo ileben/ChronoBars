@@ -8,9 +8,7 @@ Author: Ivan Leben
 --]]
 
 local CB = ChronoBars;
-ChronoBars.MenuGroupId = 1;
-ChronoBars.MenuBarId = 1;
-ChronoBars.MenuItem = nil;
+ChronoBars.MenuId = { groupId = 1, barId = 1 };
 
 --Menu Structure
 --===================================
@@ -71,14 +69,14 @@ ChronoBars.Menu_Bar = {
 
 ChronoBars.Menu_EffectType = {
 
-  { text="Aura",               type="option",   closeAll=true, var="bar|type",  option = ChronoBars.EFFECT_TYPE_AURA },
-  { text="Multi Aura",         type="option",   closeAll=true, var="bar|type",  option = ChronoBars.EFFECT_TYPE_MULTI_AURA },
-  { text="Cooldown",           type="option",   closeAll=true, var="bar|type",  option = ChronoBars.EFFECT_TYPE_CD },
-  { text="Usable",             type="option",   closeAll=true, var="bar|type",  option = ChronoBars.EFFECT_TYPE_USABLE },
-  { text="Totem",              type="option",   closeAll=true, var="bar|type",  option = ChronoBars.EFFECT_TYPE_TOTEM },
-  { text="Custom",             type="option",   closeAll=true, var="bar|type",  option = ChronoBars.EFFECT_TYPE_CUSTOM },
-  { text="Auto-Attack",        type="option",   closeAll=true, var="bar|type",  option = ChronoBars.EFFECT_TYPE_AUTO },
-  { text="Weapon Enchant",     type="option",   closeAll=true, var="bar|type",  option = ChronoBars.EFFECT_TYPE_ENCHANT },
+  { text="Aura",               type="option",   var="bar|type",  option = ChronoBars.EFFECT_TYPE_AURA },
+  { text="Multi Aura",         type="option",   var="bar|type",  option = ChronoBars.EFFECT_TYPE_MULTI_AURA },
+  { text="Cooldown",           type="option",   var="bar|type",  option = ChronoBars.EFFECT_TYPE_CD },
+  { text="Usable",             type="option",   var="bar|type",  option = ChronoBars.EFFECT_TYPE_USABLE },
+  { text="Totem",              type="option",   var="bar|type",  option = ChronoBars.EFFECT_TYPE_TOTEM },
+  { text="Custom",             type="option",   var="bar|type",  option = ChronoBars.EFFECT_TYPE_CUSTOM },
+  { text="Auto-Attack",        type="option",   var="bar|type",  option = ChronoBars.EFFECT_TYPE_AUTO },
+  { text="Weapon Enchant",     type="option",   var="bar|type",  option = ChronoBars.EFFECT_TYPE_ENCHANT },
 };
 
 ChronoBars.Menu_AuraSettings = {
@@ -227,9 +225,9 @@ ChronoBars.Menu_BarStyle = {
   { text="Time Format",           type="menu",      menu="root|Menu_TimeFormat" },
   
   { type="separator" },
-  { text="Text Color...",         type="color",     var="bar|style.textColor" },
-  { text="Front Color...",        type="color",     var="bar|style.fgColor" },
-  { text="Back Color...",         type="color",     var="bar|style.bgColor" },
+  { text="Text Color",         type="color",     var="bar|style.textColor" },
+  { text="Front Color",        type="color",     var="bar|style.fgColor" },
+  { text="Back Color",         type="color",     var="bar|style.bgColor" },
 
   { type="separator" },
   { text="Visibility",            type="menu",      menu="root|Menu_Visibility" },
@@ -289,49 +287,49 @@ ChronoBars.Menu_Font = {
 ChronoBars.Menu_BarCopy = {
 
   { type="title", title="Copy" },
-  { text="Front Color",              type="value", var="temp|color",       value="bar|style.fgColor" },
-  { text="Back Color",               type="value", var="temp|color",       value="bar|style.bgColor" },
-  { text="Text Color",               type="value", var="temp|color",       value="bar|style.textColor" },
-  { text="Texture",                  type="value", var="temp|tex",         value="bar|style.lsmTexHandle" },
-  { text="Font",                     type="value", var="temp|font",        value="bar|style.lsmFontHandle" },
-  { text="Font Size",                type="value", var="temp|fontSize",    value="bar|style.fontSize" },
-  { text="Visibility",               type="value", var="temp|visibility",  value="bar|style.visibility" },
-  { text="Animation",                type="value", var="temp|anim",        value="bar|style.anim" },
-  { text="Entire Style",             type="value", var="temp|style",       value="bar|style" },
-  { text="Style Except Front Color", type="value", var="temp|style",       value="bar|style" },
-  { text="All Bar Settings",         type="func",  func="MenuFunc_CopyBar" },
+  { text="Front Color",              closeAll=true,  type="value", var="temp|color",       value="bar|style.fgColor" },
+  { text="Back Color",               closeAll=true,  type="value", var="temp|color",       value="bar|style.bgColor" },
+  { text="Text Color",               closeAll=true,  type="value", var="temp|color",       value="bar|style.textColor" },
+  { text="Texture",                  closeAll=true,  type="value", var="temp|tex",         value="bar|style.lsmTexHandle" },
+  { text="Font",                     closeAll=true,  type="value", var="temp|font",        value="bar|style.lsmFontHandle" },
+  { text="Font Size",                closeAll=true,  type="value", var="temp|fontSize",    value="bar|style.fontSize" },
+  { text="Visibility",               closeAll=true,  type="value", var="temp|visibility",  value="bar|style.visibility" },
+  { text="Animation",                closeAll=true,  type="value", var="temp|anim",        value="bar|style.anim" },
+  { text="Entire Style",             closeAll=true,  type="value", var="temp|style",       value="bar|style" },
+  { text="Style Except Front Color", closeAll=true,  type="value", var="temp|style",       value="bar|style" },
+  { text="All Bar Settings",         closeAll=true,  type="func",  func="MenuFunc_CopyBar" },
 };
 
 ChronoBars.Menu_BarPaste = {
 
   { type="title", title="Paste" },
-  { text="Front Color",              type="value", var="bar|style.fgColor",       value="temp|color" },
-  { text="Back Color",               type="value", var="bar|style.bgColor",       value="temp|color" },
-  { text="Text Color",               type="value", var="bar|style.textColor",     value="temp|color" },
-  { text="Texture",                  type="value", var="bar|style.lsmTexHandle",  value="temp|tex" },
-  { text="Font",                     type="value", var="bar|style.lsmFontHandle", value="temp|font" },
-  { text="Font Size",                type="value", var="bar|style.fontSize",      value="temp|fontSize" },
-  { text="Visibility",               type="value", var="bar|style.visibility",    value="temp|visibility" },
-  { text="Animation",                type="value", var="bar|style.anim",          value="temp|anim" },
-  { text="Entire Style",             type="value", var="bar|style",               value="temp|style" },
-  { text="Style Except Front Color", type="func",  func="MenuFunc_PasteStyleExceptFg" },
-  { text="All Bar Settings",         type="func",  func="MenuFunc_PasteBar" },
+  { text="Front Color",              closeAll=true,  type="value", var="bar|style.fgColor",       value="temp|color" },
+  { text="Back Color",               closeAll=true,  type="value", var="bar|style.bgColor",       value="temp|color" },
+  { text="Text Color",               closeAll=true,  type="value", var="bar|style.textColor",     value="temp|color" },
+  { text="Texture",                  closeAll=true,  type="value", var="bar|style.lsmTexHandle",  value="temp|tex" },
+  { text="Font",                     closeAll=true,  type="value", var="bar|style.lsmFontHandle", value="temp|font" },
+  { text="Font Size",                closeAll=true,  type="value", var="bar|style.fontSize",      value="temp|fontSize" },
+  { text="Visibility",               closeAll=true,  type="value", var="bar|style.visibility",    value="temp|visibility" },
+  { text="Animation",                closeAll=true,  type="value", var="bar|style.anim",          value="temp|anim" },
+  { text="Entire Style",             closeAll=true,  type="value", var="bar|style",               value="temp|style" },
+  { text="Style Except Front Color", closeAll=true,  type="func",  func="MenuFunc_PasteStyleExceptFg" },
+  { text="All Bar Settings",         closeAll=true,  type="func",  func="MenuFunc_PasteBar" },
 };
 
 ChronoBars.Menu_BarCopyToAll = {
 
   { type="title", title="Copy to All" },
-  { text="Front Color",              type="func",  func="MenuFunc_CopyToAll", value="const|bar|style.fgColor" },
-  { text="Back Color",               type="func",  func="MenuFunc_CopyToAll", value="const|bar|style.bgColor" },
-  { text="Text Color",               type="func",  func="MenuFunc_CopyToAll", value="const|bar|style.textColor" },
-  { text="Texture",                  type="func",  func="MenuFunc_CopyToAll", value="const|bar|style.lsmTexHandle" },
-  { text="Font",                     type="func",  func="MenuFunc_CopyToAll", value="const|bar|style.lsmFontHandle" },
-  { text="Font Size",                type="func",  func="MenuFunc_CopyToAll", value="const|bar|style.fontSize" },
-  { text="Visibility",               type="func",  func="MenuFunc_CopyToAll", value="const|bar|style.visibility" },
-  { text="Animation",                type="func",  func="MenuFunc_CopyToAll", value="const|bar|style.anim" },
-  { text="Entire Style",             type="func",  func="MenuFunc_CopyToAll", value="const|bar|style" },
-  { text="Style Except Front Color", type="func",  func="MenuFunc_CopyToAll", value="const|styleExceptFg" },
-  { text="All Bar Settings",         type="func",  func="MenuFunc_CopyToAll", value="const|all" },
+  { text="Front Color",              closeAll=true,  type="func",  func="MenuFunc_CopyToAll", value="const|bar|style.fgColor" },
+  { text="Back Color",               closeAll=true,  type="func",  func="MenuFunc_CopyToAll", value="const|bar|style.bgColor" },
+  { text="Text Color",               closeAll=true,  type="func",  func="MenuFunc_CopyToAll", value="const|bar|style.textColor" },
+  { text="Texture",                  closeAll=true,  type="func",  func="MenuFunc_CopyToAll", value="const|bar|style.lsmTexHandle" },
+  { text="Font",                     closeAll=true,  type="func",  func="MenuFunc_CopyToAll", value="const|bar|style.lsmFontHandle" },
+  { text="Font Size",                closeAll=true,  type="func",  func="MenuFunc_CopyToAll", value="const|bar|style.fontSize" },
+  { text="Visibility",               closeAll=true,  type="func",  func="MenuFunc_CopyToAll", value="const|bar|style.visibility" },
+  { text="Animation",                closeAll=true,  type="func",  func="MenuFunc_CopyToAll", value="const|bar|style.anim" },
+  { text="Entire Style",             closeAll=true,  type="func",  func="MenuFunc_CopyToAll", value="const|bar|style" },
+  { text="Style Except Front Color", closeAll=true,  type="func",  func="MenuFunc_CopyToAll", value="const|styleExceptFg" },
+  { text="All Bar Settings",         closeAll=true,  type="func",  func="MenuFunc_CopyToAll", value="const|all" },
 };
 
 ChronoBars.Menu_Visibility = {
@@ -615,32 +613,36 @@ function ChronoBars.InitBarMenu (menu, level)
     ..tostring(UIDROPDOWNMENU_MENU_VALUE)  );
 
   ChronoBars.Debug( "currentbar: "
-    ..tostring( menu.id.groupId )..","
-    ..tostring( menu.id.barId ));
+    ..tostring( CB.MenuId.groupId )..","
+    ..tostring( CB.MenuId.barId ));
     
   --Check that the bar settings still exist (in case of removal)
-  local id = menu.id;
+  local id = CB.MenuId;
   local profile = ChronoBars.GetActiveProfile();
   if (not profile.groups[ id.groupId ]) then return end;
   if (not profile.groups[ id.groupId ].bars[ id.barId ]) then return end;
   
   --Start with root menu and check level
-  local parentMenu = ChronoBars.Menu_Bar;
+  local subMenu = ChronoBars.Menu_Bar;
   if (UIDROPDOWNMENU_MENU_LEVEL > 1) then
-  
-    --Get value of parent menu item
-    local parentItem = UIDROPDOWNMENU_MENU_VALUE;
-    parentMenu = ChronoBars.GetSettingsValue( id, parentItem.menu );
     
-    --Check for missing menu
-    if (parentMenu == nil) then
-      ChronoBars.Debug( "Failed finding menu '"..parentItem.menu.."'" );
+    --Get parent menu item
+    local parentItem = UIDROPDOWNMENU_MENU_VALUE;
+    if (parentItem == nil) then
+      ChronoBars.Debug( "Missing parent menu item!" );
+      return;
+    end
+    
+    --Get sub menu that parent item is referencing
+    subMenu = ChronoBars.GetSettingsValue( id, parentItem.menu );
+    if (subMenu == nil) then
+      ChronoBars.Debug( "Failed finding menu '"..tostring( parentItem.menu ).."'" );
       return
     end
   end
   
   --Walk the submenu nodes
-  for i,item in ipairs( parentMenu ) do
+  for i,item in ipairs( subMenu ) do
     
     --Check if the menu is conditional
     local conditionOk = true;
@@ -658,13 +660,14 @@ function ChronoBars.InitBarMenu (menu, level)
       local info = UIDropDownMenu_CreateInfo();
       info.text = item.text;
       info.value = item.value;
-      info.owner = frame;
+      info.owner = nil;
       info.checked = nil;
       info.icon = nil;
       info.notCheckable = true;
       info.arg1 = item;
       info.arg2 = id;
       info.disabled = false;
+      info.keepShownOnClick = true;
       
       --Type-specific initialization
       if (item.type == "separator") then
@@ -694,34 +697,31 @@ function ChronoBars.InitBarMenu (menu, level)
         local itemValue = ChronoBars.GetSettingsValue( id, item.option );
         info.checked = (curValue == itemValue);
         info.notCheckable = false;
+        info.isNotRatio = false;
         info.func = ChronoBars.BarMenu_OnClickOption;
         
       elseif (item.type == "toggle") then
         local curValue = ChronoBars.GetSettingsValue( id, item.var );
         info.checked = curValue;
         info.notCheckable = false;
+        info.isNotRadio = true;
         info.func = ChronoBars.BarMenu_OnClickToggle;
         
       elseif (item.type == "color") then
         local curValue = ChronoBars.GetSettingsValue( id, item.var );
-
-        --[[
-        --This would be nice, but there's no way of telling which item
-        --the ColorPickerFrame comes from
         info.hasColorSwatch = 1;
         info.hasOpacity = true;
         info.r = curValue.r;
         info.g = curValue.g;
         info.b = curValue.b;
         info.opacity = 1 - curValue.a;
-        info.swatchFunc = ChronoBar.BarMenu_ColorFunc;
-        info.opacityFunc = ChronoBar.BarMenu_ColorFunc;
-        info.cancelFunc = ChronoBar.BarMenu_ColorCancelFunc;
-        info.func = UIDropDownMenuButton_OpenColorPicker;
+        info.notClickable = true;
+        --[[
+        info.swatchFunc = ChronoBars.BarMenu_ColorFunc;
+        info.opacityFunc = ChronoBars.BarMenu_ColorFunc;
+        info.cancelFunc = ChronoBars.BarMenu_ColorCancelFunc;
         --]]
-        
-        --We show the ColorPickerFrame manually instead
-        info.func = ChronoBars.BarMenu_OnClickColor;
+        --info.func = ChronoBars.BarMenu_OnClickColor;
         
       elseif (item.type == "input" or item.type == "numinput") then
         info.func = ChronoBars.BarMenu_OnClickInput;
@@ -741,27 +741,23 @@ function ChronoBars.InitBarMenu (menu, level)
 end
 
 function ChronoBars.OpenBarMenu (bar)
-  
-  ChronoBars.MenuGroupId = bar.groupId;
-  ChronoBars.MenuBarId = bar.barId;
+ 
+  CB.MenuId.groupId = bar.groupId;
+  CB.MenuId.barId = bar.barId;
 
-  if (not bar.menu) then
-    bar.menu = CreateFrame( "Frame", bar:GetName().."menu", bar, "UIDropDownMenuTemplate" );
-    UIDropDownMenu_SetWidth( bar.menu, 80 );
-    UIDropDownMenu_SetButtonWidth( bar.menu, 20 );
+  if (not CB.menu) then
+    CB.menu = CreateFrame( "Frame", "ChronoBarsConfigMenu", CB.frame, "UIDropDownMenuTemplate" );
+    UIDropDownMenu_SetWidth( CB.menu, 80 );
+    UIDropDownMenu_SetButtonWidth( CB.menu, 20 );
   end
   
-  bar.menu.id = { ["groupId"] = bar.groupId, ["barId"] = bar.barId };
-  UIDropDownMenu_Initialize( bar.menu, ChronoBars.InitBarMenu, "MENU" );
-  ToggleDropDownMenu(1, nil, bar.menu, "cursor", 0, 0);
+  UIDropDownMenu_Initialize( CB.menu, ChronoBars.InitBarMenu, "MENU" );
+  ToggleDropDownMenu(1, nil, CB.menu, "cursor", 0, 0);
   
 end
 
-function ChronoBars.CloseBarMenu (id)
-
-  local bar = ChronoBars.groups[ id.groupId ].bars[ id.barId ];
-  ToggleDropDownMenu(1, nil, bar.menu);
-  
+function ChronoBars.CloseBarMenu ()
+  CloseDropDownMenus();
 end
 
 function ChronoBars.BarMenu_OnClickFunc (info, item, id)  
@@ -770,6 +766,11 @@ function ChronoBars.BarMenu_OnClickFunc (info, item, id)
   local itemValue = ChronoBars.GetSettingsValue( id, item.value );
   local func = ChronoBars[ item.func ];
   func( id, itemValue );
+  
+  if (item.closeAll)
+  then ChronoBars.CloseBarMenu();
+  else ChronoBars.Util_UpdateMenu( CB.menu );
+  end
   
 end
 
@@ -780,8 +781,9 @@ function ChronoBars.BarMenu_OnClickValue (info, item, id)
   ChronoBars.SetSettingsValue( id, item.var, itemValue );
   ChronoBars.UpdateSettings();
   
-  if (item.closeAll) then
-    ChronoBars.CloseBarMenu( id );
+  if (item.closeAll)
+  then ChronoBars.CloseBarMenu();
+  else ChronoBars.Util_UpdateMenu( CB.menu );
   end
   
 end
@@ -793,8 +795,9 @@ function ChronoBars.BarMenu_OnClickOption (info, item, id)
   ChronoBars.SetSettingsValue( id, item.var, itemValue );
   ChronoBars.UpdateSettings();
   
-  if (item.closeAll) then
-    ChronoBars.CloseBarMenu( id );
+  if (item.closeAll)
+  then ChronoBars.CloseBarMenu();
+  else ChronoBars.Util_UpdateMenu( CB.menu );
   end
   
 end
@@ -806,12 +809,14 @@ function ChronoBars.BarMenu_OnClickToggle (info, item, id)
   ChronoBars.SetSettingsValue( id, item.var, (not curValue) );
   ChronoBars.UpdateSettings();
   
-  if (item.closeAll) then
-    ChronoBars.CloseBarMenu( id );
+  if (item.closeAll)
+  then ChronoBars.CloseBarMenu();
+  else ChronoBars.Util_UpdateMenu( CB.menu );
   end
   
 end
 
+--[[
 function ChronoBars.BarMenu_OnClickColor (info, item, id)
   ChronoBars.Debug( "OpenColorPicker" );
  
@@ -833,6 +838,28 @@ function ChronoBars.BarMenu_OnClickColor (info, item, id)
   ChronoBars.CloseBarMenu( id );
   
 end
+--]]
+
+function ChronoBars.BarMenu_OnClickColor (info)
+  ChronoBars.Debug( "OpenColorPicker" );
+  
+  CB.Print( "COOOLOOOOOOR" );
+  
+  --CB.Print( "Item: "..tostring(info.arg1) );
+
+  --Store the menu item and bar id this color picker refers to
+  ColorPickerFrame.item = info.arg1;
+  ColorPickerFrame.id = info.arg2;
+  
+  --Set up callbacks only after the references are set
+  ColorPickerFrame.func = ChronoBars.BarMenu_ColorFunc;
+  ColorPickerFrame.opacityFunc = ChronoBars.BarMenu_ColorFunc;
+  ColorPickerFrame.cancelFunc = ChronoBars.BarMenu_ColorCancelFunc;
+  
+end
+
+--This will trigger BarMenu_OnClickColor whenever a color picker is opened from a drop down menu
+hooksecurefunc( "UIDropDownMenuButton_OpenColorPicker", ChronoBars.BarMenu_OnClickColor );
 
 function ChronoBars.BarMenu_ColorFunc ()
 
@@ -856,13 +883,13 @@ function ChronoBars.BarMenu_ColorFunc ()
 
 end
 
-function ChronoBars.BarMenu_ColorCancelFunc ()
+function ChronoBars.BarMenu_ColorCancelFunc (old)
   
   local id = ColorPickerFrame.id;
   local item = ColorPickerFrame.item;
   if ((not id) or (not item)) then return end;
   
-  ChronoBars.SetSettingsValue( id, item.var, ColorPickerFrame.oldValue );
+  ChronoBars.SetSettingsValue( id, item.var, { r = old.r, g = old.g, b = old.b, a = (1-old.opacity) } );
   ChronoBars.UpdateSettings();
   
 end
@@ -1282,7 +1309,7 @@ function ChronoBars.MoveBar (id, offset)
   group.bars[ id.barId ] = tempBar;
 
   ChronoBars.UpdateSettings();
-  ChronoBars.CloseBarMenu( id );
+  CB.MenuId.barId = newBarId;
   
 end
 
