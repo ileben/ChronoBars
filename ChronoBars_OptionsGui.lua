@@ -33,10 +33,14 @@ function ChronoBars.Input_New( name )
 	i:SetPoint( "TOPRIGHT", l, "BOTTOMRIGHT", -1,0 );
 	i:SetHeight( 30 );
 	i:SetAutoFocus( false );
+	i:SetScript( "OnEnterPressed", ChronoBars.Input_OnEnterPressed );
+	i.frame = f;
 	f.input = i;
 	
 	--Functions
 	f.SetLabelText = ChronoBars.Input_SetLabelText;
+	f.SetText      = ChronoBars.Input_SetText;
+	f.GetText      = ChronoBars.Input_GetText;
 	return f;
 end
 
@@ -52,6 +56,12 @@ function ChronoBars.Input_GetText( frame )
 	return frame.input:GetText();
 end
 
+function ChronoBars.Input_OnEnterPressed( input )
+	local frame = input.frame;
+	local script = frame.OnValueChanged;
+	if (script) then script( frame ); end
+end
+
 --Check box
 --====================================================================
 
@@ -64,6 +74,9 @@ function ChronoBars.Checkbox_New( name )
 	--This is the actual checkbox
 	local c = CreateFrame( "CheckButton", name, f, "UICheckButtonTemplate" );
 	c:SetPoint( "TOPLEFT", f, "TOPLEFT", -5, 5 );
+	c:SetScript( "OnClick", ChronoBars.Checkbox_OnClick );
+	c.frame = f;
+	f.check = c;
 	
 	--Get font string that contains the text
 	f.text = _G[ name.."Text" ];
@@ -71,13 +84,31 @@ function ChronoBars.Checkbox_New( name )
 	f.text:SetTextColor( 1,1,1 );
 	
 	--Functions
-	f.SetText = ChronoBars.Checkbox_SetText;
+	f.SetText     = ChronoBars.Checkbox_SetText;
+	f.SetChecked  = ChronoBars.Checkbox_SetChecked;
+	f.GetChecked  = ChronoBars.Checkbox_GetChecked;
 	return f;
 end
 
 function ChronoBars.Checkbox_SetText( frame, text )
 	frame.text:SetText( text );
 end
+
+function ChronoBars.Checkbox_SetChecked( frame, checked )
+	frame.check:SetChecked( checked );
+end
+
+function ChronoBars.Checkbox_GetChecked( frame )
+	return frame.check:GetChecked();
+end
+
+function ChronoBars.Checkbox_OnClick( check )
+	local frame = check.frame;
+	local script = frame.OnValueChanged;
+	if (script) then script( frame ); end
+end
+
+
 
 --Dropdown box
 --=====================================================================
@@ -109,7 +140,8 @@ function ChronoBars.Dropdown_New( name )
 	f.values = {};
 	f.Free             = ChronoBars.Dropdown_Free;
 	f.AddItem          = ChronoBars.Dropdown_AddItem;
-	f.SelectItem       = ChronoBars.Dropdown_SelectItem;
+	f.SelectIndex      = ChronoBars.Dropdown_SelectIndex;
+	f.SelectValue      = ChronoBars.Dropdown_SelectValue;
 	f.GetSelectedIndex = ChronoBars.Dropdown_GetSelectedIndex;
 	f.GetSelectedText  = ChronoBars.Dropdown_GetSelectedText;
 	f.GetSelectedValue = ChronoBars.Dropdown_GetSelectedValue;
@@ -146,25 +178,33 @@ function ChronoBars.Dropdown_Initialize( frame )
 end
 
 function ChronoBars.Dropdown_SetBoxWidth( frame, width )
-  UIDropDownMenu_SetWidth( frame.drop, width );
+	UIDropDownMenu_SetWidth( frame.drop, width );
 end
 
 function ChronoBars.Dropdown_AddItem( frame, text, value )
-  table.insert( frame.items, text );
-  frame.values[ table.getn(frame.items) ] = value;
-  UIDropDownMenu_Initialize( frame.drop, function () frame:Initialize() end );
+	table.insert( frame.items, text );
+	frame.values[ table.getn(frame.items) ] = value;
+	UIDropDownMenu_Initialize( frame.drop, function () frame:Initialize() end );
 end
 
-function ChronoBars.Dropdown_SelectItem( frame, index )
-  UIDropDownMenu_SetSelectedValue( frame.drop, index );
+function ChronoBars.Dropdown_SelectIndex( frame, index )
+	UIDropDownMenu_SetSelectedValue( frame.drop, index );
+end
+
+function ChronoBars.Dropdown_SelectValue( frame, value )
+	for i,v in pairs( frame.values ) do
+		if (v == value) then
+			UIDropDownMenu_SetSelectedValue( frame.drop, i );
+		end
+	end
 end
 
 function ChronoBars.Dropdown_GetSelectedIndex( frame )
-  return UIDropDownMenu_GetSelectedValue( frame.drop );
+	return UIDropDownMenu_GetSelectedValue( frame.drop );
 end
 
 function ChronoBars.Dropdown_GetSelectedText( frame )
-  return UIDropDownMenu_GetText( frame.drop );
+	return UIDropDownMenu_GetText( frame.drop );
 end
 
 function ChronoBars.Dropdown_GetSelectedValue( frame )
@@ -183,11 +223,122 @@ function ChronoBars.DropdownItem_Func( item )
 	UIDropDownMenu_SetSelectedValue( frame.drop, item.value );
 	
 	--Execute script if registered
-	local script = frame.OnOptionChanged;
+	local script = frame.OnValueChanged;
 	if (script) then script( frame ); end
 end
 
 function ChronoBars.Dropdown_SetLabelText( frame, text )
+	frame.label:SetText( text );
+end
+
+--Header
+--=====================================================================
+
+function ChronoBars.Header_New( name )
+
+	--Frame
+	local f = CreateFrame( "Frame", name, nil );
+	f:SetHeight( 25 );
+	
+	--Background
+	local b = f:CreateTexture( nil, "ARTWORK" );
+	b:SetTexture( "Interface\\AddOns\\ChronoBars\\Textures\\HeaderCentered.tga" );
+	b:SetAllPoints( f );
+	
+	--Label
+	local l = f:CreateFontString( name.."Label", "OVERLAY", "GameFontNormal" );
+	l:SetFont( "Fonts\\FRIZQT__.TTF", 12 );
+	l:SetAllPoints( f );
+	l:SetText( "Group" );
+	f.label = l;
+	
+	--Functions
+	f.SetText = ChronoBars.Header_SetText;
+	
+	return f;
+end
+
+function ChronoBars.Header_SetText( frame, text )
+	frame.label:SetText( text );
+end
+
+--Group Frame
+--=====================================================================
+
+function ChronoBars.GroupFrame_New( name )
+
+	--[[
+	--Frame
+	local f = CreateFrame( "Frame", name, nil );
+	
+	--Label
+	local l = f:CreateFontString( name.."Label", "OVERLAY", "GameFontNormal" );
+	l:SetFont( "Fonts\\FRIZQT__.TTF", 12 );
+	l:SetJustifyH( "LEFT" );
+	l:SetPoint( "TOPLEFT", 0,0 );
+	l:SetPoint( "TOPRIGHT", 0,0 );
+	l:SetHeight( 12 );
+	f.label = l;
+	
+	--Border
+	local b = CreateFrame( "Frame", name.."Border", f );
+	
+	b:SetBackdrop(
+		{bgFile = "Interface\\ChatFrame\\ChatFrameBackground",
+		 edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
+		 tile = true, tileSize = 16, edgeSize = 16,
+		 insets = { left = 3, right = 3, top = 5, bottom = 3 }});
+	
+	b:SetBackdropColor( 0.1, 0.1, 0.1, 0.5 );
+	b:SetBackdropBorderColor( 1.0, 0.9, 0.0 );
+	b:SetPoint( "TOPLEFT", 0, -17 );
+	b:SetPoint( "BOTTOMRIGHT", 0, 0 );
+	
+	--Container
+	local pad = 15;
+	local c = CreateFrame( "Frame", name.."Container", b );
+	c:SetPoint( "BOTTOMLEFT", pad, pad );
+	c:SetPoint( "TOPRIGHT", -pad,-pad );
+	f.container = c;
+	
+	--Functions
+	f.SetLabelText = ChronoBars.GroupFrame_SetLabelText;
+	
+	return f;
+	--]]
+	
+	--Frame
+	local f = CreateFrame( "Frame", name, nil );
+	f:SetHeight( 100 );
+	
+	--Header
+	local h = f:CreateTexture( nil, "ARTWORK" );
+	h:SetTexture( "Interface\\AddOns\\ChronoBars\\Textures\\HeaderCentered.tga" );
+	h:SetPoint( "TOPLEFT", 0,0 );
+	h:SetPoint( "TOPRIGHT", 0,0 );
+	h:SetHeight( 25 );
+	
+	--Label
+	local l = f:CreateFontString( name.."Label", "OVERLAY", "GameFontNormal" );
+	l:SetFont( "Fonts\\FRIZQT__.TTF", 12 );
+	l:SetAllPoints( h );
+	l:SetText( "Group" );
+	f.label = l;
+	
+	--Container
+	local c = CreateFrame( "Frame", name.."Container", f );
+	c:SetPoint( "TOPLEFT", h, "BOTTOMLEFT", 0, -10 );
+	c:SetPoint( "BOTTOMRIGHT", f, "BOTTOMRIGHT", 0, 0 );
+	f.container = c;
+	
+	--Functions
+	f.SetLabelText = ChronoBars.GroupFrame_SetLabelText;
+	
+	return f;
+end
+
+
+function ChronoBars.GroupFrame_SetLabelText( frame, text )
 	frame.label:SetText( text );
 end
 
@@ -246,7 +397,7 @@ function ChronoBars.TabFrame_New( name )
 	f:SetScript( "OnSizeChanged", ChronoBars.TabFrame_OnSizeChanged );
 	
 	--Border
-	local b = CreateFrame( "Frame", "ChronoBars.TabFrameBorder", f );
+	local b = CreateFrame( "Frame", name.."Border", f );
 	
 	b:SetBackdrop(
 		{bgFile = "Interface\\ChatFrame\\ChatFrameBackground",
@@ -265,7 +416,7 @@ function ChronoBars.TabFrame_New( name )
 	c:SetPoint( "TOPRIGHT", -pad,-pad );
 	f.container = c;
 	
-	--Tabs
+	--Private vars
 	f.tabs = {};
 	f.titles = {};
 	f.widths = {};
@@ -274,6 +425,7 @@ function ChronoBars.TabFrame_New( name )
 	f.border = b;
 	f.selected = 0;
 	
+	--Functions
 	f.Free              = ChronoBars.TabFrame_Free;
 	f.AddTab            = ChronoBars.TabFrame_AddTab;
 	f.SelectTab         = ChronoBars.TabFrame_SelectTab;
@@ -589,11 +741,13 @@ function ChronoBars.NewObject( class )
 		--Create new object if capacity exhausted
 		factory.used = capacity + 1;
 
-		if     (class == "input")    then object = CB.Input_New    ( "ChronoBars.Input"    .. factory.used );
-		elseif (class == "checkbox") then object = CB.Checkbox_New ( "ChronoBars.Checkbox" .. factory.used );
-		elseif (class == "dropdown") then object = CB.Dropdown_New ( "ChronoBars.Dropdown" .. factory.used );
-		elseif (class == "tab")      then object = CB.Tab_New      ( "ChronoBars.Tab"      .. factory.used );
-		elseif (class == "tabframe") then object = CB.TabFrame_New ( "ChronoBars.TabFrame" .. factory.used );
+		if     (class == "input")      then object = CB.Input_New      ( "ChronoBars.Input"      .. factory.used );
+		elseif (class == "checkbox")   then object = CB.Checkbox_New   ( "ChronoBars.Checkbox"   .. factory.used );
+		elseif (class == "dropdown")   then object = CB.Dropdown_New   ( "ChronoBars.Dropdown"   .. factory.used );
+		elseif (class == "header")     then object = CB.Header_New     ( "ChronoBars.Header"     .. factory.used );
+		elseif (class == "groupframe") then object = CB.GroupFrame_New ( "ChronoBars.GroupFrame" .. factory.used );
+		elseif (class == "tab")        then object = CB.Tab_New        ( "ChronoBars.Tab"        .. factory.used );
+		elseif (class == "tabframe")   then object = CB.TabFrame_New   ( "ChronoBars.TabFrame"   .. factory.used );
 		end
 
 		object.factoryClass = class;
