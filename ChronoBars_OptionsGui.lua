@@ -242,7 +242,7 @@ function ChronoBars.Header_New( name )
 	
 	--Background
 	local b = f:CreateTexture( nil, "ARTWORK" );
-	b:SetTexture( "Interface\\AddOns\\ChronoBars\\Textures\\HeaderCentered.tga" );
+	b:SetTexture( "Interface\\AddOns\\ChronoBars\\Textures\\Header.tga" );
 	b:SetAllPoints( f );
 	
 	--Label
@@ -313,7 +313,7 @@ function ChronoBars.GroupFrame_New( name )
 	
 	--Header
 	local h = f:CreateTexture( nil, "ARTWORK" );
-	h:SetTexture( "Interface\\AddOns\\ChronoBars\\Textures\\HeaderCentered.tga" );
+	h:SetTexture( "Interface\\AddOns\\ChronoBars\\Textures\\Header.tga" );
 	h:SetPoint( "TOPLEFT", 0,0 );
 	h:SetPoint( "TOPRIGHT", 0,0 );
 	h:SetHeight( 25 );
