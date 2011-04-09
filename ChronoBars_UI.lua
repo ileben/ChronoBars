@@ -358,7 +358,8 @@ end
 
 function ChronoBars.Bar_OnMouseDown (bar, button)
   if (button == "RightButton" and ChronoBars.designMode) then
-    ChronoBars.OpenBarMenu (bar);
+    --ChronoBars.OpenBarMenu (bar);
+	ChronoBars.OpenBarConfig (bar);
   end
 end
 

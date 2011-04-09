@@ -8,9 +8,10 @@
 Libs\LibStub\LibStub.lua
 Libs\CallbackHandler-1.0\CallbackHandler-1.0.lua
 Libs\LibSharedMedia-3.0\lib.xml
+ChronoBars_Util.lua
+ChronoBars_Defaults.lua
 ChronoBars.lua
 ChronoBars_UI.lua
 ChronoBars_Status.lua
 ChronoBars_Options.lua
 ChronoBars_GlobalOptions.lua
-ChronoBars_Util.lua

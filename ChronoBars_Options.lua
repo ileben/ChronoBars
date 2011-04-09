@@ -9,11 +9,12 @@ Author: Ivan Leben
 
 local CB = ChronoBars;
 ChronoBars.MenuId = { groupId = 1, barId = 1 };
+ChronoBars.MenuEnv = {};
 
 --Menu Structure
 --===================================
 
-ChronoBars.Menu_Bar = {
+ChronoBars.Menu_Root = {
   
   { type="title", title="bar|name" },
   { text="Enabled",           type="toggle",    var="bar|enabled" },
@@ -51,7 +52,7 @@ ChronoBars.Menu_Bar = {
   { text="Maximum time",  type="menu",  menu="root|Menu_Fixed" },
   
   { type="separator" },
-  { text="Style",             type="menu",      menu="root|Menu_BarStyle" },
+  { text="Style",             type="menu",      menu="root|Menu_Style" },
   { text="Copy",              type="menu",      menu="root|Menu_BarCopy" },
   { text="Paste",             type="menu",      menu="root|Menu_BarPaste" },
   { text="Copy to all",       type="menu",      menu="root|Menu_BarCopyToAll" },
@@ -192,49 +193,146 @@ ChronoBars.Menu_Fixed = {
   { text="Set maximum time...",   type="numinput",  var="bar|fixed.duration", input="Maximum time visible on the bar (seconds):" },
 };
 
-ChronoBars.Menu_BarShow = {
-
-  { type="title", title="Show" },
-  { text="Name",       type="toggle",    var="bar|style.showName" },
-  { text="Count",      type="toggle",    var="bar|style.showCount" },
-  { text="Time",       type="toggle",    var="bar|style.showTime" },
-  { text="Icon",       type="toggle",    var="bar|style.showIcon" },
-  { text="CD",         type="toggle",    var="bar|style.showCd" },
-  { text="Usable",     type="toggle",    var="bar|style.showUsable" },
-  { text="Spark",      type="toggle",    var="bar|style.showSpark" },
+ChronoBars.Menu_Style =
+{
+  { type="title",             title="Style" },
+  { text="Bar",               type="menu",      menu="root|Menu_Bar"},
+  { text="Icon",              type="menu",      menu="root|Menu_Icon"},
+  { text="Spark",             type="menu",      menu="root|Menu_Spark"},
+  { text="Text",              type="menu",      menu="func|Var_MenuText" },
+  { text="Visibility",        type="menu",      menu="root|Menu_Visibility" },
+  { text="Animation",         type="menu",      menu="root|Menu_Animation" },
 };
 
-ChronoBars.Menu_BarStyle = {
-
-  { type="title", title="Style" },
-  { text="Show",                  type="menu",      menu="root|Menu_BarShow" },
-  { text="Name Align",             type="menu",      menu="root|Menu_Justify" },
-  { text="Count Side",            type="menu",      menu="root|Menu_CountSide" },
-  { text="Time Side",             type="menu",      menu="root|Menu_TimeSide" },
-  { text="Full Side",             type="menu",      menu="root|Menu_FullSide" },
-  { text="Icon Side",             type="menu",      menu="root|Menu_IconSide" },
-  { text="Icon Zoom",             type="toggle",    var="bar|style.iconZoom" },
-  { text="Fill up",               type="toggle",    var="bar|style.fillUp" },
- 
-  { type="separator" },
-  { text="Texture",               type="menu",      menu="func|VarFunc_MenuTexture" },
-  { text="Font",                  type="menu",      menu="func|VarFunc_MenuFont" },
-  { text="Font Size...",          type="numinput",  var="bar|style.fontSize",  input="Font size:" },
-  { text="Spark Height...",       type="numinput",  var="bar|style.sparkHeight", input="Spark height relative to bar height:" },
-  { text="Spark Width...",        type="numinput",  var="bar|style.sparkWidth",  input="Spark width:" },
-  { text="Time Format",           type="menu",      menu="root|Menu_TimeFormat" },
+ChronoBars.Menu_Bar = 
+{
+  { type="title",             title="Bar" },
+  { text="Direction",         type="menu",      menu="root|Menu_FullSide" },
+  { text="Fill up",           type="toggle",    var="bar|style.fillUp" },
   
   { type="separator" },
-  { text="Text Color",         type="color",     var="bar|style.textColor" },
-  { text="Front Color",        type="color",     var="bar|style.fgColor" },
-  { text="Back Color",         type="color",     var="bar|style.bgColor" },
-
-  { type="separator" },
-  { text="Visibility",            type="menu",      menu="root|Menu_Visibility" },
-  { text="Animation",             type="menu",      menu="root|Menu_Animation" },
+  { text="Texture",           type="menu",      menu="func|Var_MenuTexture" },
+  { text="Front Color",       type="color",     var="bar|style.fgColor" },
+  { text="Back Color",        type="color",     var="bar|style.bgColor" },
 };
 
-ChronoBars.Menu_Justify = {
+ChronoBars.Menu_Icon =
+{
+  { type="title",        title="Icon" },
+  { text="Enabled",       type="toggle",    var="bar|style.showIcon" },
+  
+  { type="separator" },
+  { text="Position",     type="menu",      menu="root|Menu_IconSide" },
+  { text="Offset X...",  type="numinput",  input="Horizontal offset:" },
+  { text="Offset Y...",  type="numinput",  input="Vertical offset:" },
+  { text="Zoom",         type="toggle",    var="bar|style.iconZoom" },
+};
+
+ChronoBars.Menu_Spark =
+{
+  { type="title",        title="Spark" },
+  { text="Enabled",      type="toggle",    var="bar|style.showSpark" },
+  
+  { type="separator" },
+  { text="Height...",   type="numinput",  var="bar|style.sparkHeight", input="Spark height relative to bar height:" },
+  { text="Width...",    type="numinput",  var="bar|style.sparkWidth",  input="Spark width:" },
+};
+
+ChronoBars.Menu_TextRoot =
+{
+	{ type="title",		title="Text" },
+	{ text="New...",	type="func",	func="Func_NewText" },
+	{ type="separator" },
+};
+
+ChronoBars.Menu_Text =
+{
+  { type="title",           title="Text" },
+  { text="Show Name",       type="toggle",    var="bar|style.showName" },
+  { text="Show Count",      type="toggle",    var="bar|style.showCount" },
+  { text="Show Time",       type="toggle",    var="bar|style.showTime" },
+  { text="Show CD",         type="toggle",    var="bar|style.showCd" },
+  { text="Show Usable",     type="toggle",    var="bar|style.showUsable" },
+
+  { type="separator" },
+  { text="Name Align",         type="menu",      menu="root|Menu_Justify" },
+  { text="Count Side",         type="menu",      menu="root|Menu_CountSide" },
+  { text="Time Side",          type="menu",      menu="root|Menu_TimeSide" },
+  { text="Time Format",        type="menu",      menu="root|Menu_TimeFormat" },
+  
+  { type="separator" },
+  { text="Font",               type="menu",      menu="func|Var_MenuFont" },
+  { text="Font Size...",       type="numinput",  var="bar|style.fontSize",  input="Font size:" },
+  { text="Text Color",         type="color",     var="bar|style.textColor" },
+};
+
+ChronoBars.Menu_Text2 =
+{
+  { type="title",          title="bar|style.text[textId].name" },
+  { text="Enabled",        type="toggle",        var="bar|style.text[textId].enabled" },
+  
+  { type="separator" },
+  { text="Format",         type="input",         var="bar|style.text[textId].format", input="Enter text format:" },
+  { text="Position",       type="menu",          menu="root|Menu_Position" },
+  { text="Offset X...",    type="numinput",      var="bar|style.text[textId].x",      input="Horizontal offset:" },
+  { text="Offset Y...",    type="numinput",      var="bar|style.text[textId].y",      input="Vertical offset:" },
+ 
+  { type="separator" },
+  { text="Font",               type="menu",      menu="func|Var_MenuFont" },
+  { text="Font Size...",       type="numinput",  var="bar|style.text[textId].size",   input="Font size:" },
+  { text="Outline",            type="toggle",    var="bar|style.text[textId].outline" },
+  
+  { type="separator" },
+  { text="Text Color",         type="color",     var="bar|style.text[textId].textColor" },
+  { text="Outline Color",      type="color",     var="bar|style.text[textId].outColor" },
+  
+  { type="separator" },
+  { text="Rename",			  type="func",     func="Func_RenameText" },
+  { text="Delete",			  type="func",     func="Func_DeleteText" },
+};
+
+ChronoBars.Menu_Position =
+{
+	{ type="title",           title="Position" },
+	{ text="Inside Left",     type="option",    var= "bar|style.text[textId].position", option=CB.POS_IN_LEFT },
+	{ text="Inside Center",   type="option",    var= "bar|style.text[textId].position", option=CB.POS_IN_CENTER },
+	{ text="Inside Right",    type="option",    var= "bar|style.text[textId].position", option=CB.POS_IN_RIGHT },
+	
+	{ type="separator" },
+	{ text="Outside Left",    type="option",    var= "bar|style.text[textId].position", option=CB.POS_OUT_LEFT },
+	{ text="Outside Right",   type="option",    var= "bar|style.text[textId].position", option=CB.POS_OUT_RIGHT },
+	
+	{ type="separator" },
+	{ text="Above Left",      type="option",    var= "bar|style.text[textId].position", option=CB.POS_ABOVE_LEFT },
+	{ text="Above Center",    type="option",    var= "bar|style.text[textId].position", option=CB.POS_ABOVE_CENTER },
+	{ text="Above Right",     type="option",    var= "bar|style.text[textId].position", option=CB.POS_ABOVE_RIGHT },
+	
+	{ type="separator" },
+	{ text="Below Left",      type="option",    var= "bar|style.text[textId].position", option=CB.POS_BELOW_LEFT },
+	{ text="Below Center",    type="option",    var= "bar|style.text[textId].position", option=CB.POS_BELOW_CENTER },
+	{ text="Below Right",     type="option",    var= "bar|style.text[textId].position", option=CB.POS_BELOW_RIGHT },
+};
+
+ChronoBars.Menu_Visibility =
+{
+  { type="title", title="Visibility" },
+  { text="Always visible",      type="option", var="bar|style.visibility", option=ChronoBars.VISIBLE_ALWAYS },
+  { text="When active",         type="option", var="bar|style.visibility", option=ChronoBars.VISIBLE_ACTIVE },
+};
+
+ChronoBars.Menu_Animation =
+{
+  { type="title", title="Animation" },
+  { text="Slide up when activated",             type="toggle",  var="bar|style.anim.up" },
+  { text="Slide down when consumed",            type="toggle",  var="bar|style.anim.down" },
+  { text="Blink slowly when running out",       type="toggle",  var="bar|style.anim.blinkSlow" },
+  { text="Blink quickly when almost expired",   type="toggle",  var="bar|style.anim.blinkFast" },
+  { text="Blink when usable",                   type="toggle",  var="bar|style.anim.blinkUsable" },
+  { text="Fade out when expired",               type="toggle",  var="bar|style.anim.fade" },
+};
+
+ChronoBars.Menu_Justify =
+{
   { type="title",   title="Alignment" },
   { text="Left",    type="option",  var="bar|style.nameJustify",  option = ChronoBars.JUSTIFY_LEFT },
   { text="Center",  type="option",  var="bar|style.nameJustify",  option = ChronoBars.JUSTIFY_CENTER },
@@ -332,23 +430,6 @@ ChronoBars.Menu_BarCopyToAll = {
   { text="All Bar Settings",         closeAll=true,  type="func",  func="MenuFunc_CopyToAll", value="const|all" },
 };
 
-ChronoBars.Menu_Visibility = {
-
-  { type="title", title="Visibility" },
-  { text="Always visible",      type="option", var="bar|style.visibility", option=ChronoBars.VISIBLE_ALWAYS },
-  { text="When active",         type="option", var="bar|style.visibility", option=ChronoBars.VISIBLE_ACTIVE },
-};
-
-ChronoBars.Menu_Animation = {
-
-  { text="Slide up when activated",             type="toggle",  var="bar|style.anim.up" },
-  { text="Slide down when consumed",            type="toggle",  var="bar|style.anim.down" },
-  { text="Blink slowly when running out",       type="toggle",  var="bar|style.anim.blinkSlow" },
-  { text="Blink quickly when almost expired",   type="toggle",  var="bar|style.anim.blinkFast" },
-  { text="Blink when usable",                   type="toggle",  var="bar|style.anim.blinkUsable" },
-  { text="Fade out when expired",               type="toggle",  var="bar|style.anim.fade" },
-};
-
 ChronoBars.Menu_New = {
 
   { type="title", title="New" },
@@ -437,14 +518,30 @@ function ChronoBars.GetDeepValue (deepTable, deepPath)
   --Walk the list of variable names  
   for v=1,varCount do
     local varName = varNames[v];
+	
+	--Parse index
+	local i = nil;
+	local s = strfind( varName, "[[]" );
+	local e = strfind( varName, "[]]" );
+	if (s ~= nil and e ~= nil) then
+	
+		--Get index as environment value
+		local env = strsub( varName, s+1, e-1 );
+		i = CB.MenuEnv[ env ];
+		varName = strsub( varName, 1, s-1 );
+	end
     
-    --Return value of final variable in the current table
+    --Return value of final variable
     if (v == varCount) then
-      return curTable[ varName ];
+      local varValue = curTable[ varName ];
+	  if (i ~= nil) then varValue = varValue[i]; end
+	  return varValue;
     end
     
     --Recurse into subtable
-    curTable = curTable[ varName ];
+	local varValue = curTable[ varName ];
+	if (i ~= nil) then varValue = varValue[i]; end
+    curTable = varValue;
   end
   
   return nil;
@@ -461,17 +558,38 @@ function ChronoBars.SetDeepValue (deepTable, deepPath, value)
   --Walk the list of variable names  
   for v=1,varCount do
     local varName = varNames[v];
+	
+	--Parse index
+	local i = nil;
+	local s = strfind( varName, "[[]" );
+	local e = strfind( varName, "[]]" );
+	if (s ~= nil and e ~= nil) then
+	
+		--Get index as environment value
+		local env = strsub( varName, s+1, e-1 );
+		i = CB.MenuEnv[ env ];
+		varName = strsub( varName, 1, s-1 );
+	end
     
-    --Set value of final variable in the current table
-    if (v == varCount) then
-      if (type( value ) == "table")
-      then curTable[ varName ] = CopyTable( value );
-      else curTable[ varName ] = value; end
-      return true;
-    end
+	--Set value of final variable
+	if (v == varCount) then
+		if (i ~= nil) then
+			local targetTable = curTable[ varName ];
+			if (type( value ) == "table")
+			then targetTable[ i ] = CopyTable( value );
+			else targetTable[ i ] = value; end
+		else
+			if (type( value ) == "table")
+			then curTable[ varName ] = CopyTable( value );
+			else curTable[ varName ] = value; end
+		end
+		return true;
+	end
     
     --Recurse into subtable
-    curTable = curTable[ varName ];
+	local varValue = curTable[ varName ];
+	if (i ~= nil) then varValue = varValue[i]; end
+    curTable = varValue;
   end
   
   return false;
@@ -608,154 +726,160 @@ to look up the table holding the item list for the current menu.
 --]]
 function ChronoBars.InitBarMenu (menu, level)
 
-  ChronoBars.Debug( "InitBarMenu level:"
-    ..tostring(UIDROPDOWNMENU_MENU_LEVEL).." value:"
-    ..tostring(UIDROPDOWNMENU_MENU_VALUE)  );
+	ChronoBars.Debug( "InitBarMenu level:"
+		..tostring(UIDROPDOWNMENU_MENU_LEVEL).." value:"
+		..tostring(UIDROPDOWNMENU_MENU_VALUE)  );
 
-  ChronoBars.Debug( "currentbar: "
-    ..tostring( CB.MenuId.groupId )..","
-    ..tostring( CB.MenuId.barId ));
+	ChronoBars.Debug( "currentbar: "
+		..tostring( CB.MenuId.groupId )..","
+		..tostring( CB.MenuId.barId ));
     
-  --Check that the bar settings still exist (in case of removal)
-  local id = CB.MenuId;
-  local profile = ChronoBars.GetActiveProfile();
-  if (not profile.groups[ id.groupId ]) then return end;
-  if (not profile.groups[ id.groupId ].bars[ id.barId ]) then return end;
+	--Check that the bar settings still exist (in case of removal)
+	local id = CB.MenuId;
+	local profile = ChronoBars.GetActiveProfile();
+	if (not profile.groups[ id.groupId ]) then return end;
+	if (not profile.groups[ id.groupId ].bars[ id.barId ]) then return end;
   
-  --Start with root menu and check level
-  local subMenu = ChronoBars.Menu_Bar;
-  if (UIDROPDOWNMENU_MENU_LEVEL > 1) then
-    
-    --Get parent menu item
-    local parentItem = UIDROPDOWNMENU_MENU_VALUE;
-    if (parentItem == nil) then
-      ChronoBars.Debug( "Missing parent menu item!" );
-      return;
-    end
-    
-    --Get sub menu that parent item is referencing
-    subMenu = ChronoBars.GetSettingsValue( id, parentItem.menu );
-    if (subMenu == nil) then
-      ChronoBars.Debug( "Failed finding menu '"..tostring( parentItem.menu ).."'" );
-      return
-    end
-  end
-  
-  --Walk the submenu nodes
-  for i,item in ipairs( subMenu ) do
-    
-    --Check if the menu is conditional
-    local conditionOk = true;
-    if (item.conditionVar and item.conditionValue) then
-    
-      --Test conditional variable
-      local testValue = ChronoBars.GetSettingsValue( id, item.conditionVar );
-      conditionOk = (testValue == item.conditionValue);
-    end
-    
-    --Skip buttons when condition failed
-    if (conditionOk) then
-    
-      --Defaults (arg1 and arg2 get passed into info.func)
-      local info = UIDropDownMenu_CreateInfo();
-      info.text = item.text;
-      info.value = item.value;
-      info.owner = nil;
-      info.checked = nil;
-      info.icon = nil;
-      info.notCheckable = true;
-      info.arg1 = item;
-      info.arg2 = id;
-      info.disabled = false;
-      info.hasArrow = false;
-      info.keepShownOnClick = true;
-      
-      --Type-specific initialization
-      if (item.type == "separator") then
-        info.notClickable = true;
-      
-      elseif (item.type == "title") then
-        local curValue = ChronoBars.GetSettingsValue( id, item.title );
-        info.text = curValue;
-        info.isTitle = true;
-        
-        local titleLimit = 24;
-        if (info.text ~= nil) then
-          if (strlen(info.text) > titleLimit) then
-            info.text = strsub( info.text, 1, titleLimit ).."...";
-          end
-        end
-      
-      elseif (item.type == "menu") then
-        info.hasArrow = true;
-        info.value = item;
-        
-      elseif (item.type == "value") then
-        info.func = ChronoBars.BarMenu_OnClickValue;
-        
-      elseif (item.type == "option") then
-        local curValue = ChronoBars.GetSettingsValue( id, item.var );
-        local itemValue = ChronoBars.GetSettingsValue( id, item.option );
-        info.checked = (curValue == itemValue);
-        info.notCheckable = false;
-        info.isNotRatio = false;
-        info.func = ChronoBars.BarMenu_OnClickOption;
-        
-      elseif (item.type == "toggle") then
-        local curValue = ChronoBars.GetSettingsValue( id, item.var );
-        info.checked = curValue;
-        info.notCheckable = false;
-        info.isNotRadio = true;
-        info.func = ChronoBars.BarMenu_OnClickToggle;
-        
-      elseif (item.type == "color") then
-      
-        --Create a closure that passes item to color function
-        if (item.colorFunc == nil) then
-          item.colorFunc = function ()
-            ChronoBars.BarMenu_OnColorChange( item );
-          end
-        end
-        
-        --Create a closure that passes item to cancel function
-        if (item.cancelFunc == nil) then
-          item.cancelFunc = function (old)
-            ChronoBars.BarMenu_OnColorCancel( item, old );
-          end
-        end
-        
-        --These values will get passed to ColorPickerFrame
-        local curValue = ChronoBars.GetSettingsValue( id, item.var );
-        info.r = curValue.r;
-        info.g = curValue.g;
-        info.b = curValue.b;
-        info.opacity = 1 - curValue.a;
-        info.hasColorSwatch = 1;
-        info.hasOpacity = true;
-        info.swatchFunc = item.colorFunc;
-        info.opacityFunc = item.colorFunc;
-        info.cancelFunc = item.cancelFunc;
+	--Start with root menu and check level
+	local subMenu = ChronoBars.Menu_Root;
+	if (UIDROPDOWNMENU_MENU_LEVEL > 1) then
 
-        --This will open the picker when text is clicked, not just the colored square
-        info.func = UIDropDownMenuButton_OpenColorPicker;
-        info.arg1 = nil;
-        info.arg2 = nil;
-        
-      elseif (item.type == "input" or item.type == "numinput") then
-        info.func = ChronoBars.BarMenu_OnClickInput;
-        
-      elseif (item.type == "func") then
-        info.func = ChronoBars.BarMenu_OnClickFunc;
-      
-      end
-      
-      --Add button if text non-empty
-      --if (info.text ~= nil and info.text ~= "") then
-      UIDropDownMenu_AddButton( info, UIDROPDOWNMENU_MENU_LEVEL );
-      --end
-    end
-  end
-  
+		--Get parent menu item
+		local parentItem = UIDROPDOWNMENU_MENU_VALUE;
+		if (parentItem == nil) then
+			ChronoBars.Debug( "Missing parent menu item!" );
+			return;
+		end
+
+		--Get sub menu that parent item is referencing
+		subMenu = ChronoBars.GetSettingsValue( id, parentItem.menu );
+		if (subMenu == nil) then
+			ChronoBars.Debug( "Failed finding menu '"..tostring( parentItem.menu ).."'" );
+			return
+		end
+		
+		--Set environment variables if any
+		if (parentItem.env ~= nil) then
+			for key,value in pairs( parentItem.env ) do
+				CB.MenuEnv[ key ] = value;
+			end
+		end
+	end
+
+	--Walk the submenu nodes
+	for i,item in ipairs( subMenu ) do
+
+		--Check if the menu is conditional
+		local conditionOk = true;
+		if (item.conditionVar and item.conditionValue) then
+
+			--Test conditional variable
+			local testValue = ChronoBars.GetSettingsValue( id, item.conditionVar );
+			conditionOk = (testValue == item.conditionValue);
+		end
+
+		--Skip buttons when condition failed
+		if (conditionOk) then
+
+			--Defaults (arg1 and arg2 get passed into info.func)
+			local info = UIDropDownMenu_CreateInfo();
+			info.text = item.text;
+			info.value = item.value;
+			info.owner = nil;
+			info.checked = nil;
+			info.icon = nil;
+			info.notCheckable = true;
+			info.arg1 = item;
+			info.arg2 = id;
+			info.disabled = false;
+			info.hasArrow = false;
+			info.keepShownOnClick = true;
+
+			--Type-specific initialization
+			if (item.type == "separator") then
+				info.notClickable = true;
+
+			elseif (item.type == "title") then
+				local curValue = ChronoBars.GetSettingsValue( id, item.title );
+				info.text = curValue;
+				info.isTitle = true;
+
+				local titleLimit = 24;
+				if (info.text ~= nil) then
+				  if (strlen(info.text) > titleLimit) then
+					info.text = strsub( info.text, 1, titleLimit ).."...";
+				  end
+				end
+
+			elseif (item.type == "menu") then
+				info.hasArrow = true;
+				info.value = item;
+
+			elseif (item.type == "value") then
+				info.func = ChronoBars.BarMenu_OnClickValue;
+
+			elseif (item.type == "option") then
+				local curValue = ChronoBars.GetSettingsValue( id, item.var );
+				local itemValue = ChronoBars.GetSettingsValue( id, item.option );
+				info.checked = (curValue == itemValue);
+				info.notCheckable = false;
+				info.isNotRatio = false;
+				info.func = ChronoBars.BarMenu_OnClickOption;
+
+			elseif (item.type == "toggle") then
+				local curValue = ChronoBars.GetSettingsValue( id, item.var );
+				info.checked = curValue;
+				info.notCheckable = false;
+				info.isNotRadio = true;
+				info.func = ChronoBars.BarMenu_OnClickToggle;
+
+			elseif (item.type == "color") then
+
+				--Create a closure that passes item to color function
+				if (item.colorFunc == nil) then
+				  item.colorFunc = function ()
+					ChronoBars.BarMenu_OnColorChange( item );
+				  end
+				end
+
+				--Create a closure that passes item to cancel function
+				if (item.cancelFunc == nil) then
+				  item.cancelFunc = function (old)
+					ChronoBars.BarMenu_OnColorCancel( item, old );
+				  end
+				end
+
+				--These values will get passed to ColorPickerFrame
+				local curValue = ChronoBars.GetSettingsValue( id, item.var );
+				info.r = curValue.r;
+				info.g = curValue.g;
+				info.b = curValue.b;
+				info.opacity = 1 - curValue.a;
+				info.hasColorSwatch = 1;
+				info.hasOpacity = true;
+				info.swatchFunc = item.colorFunc;
+				info.opacityFunc = item.colorFunc;
+				info.cancelFunc = item.cancelFunc;
+
+				--This will open the picker when text is clicked, not just the colored square
+				info.func = UIDropDownMenuButton_OpenColorPicker;
+				info.arg1 = nil;
+				info.arg2 = nil;
+
+			elseif (item.type == "input" or item.type == "numinput") then
+				info.func = ChronoBars.BarMenu_OnClickInput;
+
+			elseif (item.type == "func") then
+				info.func = ChronoBars.BarMenu_OnClickFunc;
+
+			end
+
+			--Add button if text non-empty
+			--if (info.text ~= nil and info.text ~= "") then
+			UIDropDownMenu_AddButton( info, UIDROPDOWNMENU_MENU_LEVEL );
+			--end
+		end
+	end
 end
 
 function ChronoBars.OpenBarMenu (bar)
@@ -1054,8 +1178,8 @@ end
 
 
 
---Dynamic Texture and Font menus
---=============================================================
+--Functional variables for dynamic Text, Texture and Font menus
+--======================================================================
 
 function ChronoBars.SplitMenuOptions (options, subtext, subname, var)
 
@@ -1112,7 +1236,7 @@ function ChronoBars.SplitMenuOptions (options, subtext, subname, var)
   return menu;
 end
 
-function ChronoBars.VarFunc_MenuTexture_Get (id)
+function ChronoBars.Var_MenuTexture_Get (id)
 
   local handles = ChronoBars.LSM:List( "statusbar" );
   local menu = ChronoBars.SplitMenuOptions( handles,
@@ -1129,7 +1253,7 @@ function ChronoBars.VarFunc_MenuTexture_Get (id)
   
 end
 
-function ChronoBars.VarFunc_MenuFont_Get (id)
+function ChronoBars.Var_MenuFont_Get (id)
 
   local handles = ChronoBars.LSM:List( "font" );
   local menu = ChronoBars.SplitMenuOptions( handles,
@@ -1138,7 +1262,39 @@ function ChronoBars.VarFunc_MenuFont_Get (id)
   
 end
 
---Copy/Paste all bar settings
+function ChronoBars.Var_MenuText_Get (id)
+
+	local menu = CopyTable( CB.Menu_TextRoot );
+
+	local profile = ChronoBars.GetActiveProfile();
+	local bar = profile.groups[ id.groupId ].bars[ id.barId ];
+  
+	for t=1,table.getn( bar.style.text ) do
+		
+		local subMenu =
+		{
+			text   = bar.style.text[t].name,
+			type   = "menu",
+			menu   = "root|Menu_Text2",
+			env    = { textId = t }
+		};
+		
+		table.insert( menu, subMenu );
+		
+	end
+	
+	return menu;
+end
+
+function ChronoBars.Func_NewText (id, value)
+
+end
+
+function ChronoBars.Func_DeleteText (id, value)
+
+end
+
+--Copy/Paste settings
 --=============================================================
 
 function ChronoBars.MenuFunc_CopyBar (id, value)

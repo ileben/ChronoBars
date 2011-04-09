@@ -7,10 +7,32 @@ Author: Ivan Leben
 
 --]]
 
+ChronoBars = {}
 local CB = ChronoBars;
 
---Clear table contents
+--Table manipulation
 --=========================================================
+
+function ChronoBars.Util_CopyTableKeys (dst, src)
+
+  for key,value in pairs(src) do
+    if (type( value ) == "table") then
+      if (type( dst[key] ) ~= "table") then
+        dst[key] = CopyTable( value );
+      else
+        CB.Util_CopyTableKeys( dst[key], value );
+      end
+    else
+      dst[key] = value;
+    end
+  end
+end
+
+function ChronoBars.Util_MergeTables (t1, t2)
+  local t = CopyTable(t1);
+  CB.Util_CopyTableKeys(t,t2);
+  return t;
+end
 
 function ChronoBars.Util_ClearTable (t)
   local len = table.getn( t );
