@@ -262,6 +262,164 @@ function ChronoBars.Header_SetText( frame, text )
 	frame.label:SetText( text );
 end
 
+
+--Container
+--=====================================================================
+
+function ChronoBars.Container_New( f )
+
+	--Frame
+	--local f = CreateFrame( "Frame", name, parent );
+	--f:SetScript( "OnSizeChanged", ChronoBars.Container_OnSizeChanged );
+	--f.owner = owner;
+	
+	CB.Print( "CONTAINER NEW " .. f:GetName() );
+	
+	--Private vars
+	f.spacing = 10;
+	f.width = 0;
+	f.height = 0;
+	f.contentHeight = 0;
+	f.children = {};
+	
+	--Functions
+	f.AddChild = ChronoBars.Container_AddChild;
+	f.SetSpacing = ChronoBars.Container_SetSpacing;
+	f.GetContentHeight = ChronoBars.Container_GetContentHeight;
+	f.UpdateContent = ChronoBars.Container_UpdateContent;
+	
+	return f;
+end
+
+function ChronoBars.Container_Free( frame )
+
+	CB.Util_ClearTable( frame.children );
+end
+
+function ChronoBars.Container_SetSpacing( frame, spacing )
+
+	frame.spacing = spacing;
+	frame:UpdateContent();
+end
+
+function ChronoBars.Container_GetContentHeight( frame )
+
+	return frame.contentHeight;
+end
+
+function ChronoBars.Container_AddChild( frame, child )
+
+	CB.Print( "ADD CHILD " .. frame:GetName() );
+	CB.Print( "Child height: "..child:GetHeight() );
+	
+	table.insert( frame.children, child );
+	child:SetParent( frame.container );
+	frame:UpdateContent();
+
+end
+
+function ChronoBars.Container_UpdateContent( frame )
+	
+	CB.Print( "UPDATING LAYOUT " .. frame:GetName() );
+	
+	--Set update lock
+	frame.updating = true;
+	
+	local numChildren = table.getn( frame.children );
+	local prevChild = nil;
+	frame.contentHeight = 0;
+	
+	for i=1,numChildren do
+	
+		--Size item to width of container
+		local child = frame.children[i];
+		child:ClearAllPoints();
+		child:SetPoint( "RIGHT", frame.container, 0,0 );
+
+		--Position item below previous one
+		if (prevChild == nil) then
+			child:SetPoint( "TOPLEFT", frame.container, "TOPLEFT", 0,0 );
+			frame.contentHeight = frame.contentHeight + child:GetHeight();
+		else
+			child:SetPoint( "TOPLEFT", prevChild, "BOTTOMLEFT", 0,-frame.spacing );
+			frame.contentHeight = frame.contentHeight + frame.spacing + child:GetHeight();
+		end
+	end
+	
+	--Resize
+	frame:SizeToContent();
+	
+	--Update parent
+	local parent = frame:GetParent();
+	if (parent and parent.container) then
+		parent:UpdateContent();
+	end
+	
+	--Resize owner frame to contents
+	--local heightDelta = totalHeight - frame.height;
+	
+	--CB.Print( "Current height: "..tostring(frame.height) );
+	--CB.Print( "Total height: "..tostring(totalHeight) );
+	--CB.Print( "Height delta: "..tostring(heightDelta) );
+	--CB.Print( "Owner height: "..tostring(frame.owner:GetHeight()) );
+	
+	--frame:SetHeight( totalHeight );
+	
+	--frame.owner:SetHeight( frame.owner:GetHeight() + heightDelta );
+	
+	
+	--Release update lock
+	frame.updating = false;
+end
+
+function ChronoBars.Container_OnSizeChanged( frame, width, height )
+
+	CB.Print( "SIZE CHANGED" .. frame:GetName() );
+	
+	local oldWidth = frame.width;
+	local oldHeight = frame.height;
+	
+	frame.width = width;
+	frame.height = height;
+	
+	if (frame.updating) then
+		CB.Print( "UPDATE_LOCK" );
+		return
+	end
+	
+	if (height == oldHeight) then
+		CB.Print( "HEIGHT LOCK" );
+		return
+	end
+	
+	frame:UpdateLayout();
+end
+
+function ChronoBars.Container_OnChildSizeChanged( child, width, height )
+
+	CB.Print( "CHILD SIZE CHANGED " .. child:GetParent():GetName() );
+	
+	local oldWidth = child.width;
+	local oldHeight = child.height;
+	
+	child.width = width;
+	child.height = height;
+	
+	local frame = child:GetParent();
+	if (frame.updating) then
+	
+		CB.Print( "UPDATE LOCK" );
+		return
+	end
+	
+	if (height == oldHeight) then
+		CB.Print( "HEIGHT LOCK" );
+		return
+	end
+	
+	frame:UpdateLayout();
+end
+
 --Group Frame
 --=====================================================================
 
@@ -327,20 +485,35 @@ function ChronoBars.GroupFrame_New( name )
 	
 	--Container
 	local c = CreateFrame( "Frame", name.."Container", f );
-	c:SetPoint( "TOPLEFT", h, "BOTTOMLEFT", 0, -10 );
-	c:SetPoint( "BOTTOMRIGHT", f, "BOTTOMRIGHT", 0, 0 );
+	c:SetPoint( "LEFT",   f, "LEFT",   0,  0 );
+	c:SetPoint( "RIGHT",  f, "RIGHT",  0,  0 );
+	c:SetPoint( "TOP",    h, "BOTTOM", 0, -10 );
+	c:SetPoint( "BOTTOM", f, "BOTTOM", 0,  0 );
+	c.frame = f;
 	f.container = c;
 	
 	--Functions
 	f.SetLabelText = ChronoBars.GroupFrame_SetLabelText;
+	f.SizeToContent = ChronoBars.GroupFrame_SizeToContent;
+	f.Free = ChronoBars.GroupFrame_Free;
 	
+	--Register as container
+	ChronoBars.Container_New( f );
 	return f;
 end
 
+function ChronoBars.GroupFrame_Free( frame )
+	ChronoBars.Container_Free( frame );
+end
 
 function ChronoBars.GroupFrame_SetLabelText( frame, text )
 	frame.label:SetText( text );
 end
+
+function ChronoBars.GroupFrame_SizeToContent( frame )
+	frame:SetHeight( 25 + 10 + frame:GetContentHeight() );
+end
+
 
 --Tab
 --=====================================================================
@@ -395,6 +568,7 @@ function ChronoBars.TabFrame_New( name )
 	--Frame
 	local f = CreateFrame( "Frame", name, nil );
 	f:SetScript( "OnSizeChanged", ChronoBars.TabFrame_OnSizeChanged );
+	f:SetHeight( 150 );
 	
 	--Border
 	local b = CreateFrame( "Frame", name.."Border", f );
@@ -412,8 +586,11 @@ function ChronoBars.TabFrame_New( name )
 	--Container
 	local pad = 15;
 	local c = CreateFrame( "Frame", name.."Container", b );
-	c:SetPoint( "BOTTOMLEFT", pad, pad );
-	c:SetPoint( "TOPRIGHT", -pad,-pad );
+	c:SetPoint( "LEFT",   pad, 0 );
+	c:SetPoint( "RIGHT", -pad, 0 );
+	c:SetPoint( "TOP",    0, -pad );
+	c:SetPoint( "BOTTOM", 0,  pad );
+	c.frame = f;
 	f.container = c;
 	
 	--Private vars
@@ -432,11 +609,17 @@ function ChronoBars.TabFrame_New( name )
 	f.GetSelectedIndex  = ChronoBars.TabFrame_GetSelectedIndex;
 	f.UpdateTabs        = ChronoBars.TabFrame_UpdateTabs;
 	
+	--Register as container
+	f.SizeToContent = ChronoBars.TabFrame_SizeToContent;
+	ChronoBars.Container_New( f );
 	return f;
 end
 
 function ChronoBars.TabFrame_Free( frame )
 
+	--Free container
+	ChronoBars.Container_Free( frame );
+	
 	--Free every tab
 	for i,tab in ipairs( frame.tabs ) do
 		CB.FreeObject( frame.tabs[i] );
@@ -554,10 +737,20 @@ function ChronoBars.TabFrame_UpdateTabs( frame )
 		y = y - 20;
 	end
 	
-	--Resize border
+	--Reposition border
 	frame.border:SetPoint( "TOPLEFT", 0, y );
 end
 
+function ChronoBars.TabFrame_SizeToContent( frame )
+
+	local numRows = table.getn( frame.widths );
+	local h = frame:GetContentHeight();
+	
+	CB.Print( "Num rows: " .. tostring( numRows ));
+	CB.Print( "Content height: " .. tostring( h ));	
+	
+	frame:SetHeight( numRows * 20 + frame:GetContentHeight() + 40 );
+end
 
 function ChronoBars.TabFrameTab_OnClick( tab )
 	
@@ -573,9 +766,16 @@ function ChronoBars.TabFrame_OnSizeChanged( frame, width, height )
 
 	--Cache size so we don't have to call GetWidth() which
 	--for some stupid reason triggers OnSizeChanged again
+	
+	local oldWidth = frame.width;
+	local oldHeight = frame.height;
+	
 	frame.width = width;
 	frame.height = height;
-	frame:UpdateTabs();
+	
+	if (width ~= oldWidth) then
+		frame:UpdateTabs();
+	end
 end
 
 
@@ -680,14 +880,36 @@ function ChronoBars.Frame_New( name, title, resizable )
 	btnClose:SetScript( "OnClick", function (self) self.myframe:Hide() end );
 	btnClose:Show();
 	
+	--Container owner
+	local o = CreateFrame( "Frame", name.."Owner", f );
+	o:SetPoint( "TOPLEFT", 0,0 );
+	o:SetPoint( "TOPRIGHT", 0,0 );
+	o:SetHeight( 200 );
+	
 	--Container
 	local pad = 20;
 	local c = CreateFrame( "Frame", name.."Container", f );
+	c:SetParent( o );
 	c:SetPoint( "BOTTOMLEFT", pad, pad );
 	c:SetPoint( "TOPRIGHT", -pad,-30 );
 	f.container = c;
+	
+	--Functions
+	f.Free = ChronoBars.Frame_Free;
 
+	--Register as container
+	f.SizeToContent = ChronoBars.Frame_SizeToContent;
+	ChronoBars.Container_New( f );
 	return f;
+end
+
+function ChronoBars.Frame_Free( frame )
+
+	ChronoBars.Container_Free( frame );
+end
+
+function ChronoBars.Frame_SizeToContent( frame )
+	--TODO resize scroll frame child
 end
 
 function ChronoBars.Frame_OnDragStart( frame )
