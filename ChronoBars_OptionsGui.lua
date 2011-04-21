@@ -38,6 +38,8 @@ function ChronoBars.Input_New( name )
 	f.input = i;
 	
 	--Functions
+	ChronoBars.Object_New( f );
+	
 	f.SetLabelText = ChronoBars.Input_SetLabelText;
 	f.SetText      = ChronoBars.Input_SetText;
 	f.GetText      = ChronoBars.Input_GetText;
@@ -84,9 +86,12 @@ function ChronoBars.Checkbox_New( name )
 	f.text:SetTextColor( 1,1,1 );
 	
 	--Functions
+	ChronoBars.Object_New( f );
+	
 	f.SetText     = ChronoBars.Checkbox_SetText;
 	f.SetChecked  = ChronoBars.Checkbox_SetChecked;
 	f.GetChecked  = ChronoBars.Checkbox_GetChecked;
+	
 	return f;
 end
 
@@ -109,7 +114,6 @@ function ChronoBars.Checkbox_OnClick( check )
 end
 
 
-
 --Dropdown box
 --=====================================================================
 
@@ -118,7 +122,6 @@ function ChronoBars.Dropdown_New( name )
 	--Wrapper
 	local f = CreateFrame( "Frame", name.."Wrapper", nil );
 	f:SetHeight( 40 );
-	f:SetScript( "OnSizeChanged", ChronoBars.Dropdown_OnSizeChanged );
 	
 	--Label
 	local l = f:CreateFontString( name.."Label", "OVERLAY", "GameFontNormal" );
@@ -135,9 +138,13 @@ function ChronoBars.Dropdown_New( name )
 	d.frame = f;
 	f.drop = d;
 	
-	--Functions
+	--Private vars
 	f.items = {};
 	f.values = {};
+	
+	--Functions
+	ChronoBars.Object_New( f );
+	
 	f.Free             = ChronoBars.Dropdown_Free;
 	f.AddItem          = ChronoBars.Dropdown_AddItem;
 	f.SelectIndex      = ChronoBars.Dropdown_SelectIndex;
@@ -148,6 +155,8 @@ function ChronoBars.Dropdown_New( name )
 	f.Initialize       = ChronoBars.Dropdown_Initialize;
 	f.SetLabelText     = ChronoBars.Dropdown_SetLabelText;
 	
+	f:RegisterScript( "OnSizeChanged", ChronoBars.Dropdown_OnSizeChanged );
+	
 	--Init
 	UIDropDownMenu_SetWidth( f.drop, 100 );
 	UIDropDownMenu_SetButtonWidth( f.drop, 20 );
@@ -157,6 +166,8 @@ function ChronoBars.Dropdown_New( name )
 end
 
 function ChronoBars.Dropdown_Free( frame )
+	
+	ChronoBars.Object_Free( frame );
 	CB.Util_ClearTable( frame.items );
 	CB.Util_ClearTableKeys( frame.values );
 end
@@ -231,6 +242,70 @@ function ChronoBars.Dropdown_SetLabelText( frame, text )
 	frame.label:SetText( text );
 end
 
+
+--Color swatch
+--=====================================================================
+
+function ChronoBars.ColorSwatch_New( name )
+
+	local size = 20;
+	local p = 1;
+	
+	--Frame
+	local f = CreateFrame( "Frame", name, nil );
+	f:SetHeight( size );
+	
+	--Box
+	local t = f:CreateTexture( nil, "ARTWORK" );
+	t:SetPoint( "TOPLEFT", 0,0 );
+	t:SetWidth( size );
+	t:SetHeight( size );
+	t:SetTexture( 1,1,1, 1 );
+	t:SetDrawLayer( "ARTWORK", 1 );
+	
+	local t2 = f:CreateTexture( nil, "ARTWORK" );
+	t2:SetPoint( "BOTTOMLEFT", t, "BOTTOMLEFT", p,p );
+	t2:SetPoint( "TOPRIGHT", t, "TOPRIGHT", -p,-p );
+	t2:SetTexture( 0,0,0, 1 );
+	t2:SetDrawLayer( "ARTWORK", 2 );
+	
+	local t3 = f:CreateTexture( nil, "ARTWORK" );
+	t3:SetPoint( "BOTTOMLEFT", t2, "BOTTOMLEFT", p,p );
+	t3:SetPoint( "TOPRIGHT", t2, "TOPRIGHT", -p,-p );
+	t3:SetTexture( 0,0,1, 1 );
+	t3:SetDrawLayer( "ARTWORK", 3 );
+	
+	f.box = t3;
+	
+	--Label
+	local l = f:CreateFontString( name.."Label", "OVERLAY", "GameFontNormal" );
+	l:SetFont( "Fonts\\FRIZQT__.TTF", 12 );
+	l:SetTextColor( 1,1,1 );
+	l:SetText( "Color" );
+	l:SetJustifyH( "LEFT" );
+	l:SetPoint( "TOPLEFT", size + 5, 0 );
+	l:SetPoint( "BOTTOMRIGHT", 0,0 );
+	f.label = l;
+	
+	--Functions
+	ChronoBars.Object_New( f );
+	f.SetColor = ChronoBars.ColorSwatch_SetColor;
+	f.SetText  = ChronoBars.ColorSwatch_SetText;
+	return f;
+	
+end
+
+function ChronoBars.ColorSwatch_SetColor( frame, r, g, b, a )
+
+	frame.box:SetTexture( r,g,b,a );
+end
+
+function ChronoBars.ColorSwatch_SetText( frame, text )
+
+	frame.label:SetText( text );
+end
+
+
 --Header
 --=====================================================================
 
@@ -253,8 +328,8 @@ function ChronoBars.Header_New( name )
 	f.label = l;
 	
 	--Functions
-	f.SetText = ChronoBars.Header_SetText;
-	
+	ChronoBars.Object_New( f );
+	f.SetText  = ChronoBars.Header_SetText;
 	return f;
 end
 
@@ -267,13 +342,8 @@ end
 --=====================================================================
 
 function ChronoBars.Container_New( f )
-
-	--Frame
-	--local f = CreateFrame( "Frame", name, parent );
-	--f:SetScript( "OnSizeChanged", ChronoBars.Container_OnSizeChanged );
-	--f.owner = owner;
 	
-	CB.Print( "CONTAINER NEW " .. f:GetName() );
+	CB.Print( "CONTAINER NEW");
 	
 	--Private vars
 	f.spacing = 10;
@@ -281,19 +351,37 @@ function ChronoBars.Container_New( f )
 	f.height = 0;
 	f.contentHeight = 0;
 	f.children = {};
+	f.childrenWidths = {};
+	f.childrenHeights = {};
 	
 	--Functions
-	f.AddChild = ChronoBars.Container_AddChild;
-	f.SetSpacing = ChronoBars.Container_SetSpacing;
-	f.GetContentHeight = ChronoBars.Container_GetContentHeight;
-	f.UpdateContent = ChronoBars.Container_UpdateContent;
+	ChronoBars.Object_New( f );
+	
+	f.Init              = ChronoBars.Container_Init;
+	f.Free              = ChronoBars.Container_Free;
+	f.AddChild          = ChronoBars.Container_AddChild;
+	f.RemoveAllChildren = ChronoBars.Container_RemoveAllChildren;
+	f.FindChildIndex    = ChronoBars.Container_FindChildIndex;
+	f.SetSpacing        = ChronoBars.Container_SetSpacing;
+	f.GetContentHeight  = ChronoBars.Container_GetContentHeight;
+	f.UpdateContent     = ChronoBars.Container_UpdateContent;
+	f.QueueUpdate       = ChronoBars.Container_QueueUpdate;
 	
 	return f;
 end
 
+function ChronoBars.Container_Init( frame )
+
+	CB.Print( "CONTAINER INIT" );
+	ChronoBars.Object_Init( frame );
+	frame:QueueUpdate();
+end
+
 function ChronoBars.Container_Free( frame )
 
-	CB.Util_ClearTable( frame.children );
+	CB.Print( "CONTAINER FREE" );
+	ChronoBars.Object_Free( frame );
+	frame:RemoveAllChildren();	
 end
 
 function ChronoBars.Container_SetSpacing( frame, spacing )
@@ -309,13 +397,42 @@ end
 
 function ChronoBars.Container_AddChild( frame, child )
 
-	CB.Print( "ADD CHILD " .. frame:GetName() );
-	CB.Print( "Child height: "..child:GetHeight() );
+	--CB.Print( "ADD CHILD " .. frame:GetName() );
 	
 	table.insert( frame.children, child );
+	table.insert( frame.childrenWidths, 0 );
+	table.insert( frame.childrenHeights, 0 );
+	
+	child.parent = frame;
 	child:SetParent( frame.container );
-	frame:UpdateContent();
+	child:RegisterScript( "OnSizeChanged", ChronoBars.Container_OnChildSizeChanged );
+	
+	frame:QueueUpdate();
+end
 
+function ChronoBars.Container_RemoveAllChildren( frame )
+
+	for i,child in ipairs(frame.children) do
+	
+		child:ClearAllPoints();
+		child:SetParent( nil );
+		child:UnregisterScript( "OnSizeChanged", ChronoBars.Container_OnChildSizeChanged );
+	end
+	
+	CB.Util_ClearTable( frame.children );
+	CB.Util_ClearTable( frame.childrenWidths );
+	CB.Util_ClearTable( frame.childrenHeights );
+end
+
+function ChronoBars.Container_FindChildIndex( frame, child )
+	
+	for i,c in ipairs(frame.children) do
+		if (c == child) then
+			return i;
+		end
+	end
+	
+	return 0;
 end
 
 function ChronoBars.Container_UpdateContent( frame )
@@ -339,85 +456,77 @@ function ChronoBars.Container_UpdateContent( frame )
 		--Position item below previous one
 		if (prevChild == nil) then
 			child:SetPoint( "TOPLEFT", frame.container, "TOPLEFT", 0,0 );
-			frame.contentHeight = frame.contentHeight + child:GetHeight();
+			frame.contentHeight = frame.contentHeight + frame.childrenHeights[i];
 		else
 			child:SetPoint( "TOPLEFT", prevChild, "BOTTOMLEFT", 0,-frame.spacing );
-			frame.contentHeight = frame.contentHeight + frame.spacing + child:GetHeight();
+			frame.contentHeight = frame.contentHeight + frame.spacing + frame.childrenHeights[i];
 		end
+		
+		--Store previous
+		prevChild = child;
 	end
 	
 	--Resize
 	frame:SizeToContent();
 	
-	--Update parent
-	local parent = frame:GetParent();
-	if (parent and parent.container) then
-		parent:UpdateContent();
-	end
-	
-	--Resize owner frame to contents
-	--local heightDelta = totalHeight - frame.height;
-	
-	--CB.Print( "Current height: "..tostring(frame.height) );
-	--CB.Print( "Total height: "..tostring(totalHeight) );
-	--CB.Print( "Height delta: "..tostring(heightDelta) );
-	--CB.Print( "Owner height: "..tostring(frame.owner:GetHeight()) );
-	
-	--frame:SetHeight( totalHeight );
-	
-	--frame.owner:SetHeight( frame.owner:GetHeight() + heightDelta );
-	
-	
 	--Release update lock
 	frame.updating = false;
 end
 
-function ChronoBars.Container_OnSizeChanged( frame, width, height )
+function ChronoBars.Container_OnContainerSizeChanged( container, width, height )
 
-	CB.Print( "SIZE CHANGED" .. frame:GetName() );
+	local frame = container.frame;
+	--CB.Print( "CONTAINER SIZE CHANGED " .. frame:GetName() );
 	
-	local oldWidth = frame.width;
-	local oldHeight = frame.height;
+	local oldWidth = container.width;
+	local oldHeight = container.height;
 	
-	frame.width = width;
-	frame.height = height;
+	container.width = width;
+	container.height = height;
 	
-	if (frame.updating) then
-		CB.Print( "UPDATE_LOCK" );
+	if (oldWidth == width and oldHeight == height) then
 		return
 	end
+
+	frame:QueueUpdate();
 	
-	if (height == oldHeight) then
-		CB.Print( "HEIGHT LOCK" );
-		return
-	end
-	
-	frame:UpdateLayout();
 end
 
 function ChronoBars.Container_OnChildSizeChanged( child, width, height )
-
-	CB.Print( "CHILD SIZE CHANGED " .. child:GetParent():GetName() );
 	
-	local oldWidth = child.width;
-	local oldHeight = child.height;
+	local frame = child.parent;
+	local i = frame:FindChildIndex( child );
+	--CB.Print( "CHILD SIZE CHANGED " .. frame:GetName() );
 	
-	child.width = width;
-	child.height = height;
+	local oldWidth = frame.childrenWidths[i];
+	local oldHeight = frame.childrenHeights[i];
 	
-	local frame = child:GetParent();
+	frame.childrenWidths[i] = width;
+	frame.childrenHeights[i] = height;
+	
 	if (frame.updating) then
-	
-		CB.Print( "UPDATE LOCK" );
+		--CB.Print( "UPDATE LOCK" );
 		return
 	end
 	
 	if (height == oldHeight) then
-		CB.Print( "HEIGHT LOCK" );
+		--CB.Print( "HEIGHT LOCK" );
 		return
 	end
 	
-	frame:UpdateLayout();
+	frame:QueueUpdate();
+
+end
+
+function ChronoBars.Container_QueueUpdate( frame )
+
+	frame:SetScript( "OnUpdate", ChronoBars.Container_OnUpdate );
+end
+
+function ChronoBars.Container_OnUpdate( frame )	
+
+	frame:UpdateContent();
+	frame:SetScript( "OnUpdate", nil );
 end
 
 --Group Frame
@@ -493,17 +602,12 @@ function ChronoBars.GroupFrame_New( name )
 	f.container = c;
 	
 	--Functions
-	f.SetLabelText = ChronoBars.GroupFrame_SetLabelText;
-	f.SizeToContent = ChronoBars.GroupFrame_SizeToContent;
-	f.Free = ChronoBars.GroupFrame_Free;
-	
-	--Register as container
 	ChronoBars.Container_New( f );
+	
+	f.SetLabelText   = ChronoBars.GroupFrame_SetLabelText;
+	f.SizeToContent  = ChronoBars.GroupFrame_SizeToContent;
+	
 	return f;
-end
-
-function ChronoBars.GroupFrame_Free( frame )
-	ChronoBars.Container_Free( frame );
 end
 
 function ChronoBars.GroupFrame_SetLabelText( frame, text )
@@ -520,19 +624,20 @@ end
 
 function ChronoBars.Tab_New( name )
 
-	local tab = CreateFrame("Button", name, nil, "OptionsFrameTabButtonTemplate");
+	local t = CreateFrame("Button", name, nil, "OptionsFrameTabButtonTemplate");
 	
-	tab.text = _G[name .. "Text"];
+	t.text = _G[name .. "Text"];
 	
-	tab.Resize = ChronoBars.Tab_Resize;
-	tab.GetTextWidth = ChronoBars.Tab_GetTextWidth;
-	tab.SetSelected = ChronoBars.Tab_SetSelected;
-	tab.GetSelected = ChronoBars.Tab_GetSelected;
+	t.Resize = ChronoBars.Tab_Resize;
+	t.GetTextWidth = ChronoBars.Tab_GetTextWidth;
+	t.SetSelected = ChronoBars.Tab_SetSelected;
+	t.GetSelected = ChronoBars.Tab_GetSelected;
 	
-	tab:SetText( "Tab" );
-	tab:SetSelected( false );
+	t:SetText( "Tab" );
+	t:SetSelected( false );
 	
-	return tab;
+	ChronoBars.Object_New( t );
+	return t;
 
 end
 
@@ -567,7 +672,7 @@ function ChronoBars.TabFrame_New( name )
 
 	--Frame
 	local f = CreateFrame( "Frame", name, nil );
-	f:SetScript( "OnSizeChanged", ChronoBars.TabFrame_OnSizeChanged );
+	f:SetWidth( 200 );
 	f:SetHeight( 150 );
 	
 	--Border
@@ -594,6 +699,8 @@ function ChronoBars.TabFrame_New( name )
 	f.container = c;
 	
 	--Private vars
+	f.tabframeWidth = 0;
+	f.tabframeHeight = 0;
 	f.tabs = {};
 	f.titles = {};
 	f.widths = {};
@@ -603,20 +710,39 @@ function ChronoBars.TabFrame_New( name )
 	f.selected = 0;
 	
 	--Functions
+	ChronoBars.Container_New( f );
+	
+	f.Init              = ChronoBars.TabFrame_Init;
 	f.Free              = ChronoBars.TabFrame_Free;
 	f.AddTab            = ChronoBars.TabFrame_AddTab;
 	f.SelectTab         = ChronoBars.TabFrame_SelectTab;
 	f.GetSelectedIndex  = ChronoBars.TabFrame_GetSelectedIndex;
 	f.UpdateTabs        = ChronoBars.TabFrame_UpdateTabs;
+	f.SizeToContent     = ChronoBars.TabFrame_SizeToContent;
 	
-	--Register as container
-	f.SizeToContent = ChronoBars.TabFrame_SizeToContent;
-	ChronoBars.Container_New( f );
 	return f;
 end
 
-function ChronoBars.TabFrame_Free( frame )
+function ChronoBars.TabFrame_Init( frame )
 
+	CB.Print( "TABFRAME INIT" );
+	
+	--Init container
+	ChronoBars.Container_Init( frame );
+	
+	--Reset cached size
+	frame.tabframeWidth = nil;
+	frame.tabframeHeight = nil;
+	
+	--Scripts
+	frame:RegisterScript( "OnSizeChanged", ChronoBars.TabFrame_OnSizeChanged );
+	
+end
+
+function ChronoBars.TabFrame_Free( frame )
+	
+	CB.Print( "TABFRAME FREE" );
+	
 	--Free container
 	ChronoBars.Container_Free( frame );
 	
@@ -627,6 +753,8 @@ function ChronoBars.TabFrame_Free( frame )
 	
 	--Clear tabs
 	CB.Util_ClearTable( frame.tabs );
+	
+
 end
 
 function ChronoBars.TabFrame_AddTab( frame, title )
@@ -645,7 +773,6 @@ function ChronoBars.TabFrame_AddTab( frame, title )
 	--Add to list
 	table.insert( frame.tabs, tab );
 	table.insert( frame.titles, title );
-	frame:UpdateTabs();
 	
 	--Select if first
 	if (numTabs == 1) then
@@ -675,8 +802,14 @@ end
 
 function ChronoBars.TabFrame_UpdateTabs( frame )
 	
+	CB.Print( "UPDATE TABS" );
+	
 	--Bail if OnSizeChanged hasn't happened yet
-	if (frame.width == nil) then	return; end
+	if (frame.tabframeWidth == nil) then
+		return;
+	end
+	
+	CB.Print( "width: "..tostring(frame.tabframeWidth) );
 	
 	CB.Util_ClearTable( frame.widths );
 	CB.Util_ClearTable( frame.starts );
@@ -697,7 +830,7 @@ function ChronoBars.TabFrame_UpdateTabs( frame )
 		local tabW = tab:GetTextWidth() + 40;
 		
 		--Go to next row, if limit reached
-		if (frame.widths[ row ] + tabW > frame.width and t > 1) then
+		if (frame.widths[ row ] + tabW > frame.tabframeWidth and t > 1) then
 			table.insert( frame.widths, 0 );
 			table.insert( frame.starts, t );
 			table.insert( frame.counts, 0 );
@@ -715,7 +848,7 @@ function ChronoBars.TabFrame_UpdateTabs( frame )
 	for r = 1, numRows do
 	
 		--Find extra width to be added to every tab
-		local extraW = (frame.width - frame.widths[r]) / frame.counts[r];
+		local extraW = (frame.tabframeWidth - frame.widths[r]) / frame.counts[r];
 		local totalW = 0;
 		
 		--Walk every tab in this row
@@ -737,18 +870,16 @@ function ChronoBars.TabFrame_UpdateTabs( frame )
 		y = y - 20;
 	end
 	
-	--Reposition border
+	--Reposition top of border
 	frame.border:SetPoint( "TOPLEFT", 0, y );
+	
+	--This will resize bottom properly for the number of rows
+	frame:SizeToContent();
 end
 
 function ChronoBars.TabFrame_SizeToContent( frame )
 
-	local numRows = table.getn( frame.widths );
-	local h = frame:GetContentHeight();
-	
-	CB.Print( "Num rows: " .. tostring( numRows ));
-	CB.Print( "Content height: " .. tostring( h ));	
-	
+	local numRows = table.getn( frame.widths );	
 	frame:SetHeight( numRows * 20 + frame:GetContentHeight() + 40 );
 end
 
@@ -766,26 +897,46 @@ function ChronoBars.TabFrame_OnSizeChanged( frame, width, height )
 
 	--Cache size so we don't have to call GetWidth() which
 	--for some stupid reason triggers OnSizeChanged again
+	--CB.Print( "TABFRAME SIZE CHANGED" );
 	
-	local oldWidth = frame.width;
-	local oldHeight = frame.height;
+	local oldWidth = frame.tabframeWidth;
+	local oldHeight = frame.tabframeHeight;
 	
-	frame.width = width;
-	frame.height = height;
+	frame.tabframeWidth = width;
+	frame.tabframeHeight = height;
 	
 	if (width ~= oldWidth) then
 		frame:UpdateTabs();
 	end
+	
+end
+
+--Scroll frame
+--=====================================================================
+
+function ChronoBars.ScrollFrame_New( name )
+
+	--Frame
+	local f = CreateFrame( "ScrollFrame", name, nil, "MinimalScrollFrameTemplate" );
+	f.bar = _G[name.."ScrollBar"];
+	f.track = _G[name.."ScrollBarTrack"];
+	
+	f.track:SetTexture( 0.0, 0.0, 0.0, 0.5 );
+	
+	ChronoBars.Object_New( f );
+	return f;
+	
 end
 
 
---Frame
+--Window frame
 --=====================================================================
 
 function ChronoBars.Frame_New( name, title, resizable )
 	
 	--Frame
 	local f = CreateFrame( "Frame", name, UIParent );
+	
 	f:SetFrameStrata( "DIALOG" );
 	f:SetToplevel( true );
 	f:SetWidth( 300 );
@@ -880,36 +1031,38 @@ function ChronoBars.Frame_New( name, title, resizable )
 	btnClose:SetScript( "OnClick", function (self) self.myframe:Hide() end );
 	btnClose:Show();
 	
-	--Container owner
-	local o = CreateFrame( "Frame", name.."Owner", f );
-	o:SetPoint( "TOPLEFT", 0,0 );
-	o:SetPoint( "TOPRIGHT", 0,0 );
-	o:SetHeight( 200 );
+	--Scroll frame
+	local pad = 20;
+	local s = ChronoBars.ScrollFrame_New( name.."Scroll" );
+	s:SetParent( f );
+	s:SetPoint( "BOTTOMLEFT", pad, pad + 5 );
+	s:SetPoint( "TOPRIGHT", -pad -15, -pad -15 );
+	s:RegisterScript( "OnSizeChanged", ChronoBars.Frame_OnScrollSizeChanged );
+	s.frame = f;
 	
 	--Container
-	local pad = 20;
 	local c = CreateFrame( "Frame", name.."Container", f );
-	c:SetParent( o );
-	c:SetPoint( "BOTTOMLEFT", pad, pad );
-	c:SetPoint( "TOPRIGHT", -pad,-30 );
+	s:SetScrollChild( c );
+	c:SetPoint( "TOPLEFT", 0,0 );
+	c:SetWidth( 100 );
+	c:SetHeight( 100 );
+	c.frame = f;
 	f.container = c;
 	
 	--Functions
-	f.Free = ChronoBars.Frame_Free;
-
-	--Register as container
-	f.SizeToContent = ChronoBars.Frame_SizeToContent;
 	ChronoBars.Container_New( f );
+	f.SizeToContent  = ChronoBars.Frame_SizeToContent;
 	return f;
 end
 
-function ChronoBars.Frame_Free( frame )
-
-	ChronoBars.Container_Free( frame );
+function ChronoBars.Frame_SizeToContent( frame )
+	CB.Print( "SIZE "..tostring( frame:GetContentHeight() ));
+	frame.container:SetHeight( frame:GetContentHeight() + 1 );
 end
 
-function ChronoBars.Frame_SizeToContent( frame )
-	--TODO resize scroll frame child
+function ChronoBars.Frame_OnScrollSizeChanged( scroll, width, height )
+	local frame = scroll.frame;
+	frame.container:SetWidth( width );
 end
 
 function ChronoBars.Frame_OnDragStart( frame )
@@ -931,6 +1084,9 @@ end
 
 --Factory
 --===========================================================================
+
+
+
 
 function ChronoBars.NewObject( class )
 
@@ -963,23 +1119,32 @@ function ChronoBars.NewObject( class )
 		--Create new object if capacity exhausted
 		factory.used = capacity + 1;
 
-		if     (class == "input")      then object = CB.Input_New      ( "ChronoBars.Input"      .. factory.used );
-		elseif (class == "checkbox")   then object = CB.Checkbox_New   ( "ChronoBars.Checkbox"   .. factory.used );
-		elseif (class == "dropdown")   then object = CB.Dropdown_New   ( "ChronoBars.Dropdown"   .. factory.used );
-		elseif (class == "header")     then object = CB.Header_New     ( "ChronoBars.Header"     .. factory.used );
-		elseif (class == "groupframe") then object = CB.GroupFrame_New ( "ChronoBars.GroupFrame" .. factory.used );
-		elseif (class == "tab")        then object = CB.Tab_New        ( "ChronoBars.Tab"        .. factory.used );
-		elseif (class == "tabframe")   then object = CB.TabFrame_New   ( "ChronoBars.TabFrame"   .. factory.used );
+		if     (class == "input")      then object = CB.Input_New       ( "ChronoBars.Input"      .. factory.used );
+		elseif (class == "checkbox")   then object = CB.Checkbox_New    ( "ChronoBars.Checkbox"   .. factory.used );
+		elseif (class == "dropdown")   then object = CB.Dropdown_New    ( "ChronoBars.Dropdown"   .. factory.used );
+		elseif (class == "color")      then object = CB.ColorSwatch_New ( "ChronoBars.Color"      .. factory.used );
+		elseif (class == "header")     then object = CB.Header_New      ( "ChronoBars.Header"     .. factory.used );
+		elseif (class == "groupframe") then object = CB.GroupFrame_New  ( "ChronoBars.GroupFrame" .. factory.used );
+		elseif (class == "tab")        then object = CB.Tab_New         ( "ChronoBars.Tab"        .. factory.used );
+		elseif (class == "tabframe")   then object = CB.TabFrame_New    ( "ChronoBars.TabFrame"   .. factory.used );
 		end
 
+		--Add to list of objects
 		object.factoryClass = class;
 		object.factoryId = factory.used;
 		table.insert( factory.objects, object );
+
 	end
 
 	--Init object
 	object.factoryUsed = true;
 	object:Show();
+	
+	--Notify object it's been inited
+	if (object.Init) then
+		object:Init();
+	end
+	
 	return object;
 end
 
@@ -1052,5 +1217,110 @@ function ChronoBars.FreeAllObjects()
 		end
 		
 		factory.used = 0;
+	end
+end
+
+--Scripts
+--=============================================================
+
+function ChronoBars.Object_New( o )
+
+	o.Init                  = ChronoBars.Object_Init;
+	o.Free                  = ChronoBars.Object_Free;
+	o.RegisterScript        = ChronoBars.Object_RegisterScript;
+	o.UnregisterScript      = ChronoBars.Object_UnregisterScript;
+	o.UnregisterAllScripts  = ChronoBars.Object_UnregisterAllScripts;
+	o.InvokeScript          = ChronoBars.Object_InvokeScript;
+	
+	return o;
+end
+
+function ChronoBars.Object_Init( o )
+end
+
+function ChronoBars.Object_Free( o )
+end
+
+function ChronoBars.Object_RegisterScript( object, script, func )
+
+	--Create callback table if missing
+	if (object.callbacks == nil) then
+		object.callbacks = {};
+	end
+	
+	if (object.callbacks[ script ] == nil) then
+		object.callbacks[ script ] = {};
+	end
+	
+	--Check if function already registered
+	local callbacks = object.callbacks[ script ];
+	for i,f in ipairs( callbacks ) do
+		if (f == func) then
+			return
+		end
+	end
+	
+	--Add to callback table
+	table.insert( callbacks, func );
+	
+	--Check for missing script handler
+	if (object:GetScript( script ) == nil) then
+	
+		--Closure passes script name to invoke function along with other arguments
+		local scriptClosure = function( object, ... )
+			ChronoBars.Object_InvokeScript( object, script, ... );
+		end
+		
+		--Set closure as script handler
+		object:SetScript( script, scriptClosure );
+	end
+end
+
+function ChronoBars.Object_UnregisterScript( object, script, func )
+
+	--Must have valid callback table
+	if (object.callbacks == nil) then
+		return;
+	end
+	
+	if (object.callbacks[ script ] == nil) then
+		return
+	end
+	
+	--Search for registered function
+	local callbacks = object.callbacks[ script ];
+	for i,f in ipairs( callbacks ) do
+		if (f == func) then
+		
+			--Remove from callback table
+			table.remove( callbacks, i );
+		end
+	end
+end
+
+function ChronoBars.Object_UnregisterAllScripts( object )
+
+	--Must have valid callback table
+	if (object.callbacks == nil) then
+		return;
+	end
+		
+	--Remove all callbacks from every callback tables
+	for script,callbacks in pairs(object.callbacks) do
+		CB.Util_ClearTable( callbacks );
+	end
+end
+
+function ChronoBars.Object_InvokeScript( object, script, ... )
+	
+	--Must have valid callback table
+	if (object.callbacks == nil) then
+		return;
+	end
+	
+	--Invoke all the callback functions
+	local callbacks = object.callbacks[ script ];
+	for i,func in ipairs( callbacks ) do
+		func( object, ... );
 	end
 end

@@ -17,6 +17,7 @@ ChronoBars.Frame_Root =
 {
 	{ type="tabs", tabs="root|Tabs_Test" },
 };
+
 --]]
 ChronoBars.Tabs_Test =
 {
@@ -27,6 +28,7 @@ ChronoBars.Tabs_Test =
 ChronoBars.Frame_Test =
 {
 	{ type="input",   text="Some input:",   var="bar|name" },
+	{ type="options",  text="Some options:",  var="bar|type",   options="root|Options_EffectType" },
 };
 
 --Config structure
@@ -37,7 +39,8 @@ ChronoBars.Frame_Root =
 {
 	{ type="tabs",     tabs="root|Tabs_Root" },
 };
-
+--[[
+--]]
 ChronoBars.Tabs_Root =
 {
 	{ text="Bar",      frame="root|Frame_Bar" },
@@ -181,28 +184,36 @@ ChronoBars.Frame_EnchantSettings =
 
 ChronoBars.Frame_Appearance =
 {  
+	{ type="header",  text="Appearance" },
 	{ type="tabs",    tabs="root|Tabs_Appearance" },
+	
+	--[[
+	{ type="group",  text="Bar",        frame="root|Frame_StyleBar" },
+	{ type="group",  text="Icon",       frame="root|Frame_StyleIcon" },
+	{ type="group",  text="Spark",      frame="root|Frame_StyleSpark" },
+	{ type="group",  text="Text",       frame="root|Frame_StyleText" },
+	{ type="group",  text="Animation",  frame="root|Frame_StyleAnimation" },
+	{ type="group",  text="Visibility", frame="root|Frame_StyleVisibility" },
+	--]]
 };
 
 ChronoBars.Tabs_Appearance =
 {
 	{ text="Bar",        frame="root|Frame_StyleBar" },
-	{ text="Icon" },
-	{ text="Text" },
-	{ text="Animation" },
-	{ text="Visibility" },
+	{ text="Icon",       frame="root|Frame_StyleIcon" },
+	{ text="Spark",      frame="root|Frame_StyleSpark" },
+	{ text="Text",       frame="root|Frame_StyleText" },
+	{ text="Animation",  frame="root|Frame_StyleAnimation" },
+	{ text="Visibility", frame="root|Frame_StyleVisibility" },
 };
 
 ChronoBars.Frame_StyleBar =
 {	
 	{ type="options",    text="Direction",     var="bar|style.fullSide",   options="root|Options_FullSide" },
 	{ type="toggle",     text="Fill up",       var="bar|style.fillUp" },
-
-	--{ type="separator" },
-	
-	{ type="options",    text="Texture",       var="bar|style.lsmTexHandle",  options="root|Options_Texture"	},
-	{ type="toggle",     text="Front Color"  }, --, var="bar|style.fgColor" },
-	{ type="toggle",     text="Back Color"  },  --, var="bar|style.bgColor" },
+	{ type="options",    text="Texture",       var="bar|style.lsmTexHandle",  options="root|Options_Texture" },
+	{ type="color",      text="Front Color",   var="bar|style.fgColor" },
+	{ type="color",      text="Back Color",    var="bar|style.bgColor" },
 };
 
 ChronoBars.Options_FullSide =
@@ -213,6 +224,54 @@ ChronoBars.Options_FullSide =
 
 ChronoBars.Options_Texture =
 {
+};
+
+ChronoBars.Frame_StyleIcon =
+{
+	{ type="toggle",   text="Enabled",   var="bar|style.showIcon" },
+	{ type="options",  text="Position",  var="bar|style.iconSide",  options="root|Options_IconPosition" },
+	{ type="numinput", text="Offset X",  },
+	{ type="numinput", text="Offset Y",  },
+	{ type="toggle",   text="Zoom",      var="bar|style.iconZoom" },
+};
+
+ChronoBars.Options_IconPosition =
+{
+	{ text="Left",    value = ChronoBars.SIDE_LEFT },
+	{ text="Right",   value = ChronoBars.SIDE_RIGHT },
+};
+
+ChronoBars.Frame_StyleSpark =
+{
+	{ type="toggle",   text="Enabled",  var="bar|style.showSpark" },
+	{ type="numinput", text="Height",   var="bar|style.sparkHeight"  },
+	{ type="numinput", text="Width",    var="bar|style.sparkWidth" },
+};
+
+ChronoBars.Frame_StyleText =
+{
+};
+
+ChronoBars.Frame_StyleAnimation =
+{
+	{ type="toggle",  text="Slide up when activated",             var="bar|style.anim.up" },
+	{ type="toggle",  text="Slide down when consumed",            var="bar|style.anim.down" },
+	{ type="toggle",  text="Blink slowly when running out",       var="bar|style.anim.blinkSlow" },
+	{ type="toggle",  text="Blink quickly when almost expired",   var="bar|style.anim.blinkFast" },
+	{ type="toggle",  text="Blink when usable",                   var="bar|style.anim.blinkUsable" },
+	{ type="toggle",  text="Fade out when expired",               var="bar|style.anim.fade" },
+};
+
+ChronoBars.Frame_StyleVisibility =
+{
+	{ type="options",   text="Show bar",            var="bar|style.visibility",   options="root|Options_Visibility" },
+	{ type="toggle",    text="Hide out of combat" },
+};
+
+ChronoBars.Options_Visibility =
+{
+	{ text="Always visible",    value = ChronoBars.VISIBLE_ALWAYS },
+	{ text="When active",       value = ChronoBars.VISIBLE_ACTIVE },
 };
 
 ChronoBars.Frame_Copy =
@@ -298,6 +357,7 @@ function ChronoBars.Config_Construct( parentFrame, config )
 			for t = 1, table.getn(tabConfig) do
 				tabFrame:AddTab( tabConfig[t].text );
 			end
+			tabFrame:UpdateTabs();
 			
 			--Select tab by index from environment variable
 			local s = CB.GetEnv( item.tabs.."Selection" ) or 1;
@@ -385,6 +445,18 @@ function ChronoBars.Config_Construct( parentFrame, config )
 			local curValue = ChronoBars.GetSettingsValue( CB.MenuId, item.var );
 			inpFrame:SetText( tostring(curValue) );
 			
+		elseif (item.type == "color") then
+		
+			--Create color swatch object
+			local colFrame = CB.NewObject( "color" );
+			colFrame:SetText( item.text );
+			colFrame.item = item;
+			frame = colFrame;
+			
+			--Get value and apply to object
+			local c = ChronoBars.GetSettingsValue( CB.MenuId, item.var );
+			colFrame:SetColor( c.r, c.g, c.b, c.a );
+			
 		end
 		--[[
 		--Position item below previous one
@@ -409,6 +481,7 @@ function ChronoBars.Config_Construct( parentFrame, config )
 		
 	until true
 	end
+	
 	
 	--Size container to contents
 	--parentFrame.container:SetHeight( totalHeight + 20 );
@@ -460,6 +533,7 @@ end
 function ChronoBars.UpdateBarConfig()
 
 	CB.FreeAllObjects();
+	CB.configFrame:RemoveAllChildren();
 	CB.Config_Construct( CB.configFrame, CB.Frame_Root );
 end
 
