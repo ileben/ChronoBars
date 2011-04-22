@@ -34,6 +34,7 @@ function ChronoBars.Input_New( name )
 	i:SetHeight( 30 );
 	i:SetAutoFocus( false );
 	i:SetScript( "OnEnterPressed", ChronoBars.Input_OnEnterPressed );
+	i:SetScript( "OnSizeChanged", ChronoBars.Input_OnSizeChanged );
 	i.frame = f;
 	f.input = i;
 	
@@ -62,6 +63,10 @@ function ChronoBars.Input_OnEnterPressed( input )
 	local frame = input.frame;
 	local script = frame.OnValueChanged;
 	if (script) then script( frame ); end
+end
+
+function ChronoBars.Input_OnSizeChanged( input )
+	input:SetCursorPosition(0);
 end
 
 --Check box
@@ -111,135 +116,6 @@ function ChronoBars.Checkbox_OnClick( check )
 	local frame = check.frame;
 	local script = frame.OnValueChanged;
 	if (script) then script( frame ); end
-end
-
-
---Dropdown box
---=====================================================================
-
-function ChronoBars.Dropdown_New( name )
-
-	--Wrapper
-	local f = CreateFrame( "Frame", name.."Wrapper", nil );
-	f:SetHeight( 40 );
-	
-	--Label
-	local l = f:CreateFontString( name.."Label", "OVERLAY", "GameFontNormal" );
-	l:SetFont( "Fonts\\FRIZQT__.TTF", 10 );
-	l:SetJustifyH( "LEFT" );
-	l:SetPoint( "TOPLEFT", 0,0 );
-	l:SetPoint( "TOPRIGHT", 0,0 );
-	l:SetHeight( 8 );
-	f.label = l;
-	
-	local d = CreateFrame( "Frame", name, f, "UIDropDownMenuTemplate" );
-	d:SetPoint( "TOPLEFT", l, "BOTTOMLEFT", -20,-4 );
-	d:SetPoint( "TOPRIGHT", l, "BOTTOMRIGHT", 0,-4 );
-	d.frame = f;
-	f.drop = d;
-	
-	--Private vars
-	f.items = {};
-	f.values = {};
-	
-	--Functions
-	ChronoBars.Object_New( f );
-	
-	f.Free             = ChronoBars.Dropdown_Free;
-	f.AddItem          = ChronoBars.Dropdown_AddItem;
-	f.SelectIndex      = ChronoBars.Dropdown_SelectIndex;
-	f.SelectValue      = ChronoBars.Dropdown_SelectValue;
-	f.GetSelectedIndex = ChronoBars.Dropdown_GetSelectedIndex;
-	f.GetSelectedText  = ChronoBars.Dropdown_GetSelectedText;
-	f.GetSelectedValue = ChronoBars.Dropdown_GetSelectedValue;
-	f.Initialize       = ChronoBars.Dropdown_Initialize;
-	f.SetLabelText     = ChronoBars.Dropdown_SetLabelText;
-	
-	f:RegisterScript( "OnSizeChanged", ChronoBars.Dropdown_OnSizeChanged );
-	
-	--Init
-	UIDropDownMenu_SetWidth( f.drop, 100 );
-	UIDropDownMenu_SetButtonWidth( f.drop, 20 );
-	UIDropDownMenu_Initialize( f.drop, function () f:Initialize() end );
-	
-	return f;
-end
-
-function ChronoBars.Dropdown_Free( frame )
-	
-	ChronoBars.Object_Free( frame );
-	CB.Util_ClearTable( frame.items );
-	CB.Util_ClearTableKeys( frame.values );
-end
-
-function ChronoBars.Dropdown_Initialize( frame )
-
-	local numItems = table.getn(frame.items);
-	for i = 1, numItems do
-
-		local info = UIDropDownMenu_CreateInfo();
-		info.text = frame.items[i];
-		info.value = i;
-		info.owner = frame;
-		info.checked = nil;
-		info.icon = nil;
-		info.func = ChronoBars.DropdownItem_Func;
-		UIDropDownMenu_AddButton( info, 1 );
-	end
-end
-
-function ChronoBars.Dropdown_SetBoxWidth( frame, width )
-	UIDropDownMenu_SetWidth( frame.drop, width );
-end
-
-function ChronoBars.Dropdown_AddItem( frame, text, value )
-	table.insert( frame.items, text );
-	frame.values[ table.getn(frame.items) ] = value;
-	UIDropDownMenu_Initialize( frame.drop, function () frame:Initialize() end );
-end
-
-function ChronoBars.Dropdown_SelectIndex( frame, index )
-	UIDropDownMenu_SetSelectedValue( frame.drop, index );
-end
-
-function ChronoBars.Dropdown_SelectValue( frame, value )
-	for i,v in pairs( frame.values ) do
-		if (v == value) then
-			UIDropDownMenu_SetSelectedValue( frame.drop, i );
-		end
-	end
-end
-
-function ChronoBars.Dropdown_GetSelectedIndex( frame )
-	return UIDropDownMenu_GetSelectedValue( frame.drop );
-end
-
-function ChronoBars.Dropdown_GetSelectedText( frame )
-	return UIDropDownMenu_GetText( frame.drop );
-end
-
-function ChronoBars.Dropdown_GetSelectedValue( frame )
-	local i = frame:GetSelectedIndex();
-	return frame.values[i];
-end
-
-function ChronoBars.Dropdown_OnSizeChanged( frame, width, height )
-	UIDropDownMenu_SetWidth( frame.drop, width-15 );
-end
-
-function ChronoBars.DropdownItem_Func( item )
-
-	--Select clicked item
-	local frame = item.owner;
-	UIDropDownMenu_SetSelectedValue( frame.drop, item.value );
-	
-	--Execute script if registered
-	local script = frame.OnValueChanged;
-	if (script) then script( frame ); end
-end
-
-function ChronoBars.Dropdown_SetLabelText( frame, text )
-	frame.label:SetText( text );
 end
 
 
@@ -343,8 +219,6 @@ end
 
 function ChronoBars.Container_New( f )
 	
-	CB.Print( "CONTAINER NEW");
-	
 	--Private vars
 	f.spacing = 10;
 	f.width = 0;
@@ -372,16 +246,14 @@ end
 
 function ChronoBars.Container_Init( frame )
 
-	CB.Print( "CONTAINER INIT" );
 	ChronoBars.Object_Init( frame );
 	frame:QueueUpdate();
 end
 
 function ChronoBars.Container_Free( frame )
 
-	CB.Print( "CONTAINER FREE" );
-	ChronoBars.Object_Free( frame );
 	frame:RemoveAllChildren();	
+	ChronoBars.Object_Free( frame );
 end
 
 function ChronoBars.Container_SetSpacing( frame, spacing )
@@ -725,8 +597,6 @@ end
 
 function ChronoBars.TabFrame_Init( frame )
 
-	CB.Print( "TABFRAME INIT" );
-	
 	--Init container
 	ChronoBars.Container_Init( frame );
 	
@@ -740,12 +610,7 @@ function ChronoBars.TabFrame_Init( frame )
 end
 
 function ChronoBars.TabFrame_Free( frame )
-	
-	CB.Print( "TABFRAME FREE" );
-	
-	--Free container
-	ChronoBars.Container_Free( frame );
-	
+		
 	--Free every tab
 	for i,tab in ipairs( frame.tabs ) do
 		CB.FreeObject( frame.tabs[i] );
@@ -754,7 +619,9 @@ function ChronoBars.TabFrame_Free( frame )
 	--Clear tabs
 	CB.Util_ClearTable( frame.tabs );
 	
-
+	--Free container
+	ChronoBars.Container_Free( frame );
+	
 end
 
 function ChronoBars.TabFrame_AddTab( frame, title )
@@ -1121,12 +988,14 @@ function ChronoBars.NewObject( class )
 
 		if     (class == "input")      then object = CB.Input_New       ( "ChronoBars.Input"      .. factory.used );
 		elseif (class == "checkbox")   then object = CB.Checkbox_New    ( "ChronoBars.Checkbox"   .. factory.used );
-		elseif (class == "dropdown")   then object = CB.Dropdown_New    ( "ChronoBars.Dropdown"   .. factory.used );
+		elseif (class == "dropdown")   then object = CB.Drop_New        ( "ChronoBars.Dropdown"   .. factory.used );
 		elseif (class == "color")      then object = CB.ColorSwatch_New ( "ChronoBars.Color"      .. factory.used );
 		elseif (class == "header")     then object = CB.Header_New      ( "ChronoBars.Header"     .. factory.used );
 		elseif (class == "groupframe") then object = CB.GroupFrame_New  ( "ChronoBars.GroupFrame" .. factory.used );
 		elseif (class == "tab")        then object = CB.Tab_New         ( "ChronoBars.Tab"        .. factory.used );
 		elseif (class == "tabframe")   then object = CB.TabFrame_New    ( "ChronoBars.TabFrame"   .. factory.used );
+		elseif (class == "font")       then object = CB.FontDrop_New    ( "ChronoBars.FontDrop"   .. factory.used );
+		elseif (class == "texture")    then object = CB.TexDrop_New     ( "ChronoBars.TexDrop"    .. factory.used );
 		end
 
 		--Add to list of objects
@@ -1220,7 +1089,7 @@ function ChronoBars.FreeAllObjects()
 	end
 end
 
---Scripts
+--Object
 --=============================================================
 
 function ChronoBars.Object_New( o )

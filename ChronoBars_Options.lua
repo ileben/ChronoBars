@@ -525,9 +525,9 @@ function ChronoBars.GetDeepValue (deepTable, deepPath)
 	local e = strfind( varName, "[]]" );
 	if (s ~= nil and e ~= nil) then
 	
-		--Get index as environment value
-		local env = strsub( varName, s+1, e-1 );
-		i = CB.MenuEnv[ env ];
+		--Get index as a settings value recursively 
+		local indexVar = strsub( varName, s+1, e-1 );
+		i = CB.GetSettingsValue( indexVar );
 		varName = strsub( varName, 1, s-1 );
 	end
     
@@ -566,8 +566,8 @@ function ChronoBars.SetDeepValue (deepTable, deepPath, value)
 	if (s ~= nil and e ~= nil) then
 	
 		--Get index as environment value
-		local env = strsub( varName, s+1, e-1 );
-		i = CB.MenuEnv[ env ];
+		local indexVar = strsub( varName, s+1, e-1 );
+		i = CB.GetSettingsValue( indexVar );
 		varName = strsub( varName, 1, s-1 );
 	end
     
@@ -595,7 +595,7 @@ function ChronoBars.SetDeepValue (deepTable, deepPath, value)
   return false;
 end
 
-function ChronoBars.GetSettingsTable (id, tableType)
+function ChronoBars.GetSettingsTable( tableType )
 
   if (tableType == "root") then
     return ChronoBars;
@@ -605,11 +605,11 @@ function ChronoBars.GetSettingsTable (id, tableType)
 
   elseif (tableType == "bar") then
     local profile = ChronoBars.GetActiveProfile();
-    return profile.groups[ id.groupId ].bars[ id.barId ];
+    return profile.groups[ CB.MenuId.groupId ].bars[ CB.MenuId.barId ];
 
   elseif (tableType == "group") then
     local profile = ChronoBars.GetActiveProfile();
-    return profile.groups[ id.groupId ];
+    return profile.groups[ CB.MenuId.groupId ];
     
   elseif (tableType == "temp") then
     if (not ChronoBars.temp) then ChronoBars.temp = {}; end
@@ -619,7 +619,7 @@ function ChronoBars.GetSettingsTable (id, tableType)
   return nil;
 end
 
-function ChronoBars.GetSettingsValue (id, var)
+function ChronoBars.GetSettingsValue( var )
   ChronoBars.Debug( "Getting value '"..tostring(var).."'" );
   
   --If variable is not a string return exact value
@@ -651,18 +651,18 @@ function ChronoBars.GetSettingsValue (id, var)
     
     --Invoke getter function
     local func = ChronoBars[ path.."_Get" ];
-    return func( id, arg );
+    return func( arg );
 
   else
   
     --Otherwise get from the table
-    local settings = ChronoBars.GetSettingsTable( id, location );
+    local settings = ChronoBars.GetSettingsTable( location );
     return ChronoBars.GetDeepValue( settings, path );
   end
 end
 
 
-function ChronoBars.SetSettingsValue (id, var, value)
+function ChronoBars.SetSettingsValue( var, value )
 
   --Refuse setting nil value to preserve setting variable types
   if (value == nil) then return false; end
@@ -696,13 +696,13 @@ function ChronoBars.SetSettingsValue (id, var, value)
     
     --Invoke setter function with argument
     local func = ChronoBars[ path.."_Set" ];
-    func( id, value, arg );
+    func( value, arg );
     return true;
     
   else
   
     --Otherwise set in the table
-    local settings = ChronoBars.GetSettingsTable( id, location );
+    local settings = ChronoBars.GetSettingsTable( location );
     return ChronoBars.SetDeepValue( settings, path, value );
   end
 end

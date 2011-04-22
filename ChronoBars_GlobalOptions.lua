@@ -29,6 +29,7 @@ ChronoBars.Frame_Test =
 {
 	{ type="input",   text="Some input:",   var="bar|name" },
 	{ type="options",  text="Some options:",  var="bar|type",   options="root|Options_EffectType" },
+	{ type="font",     text="Font",   var="bar|style.lsmFontHandle" },
 };
 
 --Config structure
@@ -211,7 +212,7 @@ ChronoBars.Frame_StyleBar =
 {	
 	{ type="options",    text="Direction",     var="bar|style.fullSide",   options="root|Options_FullSide" },
 	{ type="toggle",     text="Fill up",       var="bar|style.fillUp" },
-	{ type="options",    text="Texture",       var="bar|style.lsmTexHandle",  options="root|Options_Texture" },
+	{ type="texture",    text="Texture",       var="bar|style.lsmTexHandle" },
 	{ type="color",      text="Front Color",   var="bar|style.fgColor" },
 	{ type="color",      text="Back Color",    var="bar|style.bgColor" },
 };
@@ -250,6 +251,45 @@ ChronoBars.Frame_StyleSpark =
 
 ChronoBars.Frame_StyleText =
 {
+	{ type="options",  text="Text",     var="temp|textIndex",  options="func|Options_Text" },
+	
+	{ type="header",   text="bar|style.text[temp|textIndex].name" },
+	
+	{ type="toggle",   text="Enabled",    var="bar|style.text[temp|textIndex].enabled" },
+	{ type="input",    text="Name",       var="bar|style.text[temp|textIndex].name" },
+	{ type="input",    text="Format",     var="bar|style.text[temp|textIndex].format" },
+	
+	{ type="options",  text="Position",   var="bar|style.text[temp|textIndex].position",   options="root|Options_Position" },
+	{ type="numinput", text="Offset X",   var="bar|style.text[temp|textIndex].x" },
+	{ type="numinput", text="Offset Y",   var="bar|style.text[temp|textIndex].y" },
+	
+	{ type="font",     text="Font",       var="bar|style.text[temp|textIndex].font" },
+	{ type="numinput", text="Font size",  var="bar|style.text[temp|textIndex].size" },
+	
+	{ type="color",    text="Text color",    var="bar|style.text[temp|textIndex].textColor" },
+	{ type="color",    text="Outline color", var="bar|style.text[temp|textIndex].outColor" },
+	{ type="toggle",   text="Outline",       var="bar|style.text[temp|textIndex].outline" },
+};
+
+ChronoBars.Options_Position =
+{
+	{ text="Inside Left",     value=CB.POS_IN_LEFT },
+	{ text="Inside Center",   value=CB.POS_IN_CENTER },
+	{ text="Inside Right",    value=CB.POS_IN_RIGHT },
+	
+	--{ type="separator" },
+	{ text="Outside Left",    value=CB.POS_OUT_LEFT },
+	{ text="Outside Right",   value=CB.POS_OUT_RIGHT },
+	
+	--{ type="separator" },
+	{ text="Above Left",      value=CB.POS_ABOVE_LEFT },
+	{ text="Above Center",    value=CB.POS_ABOVE_CENTER },
+	{ text="Above Right",     value=CB.POS_ABOVE_RIGHT },
+	
+	--{ type="separator" },
+	{ text="Below Left",      value=CB.POS_BELOW_LEFT },
+	{ text="Below Center",    value=CB.POS_BELOW_CENTER },
+	{ text="Below Right",     value=CB.POS_BELOW_RIGHT },
 };
 
 ChronoBars.Frame_StyleAnimation =
@@ -294,6 +334,26 @@ ChronoBars.Frame_Profile =
 {
 };
 
+function ChronoBars.Options_Text_Get()
+
+	local options = {};
+	
+	local profile = CB.GetActiveProfile();
+	local bar = profile.groups[ CB.MenuId.groupId ].bars[ CB.MenuId.barId ];
+	
+	local numText = table.getn( bar.style.text );
+	for i=1,numText do
+	
+		local text = bar.style.text[i];
+		table.insert( options, { text = text.name, value = i } );
+	end
+	
+	CB.Print( "Settings TEXT INDEX" );
+	CB.SetSettingsValue( "temp|textIndex", 1 );
+	
+	return options;
+end
+
 
 --Construction
 --===========================================================================
@@ -329,7 +389,7 @@ function ChronoBars.Config_Construct( parentFrame, config )
 
 		--Check for condition		
 		if (item.conditionVar ~= nil) then
-			local curValue = CB.GetSettingsValue( CB.MenuId, item.conditionVar );
+			local curValue = CB.GetSettingsValue( item.conditionVar );
 			if (curValue ~= item.conditionValue) then
 				break;
 			end
@@ -347,7 +407,7 @@ function ChronoBars.Config_Construct( parentFrame, config )
 			frame = tabFrame;
 			
 			--Get tabs config
-			local tabConfig = CB.GetSettingsValue( nil, item.tabs );
+			local tabConfig = CB.GetSettingsValue( item.tabs );
 			if (tabConfig == nil) then
 				CB.Print( "Missing tab config table '"..tostring(item.tabs).."'" );
 				break;
@@ -364,7 +424,7 @@ function ChronoBars.Config_Construct( parentFrame, config )
 			tabFrame:SelectTab(s);
 			
 			--Get frame config
-			local frameConfig = CB.GetSettingsValue( nil, tabConfig[s].frame );
+			local frameConfig = CB.GetSettingsValue( tabConfig[s].frame );
 			if (frameConfig ~= nil) then
 			
 				--Construct sub frame
@@ -379,7 +439,7 @@ function ChronoBars.Config_Construct( parentFrame, config )
 			frame = grpFrame;
 			
 			--Get frame config
-			local frameConfig = CB.GetSettingsValue( nil, item.frame );
+			local frameConfig = CB.GetSettingsValue( item.frame );
 			if (frameConfig ~= nil) then
 			
 				--Construct sub frame
@@ -390,7 +450,7 @@ function ChronoBars.Config_Construct( parentFrame, config )
 		
 			--Create header frame object
 			local hdrFrame = CB.NewObject( "header" );
-			hdrFrame:SetText( CB.GetSettingsValue( CB.MenuId, item.text ));
+			hdrFrame:SetText( CB.GetSettingsValue( item.text ));
 			frame = hdrFrame;
 			
 		elseif (item.type == "options") then
@@ -403,7 +463,7 @@ function ChronoBars.Config_Construct( parentFrame, config )
 			frame = ddFrame;
 			
 			--Get options config
-			local ddConfig = CB.GetSettingsValue( nil, item.options );
+			local ddConfig = CB.GetSettingsValue( item.options );
 			if (ddConfig == nil) then
 				CB.Print( "Missing options config table '"..tostring(item.options).."'" );
 				break;
@@ -415,7 +475,7 @@ function ChronoBars.Config_Construct( parentFrame, config )
 			end
 			
 			--Get value and apply to object
-			local curValue = ChronoBars.GetSettingsValue( CB.MenuId, item.var );
+			local curValue = ChronoBars.GetSettingsValue( item.var );
 			ddFrame:SelectValue( curValue );
 			
 			
@@ -429,7 +489,7 @@ function ChronoBars.Config_Construct( parentFrame, config )
 			frame = cbFrame;
 			
 			--Get value and apply to object
-			local curValue = ChronoBars.GetSettingsValue( CB.MenuId, item.var );
+			local curValue = ChronoBars.GetSettingsValue( item.var );
 			cbFrame:SetChecked( curValue );
 			
 		elseif (item.type == "input" or item.type == "numinput") then
@@ -442,7 +502,7 @@ function ChronoBars.Config_Construct( parentFrame, config )
 			frame = inpFrame;
 			
 			--Get value and apply to object
-			local curValue = ChronoBars.GetSettingsValue( CB.MenuId, item.var );
+			local curValue = ChronoBars.GetSettingsValue( item.var );
 			inpFrame:SetText( tostring(curValue) );
 			
 		elseif (item.type == "color") then
@@ -454,8 +514,20 @@ function ChronoBars.Config_Construct( parentFrame, config )
 			frame = colFrame;
 			
 			--Get value and apply to object
-			local c = ChronoBars.GetSettingsValue( CB.MenuId, item.var );
+			local c = ChronoBars.GetSettingsValue( item.var );
 			colFrame:SetColor( c.r, c.g, c.b, c.a );
+			
+		elseif (item.type == "font" or item.type == "texture") then
+		
+			--Create font object
+			local fontFrame = CB.NewObject( item.type );
+			fontFrame:SetLabelText( item.text );
+			fontFrame.item = item;
+			frame = fontFrame;
+			
+			--Get value and apply to object
+			local curValue = ChronoBars.GetSettingsValue( item.var );
+			fontFrame:SelectValue( curValue );
 			
 		end
 		--[[

@@ -117,12 +117,14 @@ ChronoBars.DEFAULT_TEXT =
   
   textColor   = { r = 1.0, g = 1.0, b = 1.0, a = 1.0 },
   outColor    = { r = 0.0, g = 0.0, b = 0.0, a = 1.0 },
+  
+  default     = true,
 };
 
 ChronoBars.PRESET_TEXT_EFFECT = CB.Util_MergeTables( CB.DEFAULT_TEXT, 
 {
   enabled    = true,
-  name       = "Effect",
+  name       = "Effect name",
   format     = "$e",
   position   = CB.POS_IN_LEFT,
 });
@@ -130,7 +132,7 @@ ChronoBars.PRESET_TEXT_EFFECT = CB.Util_MergeTables( CB.DEFAULT_TEXT,
 ChronoBars.PRESET_TEXT_COUNT = CB.Util_MergeTables( CB.DEFAULT_TEXT,
 {
   enabled    = true,
-  name       = "Count",
+  name       = "Stack count",
   format     = "[$c]",
   position   = CB.POS_IN_LEFT,
 });
@@ -154,7 +156,7 @@ ChronoBars.PRESET_TEXT_TIME_TOTAL = CB.Util_MergeTables( CB.DEFAULT_TEXT,
 ChronoBars.PRESET_TEXT_TARGET = CB.Util_MergeTables( CB.DEFAULT_TEXT,
 {
   enabled    = false,
-  name       = "Target",
+  name       = "Target name",
   format     = "$t",
   position   = CB.POS_IN_LEFT,
 });
