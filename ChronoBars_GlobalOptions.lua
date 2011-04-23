@@ -61,7 +61,17 @@ ChronoBars.Frame_Bar =
 ChronoBars.Tabs_Bar =
 {
 	{ text="Effect",      frame="root|Frame_Effect" },
-	{ text="Appearance",  frame="root|Frame_Appearance" },
+	
+	--{ text="Appearance",  frame="root|Frame_Appearance" },
+	
+	{ text="Bar",        frame="root|Frame_StyleBar" },
+	{ text="Icon",       frame="root|Frame_StyleIcon" },
+	{ text="Spark",      frame="root|Frame_StyleSpark" },
+	{ text="Text",       frame="root|Frame_StyleText" },
+	{ text="Animation",  frame="root|Frame_StyleAnimation" },
+	{ text="Visibility", frame="root|Frame_StyleVisibility" },
+	
+	
 	{ text="Copy",        frame="root|Frame_Copy" },
 	{ text="Paste",       frame="root|Frame_Paste" },
 };
@@ -377,9 +387,6 @@ end
 
 function ChronoBars.Config_Construct( parentFrame, config )
 
-	local prevFrame = nil;
-	local totalHeight = 0;
-	
 	--Walk all the items in the config table
 	local numItems = table.getn(config);
 	for i = 1, numItems do
@@ -431,6 +438,10 @@ function ChronoBars.Config_Construct( parentFrame, config )
 				CB.Config_Construct( tabFrame, frameConfig );
 			end
 			
+			--Add to container
+			parentFrame:AddChild( tabFrame, true, false );
+			
+			
 		elseif (item.type == "group") then
 		
 			--Create group frame object
@@ -446,12 +457,20 @@ function ChronoBars.Config_Construct( parentFrame, config )
 				CB.Config_Construct( grpFrame, frameConfig );
 			end
 			
+			--Add to container
+			parentFrame:AddChild( grpFrame, true, false );
+			
+			
 		elseif (item.type == "header") then
 		
 			--Create header frame object
 			local hdrFrame = CB.NewObject( "header" );
 			hdrFrame:SetText( CB.GetSettingsValue( item.text ));
 			frame = hdrFrame;
+			
+			--Add to container
+			parentFrame:AddChild( hdrFrame, true, false );
+			
 			
 		elseif (item.type == "options") then
 			
@@ -478,6 +497,9 @@ function ChronoBars.Config_Construct( parentFrame, config )
 			local curValue = ChronoBars.GetSettingsValue( item.var );
 			ddFrame:SelectValue( curValue );
 			
+			--Add to container
+			parentFrame:AddChild( ddFrame );
+			
 			
 		elseif (item.type == "toggle") then
 		
@@ -492,6 +514,10 @@ function ChronoBars.Config_Construct( parentFrame, config )
 			local curValue = ChronoBars.GetSettingsValue( item.var );
 			cbFrame:SetChecked( curValue );
 			
+			--Add to container
+			parentFrame:AddChild( cbFrame );
+			
+			
 		elseif (item.type == "input" or item.type == "numinput") then
 		
 			--Create input object
@@ -505,6 +531,10 @@ function ChronoBars.Config_Construct( parentFrame, config )
 			local curValue = ChronoBars.GetSettingsValue( item.var );
 			inpFrame:SetText( tostring(curValue) );
 			
+			--Add to container
+			parentFrame:AddChild( inpFrame );
+			
+			
 		elseif (item.type == "color") then
 		
 			--Create color swatch object
@@ -516,6 +546,10 @@ function ChronoBars.Config_Construct( parentFrame, config )
 			--Get value and apply to object
 			local c = ChronoBars.GetSettingsValue( item.var );
 			colFrame:SetColor( c.r, c.g, c.b, c.a );
+			
+			--Add to container
+			parentFrame:AddChild( colFrame );
+			
 			
 		elseif (item.type == "font" or item.type == "texture") then
 		
@@ -529,36 +563,13 @@ function ChronoBars.Config_Construct( parentFrame, config )
 			local curValue = ChronoBars.GetSettingsValue( item.var );
 			fontFrame:SelectValue( curValue );
 			
+			--Add to container
+			parentFrame:AddChild( fontFrame );
+			
 		end
-		--[[
-		--Position item below previous one
-		if (prevFrame == nil) then
-			frame:SetPoint( "TOPLEFT", parentFrame.container, "TOPLEFT", 0,0 );
-			totalHeight = totalHeight + frame:GetHeight();
-		else
-			frame:SetPoint( "TOPLEFT", prevFrame, "BOTTOMLEFT", 0,-10 );
-			totalHeight = totalHeight + 10 + frame:GetHeight();
-		end
-		
-		--Resize item to container
-		frame:SetPoint( "RIGHT", parentFrame.container, "RIGHT", 0,0 );
-		
-		--Add to container
-		frame:SetParent( parentFrame.container );
-		--]]
-		--Add to container
-		parentFrame:AddChild( frame );
-		
-		prevFrame = frame;
 		
 	until true
 	end
-	
-	
-	--Size container to contents
-	--parentFrame.container:SetHeight( totalHeight + 20 );
-	--parentFrame.container:SetHeight( totalHeight + 20 );
-	--parentFrame.container:SetPoint( "BOTTOM", prevFrame, "BOTTOM" );
 end
 
 function ChronoBars.Config_OnTabChanged( tabFrame )
@@ -605,8 +616,12 @@ end
 function ChronoBars.UpdateBarConfig()
 
 	CB.FreeAllObjects();
-	CB.configFrame:RemoveAllChildren();
-	CB.Config_Construct( CB.configFrame, CB.Frame_Root );
+	--CB.configFrame:RemoveAllChildren();
+	--CB.Config_Construct( CB.configFrame, CB.Frame_Root );
+	
+	CB.configFrame.scrollFrame:RemoveAllChildren();
+	CB.Config_Construct( CB.configFrame.scrollFrame, CB.Frame_Root );
+	
 end
 
 
@@ -618,6 +633,8 @@ function ChronoBars.OpenBarConfig (bar)
 	if (not CB.configFrame) then
 	
 		CB.configFrame = CB.Frame_New( "ChronoBars.ConfigFrame", "ChronoBars", true);
+		CB.configFrame.scrollFrame = CB.ScrollFrame_New( "ChronoBars.ScrollFrame" );
+		CB.configFrame:AddChild( CB.configFrame.scrollFrame, true, true );
 		
 	end
 	

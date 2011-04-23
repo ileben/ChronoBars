@@ -16,6 +16,11 @@ ChronoBars_Status.lua
 ChronoBars_OptionsGui.lua
 ChronoBars_Options.lua
 ChronoBars_GlobalOptions.lua
+Gui\ChronoBars_Object.lua
+Gui\ChronoBars_Container.lua
+Gui\ChronoBars_ContainerTab.lua
+Gui\ChronoBars_ContainerScroll.lua
 Gui\ChronoBars_Dropdown.lua
 Gui\ChronoBars_DropdownFont.lua
 Gui\ChronoBars_DropdownTex.lua
+Gui\ChronoBars_Factory.lua

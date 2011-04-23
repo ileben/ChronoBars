@@ -752,7 +752,7 @@ function ChronoBars.InitBarMenu (menu, level)
 		end
 
 		--Get sub menu that parent item is referencing
-		subMenu = ChronoBars.GetSettingsValue( id, parentItem.menu );
+		subMenu = ChronoBars.GetSettingsValue( parentItem.menu );
 		if (subMenu == nil) then
 			ChronoBars.Debug( "Failed finding menu '"..tostring( parentItem.menu ).."'" );
 			return
@@ -774,7 +774,7 @@ function ChronoBars.InitBarMenu (menu, level)
 		if (item.conditionVar and item.conditionValue) then
 
 			--Test conditional variable
-			local testValue = ChronoBars.GetSettingsValue( id, item.conditionVar );
+			local testValue = ChronoBars.GetSettingsValue( item.conditionVar );
 			conditionOk = (testValue == item.conditionValue);
 		end
 
@@ -800,7 +800,7 @@ function ChronoBars.InitBarMenu (menu, level)
 				info.notClickable = true;
 
 			elseif (item.type == "title") then
-				local curValue = ChronoBars.GetSettingsValue( id, item.title );
+				local curValue = ChronoBars.GetSettingsValue( item.title );
 				info.text = curValue;
 				info.isTitle = true;
 
@@ -819,15 +819,15 @@ function ChronoBars.InitBarMenu (menu, level)
 				info.func = ChronoBars.BarMenu_OnClickValue;
 
 			elseif (item.type == "option") then
-				local curValue = ChronoBars.GetSettingsValue( id, item.var );
-				local itemValue = ChronoBars.GetSettingsValue( id, item.option );
+				local curValue = ChronoBars.GetSettingsValue( item.var );
+				local itemValue = ChronoBars.GetSettingsValue( item.option );
 				info.checked = (curValue == itemValue);
 				info.notCheckable = false;
 				info.isNotRatio = false;
 				info.func = ChronoBars.BarMenu_OnClickOption;
 
 			elseif (item.type == "toggle") then
-				local curValue = ChronoBars.GetSettingsValue( id, item.var );
+				local curValue = ChronoBars.GetSettingsValue( item.var );
 				info.checked = curValue;
 				info.notCheckable = false;
 				info.isNotRadio = true;
@@ -850,7 +850,7 @@ function ChronoBars.InitBarMenu (menu, level)
 				end
 
 				--These values will get passed to ColorPickerFrame
-				local curValue = ChronoBars.GetSettingsValue( id, item.var );
+				local curValue = ChronoBars.GetSettingsValue( item.var );
 				info.r = curValue.r;
 				info.g = curValue.g;
 				info.b = curValue.b;
@@ -905,9 +905,9 @@ end
 function ChronoBars.BarMenu_OnClickFunc (info, item, id)  
   ChronoBars.Debug( "Calling func '"..item.func..'"' );
   
-  local itemValue = ChronoBars.GetSettingsValue( id, item.value );
+  local itemValue = ChronoBars.GetSettingsValue( item.value );
   local func = ChronoBars[ item.func ];
-  func( id, itemValue );
+  func( itemValue );
   
   if (item.closeAll)
   then ChronoBars.CloseBarMenu();
@@ -919,8 +919,8 @@ end
 function ChronoBars.BarMenu_OnClickValue (info, item, id)
   ChronoBars.Debug ("Setting value '"..item.var.."' to "..tostring( item.value ) );
   
-  local itemValue = ChronoBars.GetSettingsValue( id, item.value );
-  ChronoBars.SetSettingsValue( id, item.var, itemValue );
+  local itemValue = ChronoBars.GetSettingsValue( item.value );
+  ChronoBars.SetSettingsValue( item.var, itemValue );
   ChronoBars.UpdateSettings();
   
   if (item.closeAll)
@@ -933,8 +933,8 @@ end
 function ChronoBars.BarMenu_OnClickOption (info, item, id)
   ChronoBars.Debug( "Setting option '"..item.var.."' to "..tostring( item.option ) );
   
-  local itemValue = ChronoBars.GetSettingsValue( id, item.option );
-  ChronoBars.SetSettingsValue( id, item.var, itemValue );
+  local itemValue = ChronoBars.GetSettingsValue( item.option );
+  ChronoBars.SetSettingsValue( item.var, itemValue );
   ChronoBars.UpdateSettings();
   
   if (item.closeAll)
@@ -947,8 +947,8 @@ end
 function ChronoBars.BarMenu_OnClickToggle (info, item, id)
   ChronoBars.Debug( "Toggling toggle '"..item.var.."'" );
   
-  local curValue = ChronoBars.GetSettingsValue( id, item.var );
-  ChronoBars.SetSettingsValue( id, item.var, (not curValue) );
+  local curValue = ChronoBars.GetSettingsValue( item.var );
+  ChronoBars.SetSettingsValue( item.var, (not curValue) );
   ChronoBars.UpdateSettings();
   
   if (item.closeAll)
@@ -962,7 +962,7 @@ end
 function ChronoBars.BarMenu_OnClickColor (info, item, id)
   ChronoBars.Debug( "OpenColorPicker" );
  
-  local curValue = ChronoBars.GetSettingsValue( id, item.var );
+  local curValue = ChronoBars.GetSettingsValue( item.var );
   
   ColorPickerFrame.id = id;
   ColorPickerFrame.item = item;
@@ -987,14 +987,14 @@ function ChronoBars.BarMenu_OnColorChange (item)
   local newR, newG, newB = ColorPickerFrame:GetColorRGB();
   local newA = OpacitySliderFrame:GetValue();
   
-  ChronoBars.SetSettingsValue( CB.MenuId, item.var, { r = newR, g = newG, b = newB, a = (1-newA) } );
+  ChronoBars.SetSettingsValue( item.var, { r = newR, g = newG, b = newB, a = (1-newA) } );
   ChronoBars.UpdateSettings();
 
 end
 
 function ChronoBars.BarMenu_OnColorCancel (item, old)
   
-  ChronoBars.SetSettingsValue( CB.MenuId, item.var, { r = old.r, g = old.g, b = old.b, a = (1-old.opacity) } );
+  ChronoBars.SetSettingsValue( item.var, { r = old.r, g = old.g, b = old.b, a = (1-old.opacity) } );
   ChronoBars.UpdateSettings();
   
 end
@@ -1067,7 +1067,7 @@ function ChronoBars.BarMenu_OnClickInput (info, item, id)
   
   --Apply current value and show
   local f = ChronoBars.inputFrame;
-  f.input:SetText( tostring( ChronoBars.GetSettingsValue( id, item.var )));
+  f.input:SetText( tostring( ChronoBars.GetSettingsValue( item.var )));
   f.text:SetText( item.input );
   f.item = item;
   f.id = id;
@@ -1093,7 +1093,7 @@ function ChronoBars.InputFrame_OnClickAccept (self)
   end
   
   ChronoBars.Debug( "Setting value '"..self.item.var.."'".." to "..tostring(value) );
-  ChronoBars.SetSettingsValue( self.id, self.item.var, value );
+  ChronoBars.SetSettingsValue( self.item.var, value );
   ChronoBars.UpdateSettings();
   self:Hide();
 
@@ -1236,7 +1236,7 @@ function ChronoBars.SplitMenuOptions (options, subtext, subname, var)
   return menu;
 end
 
-function ChronoBars.Var_MenuTexture_Get (id)
+function ChronoBars.Var_MenuTexture_Get ()
 
   local handles = ChronoBars.LSM:List( "statusbar" );
   local menu = ChronoBars.SplitMenuOptions( handles,
@@ -1253,7 +1253,7 @@ function ChronoBars.Var_MenuTexture_Get (id)
   
 end
 
-function ChronoBars.Var_MenuFont_Get (id)
+function ChronoBars.Var_MenuFont_Get ()
 
   local handles = ChronoBars.LSM:List( "font" );
   local menu = ChronoBars.SplitMenuOptions( handles,
@@ -1262,8 +1262,10 @@ function ChronoBars.Var_MenuFont_Get (id)
   
 end
 
-function ChronoBars.Var_MenuText_Get (id)
+function ChronoBars.Var_MenuText_Get ()
 
+    local id = CB.MenuId;
+  
 	local menu = CopyTable( CB.Menu_TextRoot );
 
 	local profile = ChronoBars.GetActiveProfile();
@@ -1286,19 +1288,21 @@ function ChronoBars.Var_MenuText_Get (id)
 	return menu;
 end
 
-function ChronoBars.Func_NewText (id, value)
+function ChronoBars.Func_NewText (value)
 
 end
 
-function ChronoBars.Func_DeleteText (id, value)
+function ChronoBars.Func_DeleteText (value)
 
 end
 
 --Copy/Paste settings
 --=============================================================
 
-function ChronoBars.MenuFunc_CopyBar (id, value)
+function ChronoBars.MenuFunc_CopyBar (value)
 
+  local id = CB.MenuId;
+	
   if (not ChronoBars.temp) then ChronoBars.temp = {} end;
   
   local profile = ChronoBars.GetActiveProfile();
@@ -1308,7 +1312,9 @@ function ChronoBars.MenuFunc_CopyBar (id, value)
   ChronoBars.CloseBarMenu( id );
 end
 
-function ChronoBars.MenuFunc_PasteBar (id, value)
+function ChronoBars.MenuFunc_PasteBar (value)
+
+  local id = CB.MenuId;
 
   if (not ChronoBars.temp) then return end;
   if (not ChronoBars.temp.bar) then return end;
@@ -1320,14 +1326,16 @@ function ChronoBars.MenuFunc_PasteBar (id, value)
   ChronoBars.CloseBarMenu( id );  
 end
 
-function ChronoBars.MenuFunc_PasteStyleExceptFg (id, value)
+function ChronoBars.MenuFunc_PasteStyleExceptFg (value)
 
+  local id = CB.MenuId;
+  
   if (not ChronoBars.temp) then return end;
   if (not ChronoBars.temp.style) then return end;
   
-  local tempFg = CB.GetSettingsValue( id, "bar|style.fgColor" );
-  CB.SetSettingsValue( id, "bar|style", CB.temp.style );
-  CB.SetSettingsValue( id, "bar|style.fgColor", tempFg );
+  local tempFg = CB.GetSettingsValue( "bar|style.fgColor" );
+  CB.SetSettingsValue( "bar|style", CB.temp.style );
+  CB.SetSettingsValue( "bar|style.fgColor", tempFg );
   
   ChronoBars.UpdateSettings();
   ChronoBars.CloseBarMenu( id );
@@ -1336,17 +1344,18 @@ end
 --Copy to all bars
 --=============================================================
 
-function ChronoBars.MenuFunc_CopyToAll (id, value)
-  local profile = ChronoBars.GetActiveProfile();
+function ChronoBars.MenuFunc_CopyToAll (value)
+  local profile = ChronoBars.GetActiveProfile();  
+  local id = CB.MenuId;
   
   --Copy source value
   local temp;
   if (value == "all") then
     temp = CopyTable( profile.groups[ id.groupId ].bars[ id.barId ] );
   elseif (value == "styleExceptFg") then
-    temp = CB.GetSettingsValue( id, "bar|style" );
+    temp = CB.GetSettingsValue( "bar|style" );
   else
-    temp = CB.GetSettingsValue( id, value );
+    temp = CB.GetSettingsValue( value );
   end
   
   --Walk all the bars in the profile
@@ -1409,8 +1418,10 @@ function ChronoBars.PasteGroup (group)
   
 end
 
-function ChronoBars.MenuFunc_CopyGroup (id, value)
+function ChronoBars.MenuFunc_CopyGroup (value)
   
+  local id = CB.MenuId;
+	
   local profile = ChronoBars.GetActiveProfile();
   local group = profile.groups[ id.groupId ];
   ChronoBars.CopyGroup( group );
@@ -1419,8 +1430,10 @@ function ChronoBars.MenuFunc_CopyGroup (id, value)
   
 end
 
-function ChronoBars.MenuFunc_PasteGroup (id, value)
+function ChronoBars.MenuFunc_PasteGroup (value)
 
+  local id = CB.MenuId;
+  
   local profile = ChronoBars.GetActiveProfile();
   local group = profile.groups[ id.groupId ];
   ChronoBars.PasteGroup( group );  
@@ -1432,8 +1445,10 @@ end
 --Move bar up/down
 --=============================================================
 
-function ChronoBars.MoveBar (id, offset)
+function ChronoBars.MoveBar (offset)
 
+  local id = CB.MenuId;
+  
   local profile = ChronoBars.GetActiveProfile();
   local group = profile.groups[ id.groupId ];
   
@@ -1450,8 +1465,10 @@ function ChronoBars.MoveBar (id, offset)
   
 end
 
-function ChronoBars.MenuFunc_BarMoveUp (id, value)
+function ChronoBars.MenuFunc_BarMoveUp (value)
 
+  local id = CB.MenuId;
+  
   local profile = ChronoBars.GetActiveProfile();
   local group = profile.groups[ id.groupId ];
   
@@ -1462,12 +1479,14 @@ function ChronoBars.MenuFunc_BarMoveUp (id, value)
     offset = -1;
   end
   
-  ChronoBars.MoveBar( id, offset );
+  ChronoBars.MoveBar( offset );
   
 end
 
-function ChronoBars.MenuFunc_BarMoveDown (id, value)
+function ChronoBars.MenuFunc_BarMoveDown (value)
 
+  local id = CB.MenuId;
+  
   local profile = ChronoBars.GetActiveProfile();
   local group = profile.groups[ id.groupId ];
   
@@ -1478,16 +1497,18 @@ function ChronoBars.MenuFunc_BarMoveDown (id, value)
     offset = 1;
   end
 
-  ChronoBars.MoveBar( id, offset );
+  ChronoBars.MoveBar( offset );
   
 end
 
 --New and Delete functions
 --=============================================================
 
-function ChronoBars.MenuFunc_NewBar (id, value)
+function ChronoBars.MenuFunc_NewBar (value)
   ChronoBars.Debug( "Adding bar" );
   
+  local id = CB.MenuId;
+	
   --Find bar that was right-clicked
   local profile = ChronoBars.GetActiveProfile();
   local curBar = profile.groups[ id.groupId ].bars[ id.barId ];
@@ -1502,8 +1523,11 @@ function ChronoBars.MenuFunc_NewBar (id, value)
 end
 
 
-function ChronoBars.MenuFunc_DeleteBar (id, value)
-  local name = ChronoBars.GetSettingsValue( id, "bar|name" );
+function ChronoBars.MenuFunc_DeleteBar (value)
+
+  local id = CB.MenuId;
+  
+  local name = ChronoBars.GetSettingsValue( "bar|name" );
   ChronoBars.ShowConfirmFrame( "Are you sure you want to remove bar '"..tostring(name).."'?",
     ChronoBars.DeleteBar_Accept, nil, { ["id"]=id, ["value"]=value } );
   ChronoBars.CloseBarMenu( id );
@@ -1521,8 +1545,10 @@ function ChronoBars.DeleteBar_Accept (arg)
 end
 
 
-function ChronoBars.MenuFunc_NewGroup (id, value)
+function ChronoBars.MenuFunc_NewGroup (value)
   ChronoBars.Debug( "Adding group" );
+  
+  local id = CB.MenuId;
   
   --Find bar and group that was right-clicked
   local profile = ChronoBars.GetActiveProfile();
@@ -1541,7 +1567,10 @@ function ChronoBars.MenuFunc_NewGroup (id, value)
 end
 
 
-function ChronoBars.MenuFunc_DeleteGroup (id, value)
+function ChronoBars.MenuFunc_DeleteGroup (value)
+
+  local id = CB.MenuId;
+  
   ChronoBars.ShowConfirmFrame( "Are you sure you want to delete this group?",
     ChronoBars.DeleteGroup_Accept, nil, { ["id"]=id, ["value"]=value } );
   ChronoBars.CloseBarMenu( id );
@@ -1561,7 +1590,10 @@ end
 --Profile handlers
 --=============================================================
 
-function ChronoBars.MenuFunc_LinkProfile (id, value)
+function ChronoBars.MenuFunc_LinkProfile (value)
+
+  local id = CB.MenuId;
+  
   local profileName = ChronoBars_CharSettings.activeProfile;
   local spec = GetActiveTalentGroup( false, false );
 
@@ -1591,7 +1623,7 @@ function ChronoBars.LinkProfile_Accept (arg)
 end
 
 
-function ChronoBars.VarFunc_MenuSwitchProfile_Get (id)
+function ChronoBars.VarFunc_MenuSwitchProfile_Get ()
   ChronoBars.Debug( "Switch Profile menu" );
 
   local submenu = {};
@@ -1606,7 +1638,7 @@ function ChronoBars.VarFunc_MenuSwitchProfile_Get (id)
   return submenu;
 end
 
-function ChronoBars.VarFunc_MenuCopyProfile_Get (id)
+function ChronoBars.VarFunc_MenuCopyProfile_Get ()
   ChronoBars.Debug( "Copy Profile menu" );
 
   local submenu = {};
@@ -1624,14 +1656,14 @@ function ChronoBars.VarFunc_MenuCopyProfile_Get (id)
 end
 
 
-function ChronoBars.VarFunc_SwitchProfile_Get (id)
+function ChronoBars.VarFunc_SwitchProfile_Get ()
 
   --Check option against current profile
   return ChronoBars_CharSettings.activeProfile;
 
 end
 
-function ChronoBars.VarFunc_SwitchProfile_Set (id, value)
+function ChronoBars.VarFunc_SwitchProfile_Set (value)
   ChronoBars.Debug( "Switching to profile '"..value.."'" );
   
   --Check for invalid profile
@@ -1643,15 +1675,18 @@ function ChronoBars.VarFunc_SwitchProfile_Set (id, value)
   --Switch to selected profile
   ChronoBars_CharSettings.activeProfile = value;
   ChronoBars.UpdateSettings();
-  ChronoBars.CloseBarMenu( id );
+  ChronoBars.CloseBarMenu();
 
 end
 
 
-function ChronoBars.MenuFunc_CopyProfile (id, value)
+function ChronoBars.MenuFunc_CopyProfile (value)
+
+  local id = CB.MenuId;
+  
   ChronoBars.ShowConfirmFrame( "Are you sure you want to copy profile?",
     ChronoBars.CopyProfile_Accept, nil, { ["id"]=id, ["value"]=value } );
-  ChronoBars.CloseBarMenu( id );
+  ChronoBars.CloseBarMenu();
 end
 
 function ChronoBars.CopyProfile_Accept (arg)
@@ -1672,11 +1707,11 @@ function ChronoBars.CopyProfile_Accept (arg)
 end
 
 
-function ChronoBars.VarFunc_RenameProfile_Get (id)
+function ChronoBars.VarFunc_RenameProfile_Get ()
   return ChronoBars_CharSettings.activeProfile;
 end
 
-function ChronoBars.VarFunc_RenameProfile_Set (id, newName)
+function ChronoBars.VarFunc_RenameProfile_Set (newName)
   CB.Debug( "Renaming profile to '"..newName.."'" );
 
   --Check for existing profile
@@ -1702,11 +1737,11 @@ function ChronoBars.VarFunc_RenameProfile_Set (id, newName)
 end
 
 
-function ChronoBars.VarFunc_NewProfile_Get (id)
+function ChronoBars.VarFunc_NewProfile_Get ()
   return "NewProfile";
 end
 
-function ChronoBars.VarFunc_NewProfile_Set (id, value)
+function ChronoBars.VarFunc_NewProfile_Set (value)
   ChronoBars.Debug( "Making new profile '"..value.."'" );
   
   --Check for bad value
@@ -1722,16 +1757,19 @@ function ChronoBars.VarFunc_NewProfile_Set (id, value)
   ChronoBars_Settings.profiles[ value ] = CopyTable( ChronoBars.DEFAULT_PROFILE );
   ChronoBars_CharSettings.activeProfile = value;
   ChronoBars.UpdateSettings();
-  ChronoBars.CloseBarMenu( id );
+  ChronoBars.CloseBarMenu();
   
 end
 
 
-function ChronoBars.MenuFunc_DeleteProfile (id, value)
+function ChronoBars.MenuFunc_DeleteProfile (value)
+
+  local id = CB.MenuId;
+  
   local name = ChronoBars_CharSettings.activeProfile;
   ChronoBars.ShowConfirmFrame( "Are you sure you want to delete profile '"..tostring(name).."'?",
     ChronoBars.DeleteProfile_Accept, nil, { ["id"]=id, ["value"]=value } );
-  ChronoBars.CloseBarMenu( id );
+  ChronoBars.CloseBarMenu();
 end
 
 function ChronoBars.DeleteProfile_Accept (arg)
