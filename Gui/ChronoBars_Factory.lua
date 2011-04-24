@@ -46,17 +46,18 @@ function ChronoBars.NewObject( class )
 		--Create new object if capacity exhausted
 		factory.used = capacity + 1;
 
-		if     (class == "button")     then object = CB.Button_New      ( "ChronoBars.Button"     .. factory.used );
-		elseif (class == "input")      then object = CB.Input_New       ( "ChronoBars.Input"      .. factory.used );
-		elseif (class == "checkbox")   then object = CB.Checkbox_New    ( "ChronoBars.Checkbox"   .. factory.used );
-		elseif (class == "dropdown")   then object = CB.Drop_New        ( "ChronoBars.Dropdown"   .. factory.used );
-		elseif (class == "color")      then object = CB.ColorSwatch_New ( "ChronoBars.Color"      .. factory.used );
-		elseif (class == "header")     then object = CB.Header_New      ( "ChronoBars.Header"     .. factory.used );
-		elseif (class == "groupframe") then object = CB.GroupFrame_New  ( "ChronoBars.GroupFrame" .. factory.used );
-		elseif (class == "tab")        then object = CB.Tab_New         ( "ChronoBars.Tab"        .. factory.used );
-		elseif (class == "tabframe")   then object = CB.TabFrame_New    ( "ChronoBars.TabFrame"   .. factory.used );
-		elseif (class == "font")       then object = CB.FontDrop_New    ( "ChronoBars.FontDrop"   .. factory.used );
-		elseif (class == "texture")    then object = CB.TexDrop_New     ( "ChronoBars.TexDrop"    .. factory.used );
+		if     (class == "button")      then object = CB.Button_New      ( "ChronoBars.Button"      .. factory.used );
+		elseif (class == "input")       then object = CB.Input_New       ( "ChronoBars.Input"       .. factory.used );
+		elseif (class == "checkbox")    then object = CB.Checkbox_New    ( "ChronoBars.Checkbox"    .. factory.used );
+		elseif (class == "dropdown")    then object = CB.Drop_New        ( "ChronoBars.Dropdown"    .. factory.used );
+		elseif (class == "color")       then object = CB.ColorSwatch_New ( "ChronoBars.Color"       .. factory.used );
+		elseif (class == "header")      then object = CB.Header_New      ( "ChronoBars.Header"      .. factory.used );
+		elseif (class == "groupframe")  then object = CB.GroupFrame_New  ( "ChronoBars.GroupFrame"  .. factory.used );
+		elseif (class == "tab")         then object = CB.Tab_New         ( "ChronoBars.Tab"         .. factory.used );
+		elseif (class == "tabframe")    then object = CB.TabFrame_New    ( "ChronoBars.TabFrame"    .. factory.used );
+		elseif (class == "scrollframe") then object = CB.ScrollFrame_New ( "ChronoBars.ScrollFrame" .. factory.used );
+		elseif (class == "font")        then object = CB.FontDrop_New    ( "ChronoBars.FontDrop"    .. factory.used );
+		elseif (class == "texture")     then object = CB.TexDrop_New     ( "ChronoBars.TexDrop"     .. factory.used );
 		end
 
 		--Add to list of objects

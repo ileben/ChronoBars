@@ -15,9 +15,12 @@ local CB = ChronoBars;
 function ChronoBars.Button_New( name )
 
 	--Frame
-	local f = CreateFrame( "Button", name, nil, "UIPanelButtonTemplate" );
+	local f = CreateFrame( "Button", name, nil, "UIPanelButtonTemplate2" );
 	f:SetWidth( 100 );
 	f:SetHeight( 25 );
+	
+	local t = f:GetFontString();
+	t:SetTextColor(1,1,1);
 	
 	--Functions
 	ChronoBars.Object_New( f );
@@ -295,7 +298,7 @@ function ChronoBars.Frame_New( name, title, resizable )
 	
 	f:SetFrameStrata( "DIALOG" );
 	f:SetToplevel( true );
-	f:SetWidth( 300 );
+	f:SetWidth( 400 );
 	f:SetHeight( 500 );
 	f:SetPoint( "CENTER", 0, 150 );
 	

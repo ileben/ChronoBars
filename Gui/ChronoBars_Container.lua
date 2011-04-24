@@ -21,6 +21,7 @@ function ChronoBars.Container_New( f )
 	f.height = 0;
 	f.containerWidth = 0;
 	f.containerHeight = 0;
+	f.contentWidth = 0;
 	f.contentHeight = 0;
 	f.rowHeight = {};
 	
@@ -147,6 +148,7 @@ function ChronoBars.Container_UpdateContent( frame )
 	local leftChild = nil;
 	local x = 0;
 	local y = 0;
+	local w = 0;
 	local h = 0;
 	local r = 1;
 	
@@ -181,6 +183,7 @@ function ChronoBars.Container_UpdateContent( frame )
 			if (status.autoWidth or	leftStatus.autoWidth or x + 200 > frame.containerWidth)	then
 				
 				--Move down
+				if (x > w) then w = x end
 				table.insert( frame.rowHeight, h );
 				y = y + h + frame.spacing;
 				r = r + 1;
@@ -213,6 +216,7 @@ function ChronoBars.Container_UpdateContent( frame )
 	end
 	
 	--Move down for last row
+	if (x > w) then w = x end
 	table.insert( frame.rowHeight, h );
 	y = y + h;
 	
@@ -225,16 +229,25 @@ function ChronoBars.Container_UpdateContent( frame )
 		child:ClearAllPoints();
 		
 		--Position item
-		local pad = (frame.rowHeight[ status.r ] - status.height) / 2;
-		child:SetPoint( "TOPLEFT", frame.container, "TOPLEFT", status.x, -status.y-pad );
+		local padX = 0;
+		local padY = 0;
+		
+		if (not status.autoWidth and frame.containerWidth > w) then
+			padX = (frame.containerWidth - w) / 2;
+		end
+		if (not status.autoHeight) then
+			padY = (frame.rowHeight[ status.r ] - status.height) / 2;
+		end
+		
+		child:SetPoint( "TOPLEFT", frame.container, "TOPLEFT", status.x+padX, -status.y-padY );
 		
 		--Size item to width of container
 		if (status.autoWidth) then
 			child:SetPoint( "RIGHT", frame.container, 0,0 );
-		
+
 		elseif (frame.containerWidth < 200) then
 			child:SetWidth( frame.containerWidth );
-		
+			
 		else
 			child:SetWidth( 200 );
 		end
@@ -248,6 +261,7 @@ function ChronoBars.Container_UpdateContent( frame )
 	
 	--Resize
 	--CB.Print( "SIZING TO CONTENT ("..tostring(frame.contentHeight)..") "..frame:GetName() );
+	frame.contentWidth = w;
 	frame.contentHeight = y;
 	frame:SizeToContent();
 	

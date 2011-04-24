@@ -37,12 +37,13 @@ ChronoBars.Frame_Test =
 
 
 ChronoBars.Frame_Root = 
-{
+{	
 	{ type="header",   text="bar|name" },
 	{ type="tabs",     tabs="root|Tabs_Root" },
 };
 --[[
 --]]
+
 ChronoBars.Tabs_Root =
 {
 	{ text="Manage",   frame="root|Frame_Manage" },
@@ -54,6 +55,8 @@ ChronoBars.Tabs_Root =
 
 ChronoBars.Frame_Manage =
 {
+	{ type="scroll" },
+	
 	{ type="header",   text="Bar management" },
 	{ type="button",   text="New Bar",            func="root|Func_BarNew",     close=true },
 	{ type="button",   text="Delete Bar",         func="root|Func_BarDelete",  close=true },
@@ -68,7 +71,7 @@ ChronoBars.Frame_Manage =
 	
 	{ type="options",  text="Copy/Paste",         options="root|Options_BarCopyPaste" },
 	{ type="button",   text="Copy",               func="root|Func_BarCopy" },
-	{ type="button",   text="Copy",               func="root|Func_BarPaste" },
+	{ type="button",   text="Paste",              func="root|Func_BarPaste" },
 	
 	{ type="header",   text="Group settings" },
 	{ type="button",   text="Copy",        func="root|Func_GroupCopy" },
@@ -95,16 +98,14 @@ ChronoBars.Options_BarCopyPaste =
 
 ChronoBars.Frame_Bar =
 {
+	{ type="header",   text="Bar Settings" },
 	{ type="toggle",   text="Enabled",          var="bar|enabled" },
 	{ type="tabs",     tabs="root|Tabs_Bar" },
 };
 
 ChronoBars.Tabs_Bar =
 {
-	{ text="Effect",      frame="root|Frame_Effect" },
-	
-	--{ text="Appearance",  frame="root|Frame_Appearance" },
-	
+	{ text="Effect",     frame="root|Frame_Effect" },
 	{ text="Bar",        frame="root|Frame_StyleBar" },
 	{ text="Icon",       frame="root|Frame_StyleIcon" },
 	{ text="Spark",      frame="root|Frame_StyleSpark" },
@@ -115,6 +116,9 @@ ChronoBars.Tabs_Bar =
 
 ChronoBars.Frame_Effect =
 {
+	{ type="scroll" },
+	{ type="header",      text="Effect" },
+	
 	{ type="input",       text="Effect name",     var="bar|name" },
 	{ type="options",     text="Effect type",     var="bar|type",   options="root|Options_EffectType",  update=true },
 	
@@ -240,33 +244,10 @@ ChronoBars.Frame_EnchantSettings =
 {
 };
 
-ChronoBars.Frame_Appearance =
-{  
-	{ type="header",  text="Appearance" },
-	{ type="tabs",    tabs="root|Tabs_Appearance" },
-	
-	--[[
-	{ type="group",  text="Bar",        frame="root|Frame_StyleBar" },
-	{ type="group",  text="Icon",       frame="root|Frame_StyleIcon" },
-	{ type="group",  text="Spark",      frame="root|Frame_StyleSpark" },
-	{ type="group",  text="Text",       frame="root|Frame_StyleText" },
-	{ type="group",  text="Animation",  frame="root|Frame_StyleAnimation" },
-	{ type="group",  text="Visibility", frame="root|Frame_StyleVisibility" },
-	--]]
-};
-
-ChronoBars.Tabs_Appearance =
-{
-	{ text="Bar",        frame="root|Frame_StyleBar" },
-	{ text="Icon",       frame="root|Frame_StyleIcon" },
-	{ text="Spark",      frame="root|Frame_StyleSpark" },
-	{ text="Text",       frame="root|Frame_StyleText" },
-	{ text="Animation",  frame="root|Frame_StyleAnimation" },
-	{ text="Visibility", frame="root|Frame_StyleVisibility" },
-};
-
 ChronoBars.Frame_StyleBar =
-{	
+{
+	{ type="scroll" },
+	{ type="header",     text="Bar" },
 	{ type="options",    text="Direction",     var="bar|style.fullSide",   options="root|Options_FullSide" },
 	{ type="toggle",     text="Fill up",       var="bar|style.fillUp" },
 	{ type="texture",    text="Texture",       var="bar|style.lsmTexHandle" },
@@ -280,12 +261,10 @@ ChronoBars.Options_FullSide =
 	{ text="Full || Empty",  value = ChronoBars.SIDE_LEFT },
 };
 
-ChronoBars.Options_Texture =
-{
-};
-
 ChronoBars.Frame_StyleIcon =
 {
+	{ type="scroll" },
+	{ type="header",   text="Icon" },
 	{ type="toggle",   text="Enabled",   var="bar|style.showIcon" },
 	{ type="options",  text="Position",  var="bar|style.iconSide",  options="root|Options_IconPosition" },
 	{ type="numinput", text="Offset X",  },
@@ -301,6 +280,8 @@ ChronoBars.Options_IconPosition =
 
 ChronoBars.Frame_StyleSpark =
 {
+	{ type="scroll" },
+	{ type="header",   text="Spark" },
 	{ type="toggle",   text="Enabled",  var="bar|style.showSpark" },
 	{ type="numinput", text="Height",   var="bar|style.sparkHeight"  },
 	{ type="numinput", text="Width",    var="bar|style.sparkWidth" },
@@ -308,7 +289,10 @@ ChronoBars.Frame_StyleSpark =
 
 ChronoBars.Frame_StyleText =
 {
-	{ type="options",  text="Text",     var="temp|textIndex",  options="func|Options_Text" },
+	{ type="scroll" },
+	{ type="header",     text="Text" },
+	
+	{ type="options",  text="Text",        var="temp|textIndex",  options="func|Options_Text", update=true },
 	{ type="button",   text="New Text",    func="root|Func_NewText" },
 	{ type="button",   text="Delete Text", func="root|Func_DeleteText" },
 	
@@ -350,6 +334,8 @@ ChronoBars.Options_Position =
 
 ChronoBars.Frame_StyleAnimation =
 {
+	{ type="scroll" },
+	{ type="header",  text="Animation" },
 	{ type="toggle",  text="Slide up when activated",             var="bar|style.anim.up" },
 	{ type="toggle",  text="Slide down when consumed",            var="bar|style.anim.down" },
 	{ type="toggle",  text="Blink slowly when running out",       var="bar|style.anim.blinkSlow" },
@@ -360,8 +346,10 @@ ChronoBars.Frame_StyleAnimation =
 
 ChronoBars.Frame_StyleVisibility =
 {
-	{ type="options",   text="Show bar",            var="bar|style.visibility",   options="root|Options_Visibility" },
-	{ type="toggle",    text="Hide out of combat" },
+	{ type="scroll" },
+	{ type="header",   text="Visibility" },
+	{ type="options",  text="Show bar",            var="bar|style.visibility",   options="root|Options_Visibility" },
+	{ type="toggle",   text="Hide out of combat" },
 };
 
 ChronoBars.Options_Visibility =
@@ -374,22 +362,22 @@ ChronoBars.Options_Visibility =
 
 ChronoBars.Frame_Group =
 {
-  { type="header",                  text="Group Settings" },
-  
-  { type="options",                 text="Layout",                    var="group|layout",   options="root|Options_GroupLayout" },
-  { type="options",                 text="Sorting by time",           var="group|sorting",  options="root|Options_GroupSorting" },
-  { type="options",                 text="Grow direction",            var="group|grow",     options="root|Options_GrowDir" },
-  
-  { type="numinput",                text="X position",                var="group|x" },
-  { type="numinput",                text="Y position",                var="group|y" },
-  { type="numinput",                text="Bar width",                 var="group|width" },
-  { type="numinput",                text="Bar height",                var="group|height" },
-  { type="numinput",                text="Bar padding",               var="group|padding" },
-  { type="numinput",                text="Bar spacing",               var="group|spacing" },
+	{ type="scroll" },
+	{ type="header",                  text="Group Settings" },
 
-  { type="numinput",                text="Back margin",               var="group|margin" },
-  { type="color",                   text="Back color",                var="group|style.bgColor" },
+	{ type="options",                 text="Layout",                    var="group|layout",   options="root|Options_GroupLayout" },
+	{ type="options",                 text="Sorting by time",           var="group|sorting",  options="root|Options_GroupSorting" },
+	{ type="options",                 text="Grow direction",            var="group|grow",     options="root|Options_GrowDir" },
 
+	{ type="numinput",                text="X position",                var="group|x" },
+	{ type="numinput",                text="Y position",                var="group|y" },
+	{ type="numinput",                text="Bar width",                 var="group|width" },
+	{ type="numinput",                text="Bar height",                var="group|height" },
+	{ type="numinput",                text="Bar padding",               var="group|padding" },
+	{ type="numinput",                text="Bar spacing",               var="group|spacing" },
+
+	{ type="numinput",                text="Back margin",               var="group|margin" },
+	{ type="color",                   text="Back color",                var="group|style.bgColor" },
 };
 
 ChronoBars.Options_GroupLayout =
@@ -437,8 +425,9 @@ function ChronoBars.Options_Text_Get()
 		table.insert( options, { text = text.name, value = i } );
 	end
 	
-	CB.Print( "Settings TEXT INDEX" );
-	CB.SetSettingsValue( "temp|textIndex", 1 );
+	if (CB.GetSettingsValue( "temp|textIndex" ) == nil) then
+		CB.SetSettingsValue( "temp|textIndex", 1 );
+	end
 	
 	return options;
 end
@@ -614,6 +603,7 @@ function ChronoBars.Config_Construct( parentFrame, config )
 			end
 		end
 		
+		
 		--Construct item based on type
 		local frame = nil;
 		
@@ -645,14 +635,34 @@ function ChronoBars.Config_Construct( parentFrame, config )
 			--Get frame config
 			local frameConfig = CB.GetSettingsValue( tabConfig[s].frame );
 			if (frameConfig ~= nil) then
-			
-				--Construct sub frame
+				
+				--Construct sub frame recursively
 				CB.Config_Construct( tabFrame, frameConfig );
 			end
 			
 			--Add to container
-			parentFrame:AddChild( tabFrame, true, false );
+			parentFrame:AddChild( tabFrame, true, true );
+		
+		elseif (item.type == "scroll") then
+		
+			--Create scroll frame object
+			local scrFrame = CB.NewObject( "scrollframe" );
+			frame = scrFrame;
 			
+			--[[
+			--Get frame config
+			local frameConfig = CB.GetSettingsValue( item.frame );
+			if (frameConfig ~= nil) then
+			
+				--Construct sub frame recursively
+				CB.Config_Construct( scrFrame, frameConfig );
+			end
+			--]]
+			
+			--Add to container
+			parentFrame:AddChild( scrFrame, true, true );
+			
+			parentFrame = scrFrame;
 			
 		elseif (item.type == "group") then
 		
@@ -665,7 +675,7 @@ function ChronoBars.Config_Construct( parentFrame, config )
 			local frameConfig = CB.GetSettingsValue( item.frame );
 			if (frameConfig ~= nil) then
 			
-				--Construct sub frame
+				--Construct sub frame recursively
 				CB.Config_Construct( grpFrame, frameConfig );
 			end
 			
@@ -897,8 +907,8 @@ function ChronoBars.UpdateBarConfig()
 	--CB.configFrame:RemoveAllChildren();
 	--CB.Config_Construct( CB.configFrame, CB.Frame_Root );
 	
-	CB.configFrame.scrollFrame:RemoveAllChildren();
-	CB.Config_Construct( CB.configFrame.scrollFrame, CB.Frame_Root );
+	CB.configFrame:RemoveAllChildren();
+	CB.Config_Construct( CB.configFrame, CB.Frame_Root );
 	
 end
 
@@ -909,11 +919,7 @@ function ChronoBars.OpenBarConfig (bar)
 	CB.MenuId.barId = bar.barId;
 
 	if (not CB.configFrame) then
-	
 		CB.configFrame = CB.Frame_New( "ChronoBars.ConfigFrame", "ChronoBars", true);
-		CB.configFrame.scrollFrame = CB.ScrollFrame_New( "ChronoBars.ScrollFrame" );
-		CB.configFrame:AddChild( CB.configFrame.scrollFrame, true, true );
-		
 	end
 	
 	CB.UpdateBarConfig();
