@@ -132,8 +132,34 @@ function ChronoBars.ColorSwatch_OnMouseDown( frame )
 	ColorPickerFrame.opacityFunc = ChronoBars.ColorSwatch_OnColorChange;
 	ColorPickerFrame.cancelFunc  = ChronoBars.ColorSwatch_OnColorCancel;
 	
+	if (ColorPickerFrame.mover == nil) then
+	
+		local mover = CreateFrame( "Frame", "ColorPickerMover", ColorPickerFrame );
+		mover:SetAllPoints( ColorPickerFrameHeader );
+		
+		mover:EnableMouse( true );
+		mover:SetScript( "OnMouseDown", ChronoBars.ColorPicker_Header_OnMouseDown );
+		mover:SetScript( "OnMouseUp", ChronoBars.ColorPicker_Header_OnMouseUp );
+		
+		ColorPickerFrame.mover = mover;
+		ColorPickerFrame:SetMovable( true );
+	end
+	
+	ColorPickerFrame:ClearAllPoints();
+	ColorPickerFrame:SetPoint( "CENTER" );
+	
+	ColorPickerFrame:Hide();
 	ColorPickerFrame:Show();
+end
 
+function ChronoBars.ColorPicker_Header_OnMouseDown( header )
+
+	ColorPickerFrame:StartMoving();
+end
+
+function ChronoBars.ColorPicker_Header_OnMouseUp( header )
+
+	ColorPickerFrame:StopMovingOrSizing();
 end
 
 function ChronoBars.ColorSwatch_OnColorChange()

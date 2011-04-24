@@ -620,7 +620,7 @@ end
 --=====================================================
 
 function ChronoBars.ModeDesign ()
-
+	
   CB.designMode = true;
   CB.UpdateSettings();
   
@@ -641,6 +641,9 @@ function ChronoBars.ModeRun ()
 
   CB.designMode = false;
   CB.UpdateSettings();
+  
+  CB.CloseBarMenu();
+  CB.CloseBarConfig();
 
   --Get the character's active profile
   local profile = ChronoBars.GetActiveProfile();
