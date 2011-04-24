@@ -262,6 +262,8 @@ ChronoBars.Frame_StyleSpark =
 ChronoBars.Frame_StyleText =
 {
 	{ type="options",  text="Text",     var="temp|textIndex",  options="func|Options_Text" },
+	{ type="button",   text="New Text",    func="root|Func_NewText" },
+	{ type="button",   text="Delete Text", func="root|Func_DeleteText" },
 	
 	{ type="header",   text="bar|style.text[temp|textIndex].name" },
 	
@@ -344,6 +346,9 @@ ChronoBars.Frame_Profile =
 {
 };
 
+
+--Functions
+
 function ChronoBars.Options_Text_Get()
 
 	local options = {};
@@ -364,6 +369,13 @@ function ChronoBars.Options_Text_Get()
 	return options;
 end
 
+function ChronoBars.Func_NewText()
+	CB.Print( "NEW TEXT" );
+end
+
+function ChronoBars.Func_DeleteText()
+	CB.Print( "DELETE TEXT" );
+end
 
 --Construction
 --===========================================================================
@@ -477,7 +489,6 @@ function ChronoBars.Config_Construct( parentFrame, config )
 			--Create dropdown object
 			local ddFrame = CB.NewObject( "dropdown" );
 			ddFrame:SetLabelText( item.text );
-			ddFrame.OnValueChanged = ChronoBars.Config_OnOptionChanged;
 			ddFrame.item = item;
 			frame = ddFrame;
 			
@@ -496,6 +507,7 @@ function ChronoBars.Config_Construct( parentFrame, config )
 			--Get value and apply to object
 			local curValue = ChronoBars.GetSettingsValue( item.var );
 			ddFrame:SelectValue( curValue );
+			ddFrame.OnValueChanged = ChronoBars.Config_OnOptionChanged;
 			
 			--Add to container
 			parentFrame:AddChild( ddFrame );
@@ -506,13 +518,13 @@ function ChronoBars.Config_Construct( parentFrame, config )
 			--Create checkbox object
 			local cbFrame = CB.NewObject( "checkbox" );
 			cbFrame:SetText( item.text );
-			cbFrame.OnValueChanged = ChronoBars.Config_OnToggleChanged;
 			cbFrame.item = item;
 			frame = cbFrame;
 			
 			--Get value and apply to object
 			local curValue = ChronoBars.GetSettingsValue( item.var );
 			cbFrame:SetChecked( curValue );
+			cbFrame.OnValueChanged = ChronoBars.Config_OnToggleChanged;
 			
 			--Add to container
 			parentFrame:AddChild( cbFrame );
@@ -523,13 +535,13 @@ function ChronoBars.Config_Construct( parentFrame, config )
 			--Create input object
 			local inpFrame = CB.NewObject( "input" );
 			inpFrame:SetLabelText( item.text );
-			inpFrame.OnValueChanged = ChronoBars.Config_OnInputChanged;
 			inpFrame.item = item;
 			frame = inpFrame;
 			
 			--Get value and apply to object
 			local curValue = ChronoBars.GetSettingsValue( item.var );
 			inpFrame:SetText( tostring(curValue) );
+			inpFrame.OnValueChanged = ChronoBars.Config_OnInputChanged;
 			
 			--Add to container
 			parentFrame:AddChild( inpFrame );
@@ -546,6 +558,7 @@ function ChronoBars.Config_Construct( parentFrame, config )
 			--Get value and apply to object
 			local c = ChronoBars.GetSettingsValue( item.var );
 			colFrame:SetColor( c.r, c.g, c.b, c.a );
+			colFrame.OnValueChanged = ChronoBars.Config_OnColorChanged;
 			
 			--Add to container
 			parentFrame:AddChild( colFrame );
@@ -562,9 +575,24 @@ function ChronoBars.Config_Construct( parentFrame, config )
 			--Get value and apply to object
 			local curValue = ChronoBars.GetSettingsValue( item.var );
 			fontFrame:SelectValue( curValue );
+			fontFrame.OnValueChanged = ChronoBars.Config_OnOptionChanged;
 			
 			--Add to container
 			parentFrame:AddChild( fontFrame );
+			
+		elseif (item.type == "button") then
+		
+			--Create button object
+			local btnFrame = CB.NewObject( "button" );
+			btnFrame:SetText( item.text );
+			btnFrame.item = item;
+			frame = btnFrame;
+			
+			--Register script
+			btnFrame:SetScript( "OnClick", ChronoBars.GetSettingsValue( item.func ));
+			
+			--Add to container
+			parentFrame:AddChild( btnFrame );
 			
 		end
 		
@@ -573,7 +601,6 @@ function ChronoBars.Config_Construct( parentFrame, config )
 end
 
 function ChronoBars.Config_OnTabChanged( tabFrame )
-	
 	CB.Print( "TAB CHANGED" );
 	
 	local item = tabFrame.item;
@@ -583,32 +610,49 @@ function ChronoBars.Config_OnTabChanged( tabFrame )
 end
 
 function ChronoBars.Config_OnOptionChanged( ddFrame )
-
-	CB.Print( "OPTION CHANGED" );
+	CB.Debug( "OPTION CHANGED" );
 	
 	local item = ddFrame.item;
 	local newValue = ddFrame:GetSelectedValue();
 	
+	CB.SetSettingsValue( item.var, newValue );
+	CB.UpdateSettings();
+	
 end
 
 function ChronoBars.Config_OnToggleChanged( cbFrame )
-
-	CB.Print( "TOGGLE CHANGED" );
+	CB.Debug( "TOGGLE CHANGED" );
 	
 	local item = cbFrame.item;
 	local newValue = cbFrame:GetChecked();
 	
+	if (newValue)
+	then CB.SetSettingsValue( item.var, true );
+	else CB.SetSettingsValue( item.var, false );
+	end
+	
+	CB.UpdateSettings();
 end
 
 function ChronoBars.Config_OnInputChanged( inpFrame )
-
-	CB.Print( "INPUT CHANGED" );
+	CB.Debug( "INPUT CHANGED" );
 	
 	local item = inpFrame.item;
 	local newValue = inpFrame:GetText();
 	
+	CB.SetSettingsValue( item.var, newValue );
+	CB.UpdateSettings();
 end
 
+function ChronoBars.Config_OnColorChanged( colFrame )
+	CB.Debug( "COLOR CHANGED" );
+	
+	local item = colFrame.item;
+	local newValue = colFrame:GetColor();
+	
+	CB.SetSettingsValue( item.var, newValue );
+	CB.UpdateSettings();
+end
 
 --Initialization
 --===================================================

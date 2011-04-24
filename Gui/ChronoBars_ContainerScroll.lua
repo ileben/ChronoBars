@@ -36,7 +36,8 @@ function ChronoBars.ScrollFrame_New( name )
 	b:SetWidth( 16 );
 	b:SetPoint( "TOPRIGHT", s, "TOPRIGHT", 20, -16 );
 	b:SetPoint( "BOTTOMRIGHT", s, "BOTTOMRIGHT", 20, 16 );
-	--b:SetScript("OnValueChanged", ChronoBars.ScrollFrame_Bar_OnValueChanged );
+	b.btnUp = _G[b:GetName().."ScrollUpButton"];
+	b.btnDown = _G[b:GetName().."ScrollDownButton"];
 	b.frame = f;
 	f.bar = b;
 	
@@ -48,22 +49,72 @@ function ChronoBars.ScrollFrame_New( name )
 	c.frame = f;
 	f.container = c;
 	
+	--Private vars
+	f.scrollWidth = 0;
+	f.scrollHeight = 0;
+	f.scrollContentHeight = 0;
+	
 	--Functions
 	ChronoBars.Container_New( f );
 	
-	f.SizeToContent = ChronoBars.ScrollFrame_SizeToContent;
+	f.Init              = ChronoBars.ScrollFrame_Init;
+	f.SizeToContent     = ChronoBars.ScrollFrame_SizeToContent;
+	f.UpdateScrollRange = ChronoBars.ScrollFrame_UpdateScrollRange;
 	
 	return f;
 end
 
+function ChronoBars.ScrollFrame_Init( frame )
+
+	ChronoBars.Container_Init( frame );
+	frame.scrollWidth = 0;
+	frame.scrollHeight = 0;
+	frame.scrollContentHeight = 0;
+end
+
+function ChronoBars.ScrollFrame_UpdateScrollRange( frame )
+
+	if (frame:GetContentHeight() > frame.scrollHeight) then
+	
+		frame.bar:SetMinMaxValues( 0, frame:GetContentHeight() - frame.scrollHeight );
+		frame.bar.btnUp:Enable();
+		frame.bar.btnDown:Enable();
+	else
+		frame.bar:SetMinMaxValues( 0, 0 );
+		frame.bar.btnUp:Disable();
+		frame.bar.btnDown:Disable();
+	end
+end
+
 function ChronoBars.ScrollFrame_SizeToContent( frame )
-	--frame:SetHeight( frame:GetContentHeight() );
+
+	local oldContentHeight = frame.scrollContentHeight;
+	frame.scrollContentHeight = frame:GetContentHeight();
+	
+	if (frame.scrollContentHeight ~= oldContentHeight) then
+	
+		frame.container:SetHeight( frame:GetContentHeight() );
+		frame:UpdateScrollRange();
+	end
 end
 
 function ChronoBars.ScrollFrame_Scroll_OnSizeChanged( scroll, width, height )
 
 	local frame = scroll.frame;
-	frame.container:SetWidth( width );
+	
+	local oldWidth = frame.scrollWidth;
+	local oldHeight = frame.scrollHeight;
+
+	frame.scrollWidth = width;
+	frame.scrollHeight = height;
+	
+	if (width ~= oldWidth) then
+		frame.container:SetWidth( width );
+	end
+
+	if (height ~= oldHeight) then
+		frame:UpdateScrollRange();
+	end
 end
 
 function ChronoBars.ScrollFrame_Scroll_OnMouseWheel( scroll, value )
@@ -74,10 +125,11 @@ function ChronoBars.ScrollFrame_Scroll_OnMouseWheel( scroll, value )
 	else frame.bar:SetValue( frame.bar:GetValue() - 40 );
 	end
 end
-
+--[[
 function ChronoBars.ScrollFrame_Bar_OnValueChanged( bar, value )
 
 	CB.Print( "SCROLL VALUE CHANGED "..tostring(value) );
 	local frame = bar.frame;
 	frame.scroll:SetVerticalScroll( value );
 end
+--]]

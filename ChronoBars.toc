@@ -23,4 +23,5 @@ Gui\ChronoBars_ContainerScroll.lua
 Gui\ChronoBars_Dropdown.lua
 Gui\ChronoBars_DropdownFont.lua
 Gui\ChronoBars_DropdownTex.lua
+Gui\ChronoBars_ColorSwatch.lua
 Gui\ChronoBars_Factory.lua

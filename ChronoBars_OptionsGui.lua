@@ -9,12 +9,28 @@ Author: Ivan Leben
 
 local CB = ChronoBars;
 
+--Button
+--====================================================================
+
+function ChronoBars.Button_New( name )
+
+	--Frame
+	local f = CreateFrame( "Button", name, nil, "UIPanelButtonTemplate" );
+	f:SetWidth( 100 );
+	f:SetHeight( 25 );
+	
+	--Functions
+	ChronoBars.Object_New( f );
+	return f;
+
+end
+
 --Input box
 --====================================================================
 
 function ChronoBars.Input_New( name )
 
-	--Frame wrapper
+	--Frame
 	local f = CreateFrame( "Frame", name.."Wrapper", nil );
 	f:SetHeight( 33 );
 	
@@ -33,7 +49,10 @@ function ChronoBars.Input_New( name )
 	i:SetPoint( "TOPRIGHT", l, "BOTTOMRIGHT", -1,0 );
 	i:SetHeight( 30 );
 	i:SetAutoFocus( false );
+	i:SetScript( "OnEditFocusGained", ChronoBars.Input_OnFocusGained );
+	i:SetScript( "OnEditFocusLost", ChronoBars.Input_OnFocusLost );
 	i:SetScript( "OnEnterPressed", ChronoBars.Input_OnEnterPressed );
+	i:SetScript( "OnEscapePressed", ChronoBars.Input_OnEscapePressed );
 	i:SetScript( "OnSizeChanged", ChronoBars.Input_OnSizeChanged );
 	i.frame = f;
 	f.input = i;
@@ -59,8 +78,32 @@ function ChronoBars.Input_GetText( frame )
 	return frame.input:GetText();
 end
 
-function ChronoBars.Input_OnEnterPressed( input )
+function ChronoBars.Input_OnFocusGained( input )
 	local frame = input.frame;
+	frame.oldValue = input:GetText();
+end
+
+function ChronoBars.Input_OnEscapePressed( input )
+	local frame = input.frame;
+	input:SetText( frame.oldValue );
+	input:ClearFocus();
+end
+
+function ChronoBars.Input_OnEnterPressed( input )
+	
+	local frame = input.frame;
+	frame.oldValue = input:GetText();
+	input:ClearFocus();
+	
+	local script = frame.OnValueChanged;
+	if (script) then script( frame ); end
+end
+
+function ChronoBars.Input_OnFocusLost( input )
+
+	local frame = input.frame;
+	frame.oldValue = input:GetText();
+	
 	local script = frame.OnValueChanged;
 	if (script) then script( frame ); end
 end
@@ -122,68 +165,6 @@ function ChronoBars.Checkbox_OnClick( check )
 	if (script) then script( frame ); end
 end
 
-
---Color swatch
---=====================================================================
-
-function ChronoBars.ColorSwatch_New( name )
-
-	local size = 20;
-	local p = 1;
-	
-	--Frame
-	local f = CreateFrame( "Frame", name, nil );
-	f:SetHeight( size );
-	
-	--Box
-	local t = f:CreateTexture( nil, "ARTWORK" );
-	t:SetPoint( "TOPLEFT", 0,0 );
-	t:SetWidth( size );
-	t:SetHeight( size );
-	t:SetTexture( 1,1,1, 1 );
-	t:SetDrawLayer( "ARTWORK", 1 );
-	
-	local t2 = f:CreateTexture( nil, "ARTWORK" );
-	t2:SetPoint( "BOTTOMLEFT", t, "BOTTOMLEFT", p,p );
-	t2:SetPoint( "TOPRIGHT", t, "TOPRIGHT", -p,-p );
-	t2:SetTexture( 0,0,0, 1 );
-	t2:SetDrawLayer( "ARTWORK", 2 );
-	
-	local t3 = f:CreateTexture( nil, "ARTWORK" );
-	t3:SetPoint( "BOTTOMLEFT", t2, "BOTTOMLEFT", p,p );
-	t3:SetPoint( "TOPRIGHT", t2, "TOPRIGHT", -p,-p );
-	t3:SetTexture( 0,0,1, 1 );
-	t3:SetDrawLayer( "ARTWORK", 3 );
-	
-	f.box = t3;
-	
-	--Label
-	local l = f:CreateFontString( name.."Label", "OVERLAY", "GameFontNormal" );
-	l:SetFont( "Fonts\\FRIZQT__.TTF", 12 );
-	l:SetTextColor( 1,1,1 );
-	l:SetText( "Color" );
-	l:SetJustifyH( "LEFT" );
-	l:SetPoint( "TOPLEFT", size + 5, 0 );
-	l:SetPoint( "BOTTOMRIGHT", 0,0 );
-	f.label = l;
-	
-	--Functions
-	ChronoBars.Object_New( f );
-	f.SetColor = ChronoBars.ColorSwatch_SetColor;
-	f.SetText  = ChronoBars.ColorSwatch_SetText;
-	return f;
-	
-end
-
-function ChronoBars.ColorSwatch_SetColor( frame, r, g, b, a )
-
-	frame.box:SetTexture( r,g,b,a );
-end
-
-function ChronoBars.ColorSwatch_SetText( frame, text )
-
-	frame.label:SetText( text );
-end
 
 
 --Header

@@ -136,7 +136,7 @@ end
 
 function ChronoBars.Container_UpdateContent( frame )
 	
-	CB.Print( "UPDATING LAYOUT " .. frame:GetName() );
+	--CB.Print( "UPDATING LAYOUT " .. frame:GetName() );
 
 	--Set update lock
 	frame.updating = true;
@@ -247,7 +247,7 @@ function ChronoBars.Container_UpdateContent( frame )
 	end
 	
 	--Resize
-	CB.Print( "SIZING TO CONTENT ("..tostring(frame.contentHeight)..") "..frame:GetName() );
+	--CB.Print( "SIZING TO CONTENT ("..tostring(frame.contentHeight)..") "..frame:GetName() );
 	frame.contentHeight = y;
 	frame:SizeToContent();
 	

@@ -189,14 +189,13 @@ end
 
 function ChronoBars.TabFrame_UpdateTabs( frame )
 	
-	CB.Print( "UPDATE TABS" );
+	--CB.Print( "UPDATE TABS" );
+	--CB.Print( "width: "..tostring(frame.tabframeWidth) );
 	
 	--Bail if OnSizeChanged hasn't happened yet
 	if (frame.tabframeWidth == nil) then
 		return;
 	end
-	
-	CB.Print( "width: "..tostring(frame.tabframeWidth) );
 	
 	CB.Util_ClearTable( frame.widths );
 	CB.Util_ClearTable( frame.starts );
