@@ -462,6 +462,10 @@ function ChronoBars.Print (msg)
   print( "|cffffff00"..ChronoBars.MSG_PREFIX.." |cffffffff"..msg );
 end
 
+function ChronoBars.Error (msg)
+  print( "|cffffff00"..ChronoBars.MSG_PREFIX.." |cffff0000"..msg );
+end
+
 function ChronoBars.Debug (msg)
   if not ChronoBars_Settings.debugEnabled then return end
   print( "|cffff0000"..ChronoBars.MSG_PREFIX.." |cffffffff"..msg );

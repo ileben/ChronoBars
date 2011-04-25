@@ -565,7 +565,7 @@ function ChronoBars.SetDeepValue (deepTable, deepPath, value)
 	local e = strfind( varName, "[]]" );
 	if (s ~= nil and e ~= nil) then
 	
-		--Get index as environment value
+		--Get index as a settings value recursively
 		local indexVar = strsub( varName, s+1, e-1 );
 		i = CB.GetSettingsValue( indexVar );
 		varName = strsub( varName, 1, s-1 );
@@ -602,14 +602,17 @@ function ChronoBars.GetSettingsTable( tableType )
   
   elseif (tableType == "char") then
     return ChronoBars_CharSettings;
-
-  elseif (tableType == "bar") then
-    local profile = ChronoBars.GetActiveProfile();
-    return profile.groups[ CB.MenuId.groupId ].bars[ CB.MenuId.barId ];
+	
+  elseif (tableType == "profile") then
+	return ChronoBars.GetActiveProfile();
 
   elseif (tableType == "group") then
     local profile = ChronoBars.GetActiveProfile();
     return profile.groups[ CB.MenuId.groupId ];
+	
+  elseif (tableType == "bar") then
+    local profile = ChronoBars.GetActiveProfile();
+    return profile.groups[ CB.MenuId.groupId ].bars[ CB.MenuId.barId ];
     
   elseif (tableType == "temp") then
     if (not ChronoBars.temp) then ChronoBars.temp = {}; end

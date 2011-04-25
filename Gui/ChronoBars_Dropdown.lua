@@ -316,9 +316,14 @@ end
 
 function ChronoBars.Drop_AddItem( frame, text, value )
 
-	--Store text and value, will update when shown
+	--Store text and value
 	table.insert( frame.texts, text );
 	table.insert( frame.values, value );
+	
+	--Select first item
+	if (table.getn(frame.texts) == 1) then
+		frame:SelectIndex(1);
+	end
 end
 
 function ChronoBars.Drop_SelectIndex( frame, index )

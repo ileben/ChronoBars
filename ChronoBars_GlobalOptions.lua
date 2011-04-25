@@ -65,13 +65,15 @@ ChronoBars.Frame_Manage =
 	{ type="button",   text="New Group",            func="root|Func_GroupNew",    close=true },
 	{ type="button",   text="Delete Group",         func="root|Func_GroupDelete", close=true },
 	
-	{ type="header",   text="Bar settings" },
+	{ type="header",   text="Move bar" },
 	{ type="button",   text="Move Up",            func="root|Func_BarMoveUp" },
 	{ type="button",   text="Move Down",          func="root|Func_BarMoveDown" },
-	
-	{ type="options",  text="Copy/Paste",         options="root|Options_BarCopyPaste" },
+
+	{ type="header",   text="Bar settings" },	
+	{ type="options",  text="Copy/Paste",         var="temp|copyIndex",     options="root|Options_BarCopyPaste" },
 	{ type="button",   text="Copy",               func="root|Func_BarCopy" },
 	{ type="button",   text="Paste",              func="root|Func_BarPaste" },
+	{ type="button",   text="Paste to all",       func="root|Func_BarPasteToAll" },
 	
 	{ type="header",   text="Group settings" },
 	{ type="button",   text="Copy",        func="root|Func_GroupCopy" },
@@ -80,19 +82,33 @@ ChronoBars.Frame_Manage =
 
 ChronoBars.Options_BarCopyPaste =
 {
-	{ text="Front Color",              var="temp|color",       value="bar|style.fgColor" },
-	{ text="Back Color",               var="temp|color",       value="bar|style.bgColor" },
-	{ text="Text Color",               var="temp|color",       value="bar|style.textColor" },
-	{ text="Texture",                  var="temp|tex",         value="bar|style.lsmTexHandle" },
-	{ text="Font",                     var="temp|font",        value="bar|style.lsmFontHandle" },
-	{ text="Font Size",                var="temp|fontSize",    value="bar|style.fontSize" },
-	{ text="Visibility",               var="temp|visibility",  value="bar|style.visibility" },
-	{ text="Animation",                var="temp|anim",        value="bar|style.anim" },
-	{ text="Entire Style",             var="temp|style",       value="bar|style" },
-	{ text="Style Except Front Color", var="temp|style",       value="bar|style" },
-	{ text="All Bar Settings" },
+	{ text="Front Color",              value=1 },
+	{ text="Back Color",               value=2 },
+	{ text="Text Color",               value=3 },
+	{ text="Texture",                  value=4 },
+	{ text="Font",                     value=5 },
+	{ text="Font Size",                value=6 },
+	{ text="Visibility",               value=7 },
+	{ text="Animation",                value=8 },
+	{ text="Entire Style",             value=9 },
+	{ text="Style Except Front Color", value=10 },
+	{ text="All Bar Settings",         value=11 },
 };
 
+ChronoBars.BarCopyTable =
+{
+	--[[ 1  --]] { var="bar|style.fgColor",             temp="temp|color" },
+	--[[ 2  --]] { var="bar|style.bgColor",             temp="temp|color" },
+	--[[ 3  --]] { var="bar|style.textColor",           temp="temp|color" },
+	--[[ 4  --]] { var="bar|style.lsmTexHandle",        temp="temp|tex" },
+	--[[ 5  --]] { var="bar|style.lsmFontHandle",       temp="temp|font" },
+	--[[ 6  --]] { var="bar|style.fontSize",            temp="temp|fontSize" },
+	--[[ 7  --]] { var="bar|style.visibility",          temp="temp|visibility" },
+	--[[ 8  --]] { var="bar|style.anim",                temp="temp|anim" },
+	--[[ 9  --]] { var="bar|style",                     temp="temp|style" },
+	--[[ 10 --]] { var="bar|style",                     temp="temp|style",    exception="bar|style.fgColor" },
+	--[[ 11 --]] { var="group|bars[temp|barId]",        temp="temp|bar" },
+};
 
 --Bar
 
@@ -443,9 +459,47 @@ end
 --Copy/Paste
 
 function ChronoBars.Func_BarCopy()
+
+	--Get source / destination parameters
+	local copyIndex = CB.GetSettingsValue( "temp|copyIndex" ) or 1;
+	local copyItem = CB.BarCopyTable[ copyIndex ];
+	
+	--Copy value to temporary variable
+	local value = CB.GetSettingsValue( copyItem.var );
+	CB.SetSettingsValue( copyItem.temp, value );
+	CB.Print( "Value copied." );
 end
 
 function ChronoBars.Func_BarPaste()
+
+	--Get source / destination parameters
+	local copyIndex = CB.GetSettingsValue( "temp|copyIndex" ) or 1;
+	local copyItem = CB.BarCopyTable[ copyIndex ];
+	
+	--Copy exception
+	local exception = nil;
+	if (copyItem.exception) then
+		exception = CB.GetSettingsValue( copyItem.exception );
+	end
+	
+	--Paste value to target variable
+	local value = CB.GetSettingsValue( copyItem.temp );
+	if (value ~= nil) then
+		CB.SetSettingsValue( copyItem.var, value );
+		CB.Print( "Value pasted." );
+	else
+		CB.Error( "This value has not been copied yet!" );
+	end
+	
+	--Paste exception
+	if (copyItem.exception) then
+		CB.SetSettingsValue( copyItem.exception, exception );
+	end
+	
+	CB.UpdateSettings();
+end
+
+function ChronoBars.Func_BarPasteToAll()
 end
 
 function ChronoBars.Func_GroupCopy()
@@ -915,6 +969,9 @@ end
 
 function ChronoBars.OpenBarConfig (bar)
  
+	CB.SetSettingsValue( "temp|groupId", bar.groupId );
+	CB.SetSettingsValue( "temp|barId", bar.barId );
+	
 	CB.MenuId.groupId = bar.groupId;
 	CB.MenuId.barId = bar.barId;
 

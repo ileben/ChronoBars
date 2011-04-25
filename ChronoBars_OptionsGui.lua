@@ -298,7 +298,7 @@ function ChronoBars.Frame_New( name, title, resizable )
 	
 	f:SetFrameStrata( "DIALOG" );
 	f:SetToplevel( true );
-	f:SetWidth( 400 );
+	f:SetWidth( 350 );
 	f:SetHeight( 500 );
 	f:SetPoint( "CENTER", 0, 150 );
 	
