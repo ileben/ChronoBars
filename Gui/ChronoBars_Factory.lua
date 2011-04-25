@@ -36,7 +36,7 @@ function ChronoBars.NewObject( class )
 
 	--Check if there's any unused objects left
 	if (factory.used < capacity) then
-
+		
 		--Return existing object
 		factory.used = factory.used + 1;
 		object = factory.objects[ factory.used ];

@@ -130,7 +130,7 @@ function ChronoBars.TabFrame_Init( frame )
 end
 
 function ChronoBars.TabFrame_Free( frame )
-		
+	
 	--Free every tab
 	for i,tab in ipairs( frame.tabs ) do
 		CB.FreeObject( frame.tabs[i] );
@@ -138,6 +138,7 @@ function ChronoBars.TabFrame_Free( frame )
 	
 	--Clear tabs
 	CB.Util_ClearTable( frame.tabs );
+	CB.Util_ClearTable( frame.titles );
 	
 	--Free container
 	ChronoBars.Container_Free( frame );
@@ -147,7 +148,7 @@ end
 function ChronoBars.TabFrame_AddTab( frame, title )
 
 	local numTabs = table.getn( frame.tabs );
-
+	
 	--Create new tab
 	local tab = CB.NewObject( "tab" );
 	tab:SetParent( frame );
@@ -210,9 +211,8 @@ function ChronoBars.TabFrame_UpdateTabs( frame )
 	local numTabs = table.getn( frame.tabs );
 	for t=1,numTabs do
 	
-		--Set text and measure tab width
+		--Measure title text width
 		local tab = frame.tabs[t];
-		tab:SetText( frame.titles[t] );
 		local tabW = tab:GetTextWidth() + 40;
 		
 		--Go to next row, if limit reached

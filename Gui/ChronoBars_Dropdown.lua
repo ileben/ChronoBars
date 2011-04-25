@@ -85,6 +85,7 @@ function ChronoBars.Drop_New( name )
 	box:SetBackdropColor(0,0,0,1);
 	
 	box:SetFrameStrata( "FULLSCREEN_DIALOG" );
+	box:SetToplevel(true);
 	--box:SetClampedToScreen( true );
 	box:SetWidth( 200 );
 	box:SetHeight( 400 );

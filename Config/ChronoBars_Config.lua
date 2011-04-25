@@ -132,6 +132,7 @@ function ChronoBars.GetSettingsValue( var )
     
     --Invoke getter function
     local func = ChronoBars[ path.."_Get" ];
+	if (func == nil) then CB.Error( "Missing GET function "..tostring(path) ); end
     return func( arg );
 
   else
@@ -177,6 +178,7 @@ function ChronoBars.SetSettingsValue( var, value )
     
     --Invoke setter function with argument
     local func = ChronoBars[ path.."_Set" ];
+	if (func == nil) then CB.Error( "Missing SET function "..tostring(path) ); end
     func( value, arg );
     return true;
     

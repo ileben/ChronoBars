@@ -780,11 +780,20 @@ function ChronoBars.ShowConfigHeader()
     txt:SetText( "Config mode. Right-click a bar to open configuration menu." );
     txt:Show();
 	
+	--Global button
+	local btnGlobal = CreateFrame( "Button", "ChronoBars.ConfigHeader.BtnGlobal", f, "UIPanelButtonTemplate2" );
+	btnGlobal.frame = f;
+	btnGlobal:SetWidth( 120 );
+	btnGlobal:SetHeight( 22 );
+	btnGlobal:SetPoint( "BOTTOMLEFT", f, "BOTTOMLEFT", 20, 20 );
+	btnGlobal:SetText( "Global settings" );
+	btnGlobal:SetScript( "OnClick", ChronoBars.ConfigHeader_Global_OnClick );
+	
     --Close button
-    local btnClose = CreateFrame( "Button", "ChronoBars.ConfigHeader.Close", f, "UIPanelButtonTemplate2" );
+    local btnClose = CreateFrame( "Button", "ChronoBars.ConfigHeader.BtnClose", f, "UIPanelButtonTemplate2" );
     btnClose.frame = f;
-    btnClose:SetWidth( 100 );
-    btnClose:SetHeight( 25 );
+    btnClose:SetWidth( 120 );
+    btnClose:SetHeight( 22 );
     btnClose:SetPoint( "BOTTOMRIGHT", f, "BOTTOMRIGHT", -20, 20 );
     btnClose:SetText( "Exit config" );
     btnClose:SetScript( "OnClick", ChronoBars.ConfigHeader_Close_OnClick );
@@ -796,10 +805,16 @@ function ChronoBars.ShowConfigHeader()
 end
 
 function ChronoBars.HideConfigHeader()
-	
+
 	if (CB.configHeader) then
 		CB.configHeader:Hide();
 	end
+end
+
+function ChronoBars.ConfigHeader_Global_OnClick()
+
+	CB.ModeRun();
+	CB.ShowMainConfig();
 end
 
 function ChronoBars.ConfigHeader_Close_OnClick()
@@ -812,7 +827,7 @@ end
 
 function ChronoBars.UpdateBarConfig()
 
-	CB.FreeAllObjects();
+	--CB.FreeAllObjects();
 	CB.configFrame:RemoveAllChildren();
 	CB.Config_Construct( CB.configFrame, CB.Frame_Root );
 	
@@ -846,6 +861,7 @@ end
 
 function ChronoBars.ConfigFrame_OnShow()
 
+	CB.HideConfirmFrame();
 	if (CB.designMode) then
 		CB.HideConfigHeader();
 	end
@@ -853,6 +869,7 @@ end
 
 function ChronoBars.ConfigFrame_OnHide()
 
+	CB.HideConfirmFrame();
 	if (CB.designMode) then
 		CB.ShowConfigHeader();
 	end

@@ -119,6 +119,8 @@ function ChronoBars.Container_RemoveAllChildren( frame )
 		child:ClearAllPoints();
 		child:SetParent( nil );
 		child:UnregisterScript( "OnSizeChanged", ChronoBars.Container_OnChildSizeChanged );
+		
+		CB.FreeObject( child );
 	end
 	
 	CB.Util_ClearTable( frame.children );

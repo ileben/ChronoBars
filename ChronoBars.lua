@@ -646,7 +646,6 @@ function ChronoBars.ModeRun ()
 
   CB.designMode = false;
   CB.HideBarConfig();
-  CB.HideConfirmFrame();
   CB.HideConfigHeader();
   CB.UpdateSettings();
 
