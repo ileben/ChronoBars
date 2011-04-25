@@ -597,27 +597,27 @@ end
 
 function ChronoBars.GetSettingsTable( tableType )
 
-  if (tableType == "root") then
-    return ChronoBars;
-  
-  elseif (tableType == "char") then
-    return ChronoBars_CharSettings;
-	
-  elseif (tableType == "profile") then
-	return ChronoBars.GetActiveProfile();
+	if (tableType == "root") then
+		return ChronoBars;
 
-  elseif (tableType == "group") then
-    local profile = ChronoBars.GetActiveProfile();
-    return profile.groups[ CB.MenuId.groupId ];
-	
-  elseif (tableType == "bar") then
-    local profile = ChronoBars.GetActiveProfile();
-    return profile.groups[ CB.MenuId.groupId ].bars[ CB.MenuId.barId ];
-    
-  elseif (tableType == "temp") then
-    if (not ChronoBars.temp) then ChronoBars.temp = {}; end
-    return ChronoBars.temp;
-  end
+	elseif (tableType == "temp") then
+		if (not ChronoBars.temp) then ChronoBars.temp = {}; end
+		return ChronoBars.temp;
+
+	elseif (tableType == "char") then
+		return ChronoBars_CharSettings;
+
+	elseif (tableType == "profile") then
+		return ChronoBars.GetActiveProfile();
+
+	elseif (tableType == "group") then
+		local profile = ChronoBars.GetActiveProfile();
+		return profile.groups[ ChronoBars.temp.groupId ];
+
+	elseif (tableType == "bar") then
+		local profile = ChronoBars.GetActiveProfile();
+		return profile.groups[ ChronoBars.temp.groupId ].bars[ ChronoBars.temp.barId ];
+	end
   
   return nil;
 end

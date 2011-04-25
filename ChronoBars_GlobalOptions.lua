@@ -76,8 +76,9 @@ ChronoBars.Frame_Manage =
 	{ type="button",   text="Paste to all",       func="root|Func_BarPasteToAll" },
 	
 	{ type="header",   text="Group settings" },
-	{ type="button",   text="Copy",        func="root|Func_GroupCopy" },
-	{ type="button",   text="Paste",       func="root|Func_GroupPaste" },
+	{ type="button",   text="Copy",               func="root|Func_GroupCopy" },
+	{ type="button",   text="Paste",              func="root|Func_GroupPaste" },
+	{ type="button",   text="Paste to all",       func="root|Func_GroupPasteToAll" },
 };
 
 ChronoBars.Options_BarCopyPaste =
@@ -138,6 +139,7 @@ ChronoBars.Frame_Effect =
 	{ type="input",       text="Effect name",     var="bar|name" },
 	{ type="options",     text="Effect type",     var="bar|type",   options="root|Options_EffectType",  update=true },
 	
+	
 	{ type="group",       text="Aura Settings",           frame="root|Frame_AuraSettings",
 	  conditionVar="bar|type", conditionValue = ChronoBars.EFFECT_TYPE_AURA },
 	  
@@ -161,6 +163,15 @@ ChronoBars.Frame_Effect =
 
 	{ type="group",       text="Enchant settings",     frame="root|Frame_EnchantSettings",
 	  conditionVar="bar|type", conditionValue = ChronoBars.EFFECT_TYPE_ENCHANT },
+	 
+	
+	{ type="header",      text="Override" },
+	  
+	{ type="input",       text="Display name",        var="bar|display.name" },
+	{ type="toggle",      text="Use display name",    var="bar|display.enabled" },
+	
+	{ type="numinput",    text="Maximum time (seconds)",     var="bar|fixed.duration" },
+	{ type="toggle",      text="Use maximum time",           var="bar|fixed.enabled" },
 };
 
 ChronoBars.Options_EffectType =
@@ -225,39 +236,72 @@ ChronoBars.Frame_CooldownSettings =
 
 ChronoBars.Options_CooldownType =
 {
-  { text="Spell",       value = ChronoBars.CD_TYPE_SPELL },
-  --{ text="Pet Spell",   value = ChronoBars.CD_TYPE_PET_SPELL },
-  { text="Item",        value = ChronoBars.CD_TYPE_ITEM },
+	{ text="Spell",       value = ChronoBars.CD_TYPE_SPELL },
+	--{ text="Pet Spell",   value = ChronoBars.CD_TYPE_PET_SPELL },
+	{ text="Item",        value = ChronoBars.CD_TYPE_ITEM },
 };
 
 ChronoBars.Frame_UsableSettings =
 {
-  { type="options",     text="Usable type",        var="bar|usable.type",        options="root|Options_UsableType" },
-  { type="toggle",      text="Include cooldown",   var="bar|usable.includeCd" },
+	{ type="options",     text="Usable type",        var="bar|usable.type",        options="root|Options_UsableType" },
+	{ type="toggle",      text="Include cooldown",   var="bar|usable.includeCd" },
 };
 
 ChronoBars.Options_UsableType = {
 
-  { text="Spell",      value = ChronoBars.USABLE_TYPE_SPELL },
-  --{ text="Pet Spell",   value = ChronoBars.USABLE_TYPE_PET_SPELL },
-  { text="Item",       value = ChronoBars.USABLE_TYPE_ITEM },
+	{ text="Spell",      value = ChronoBars.USABLE_TYPE_SPELL },
+	--{ text="Pet Spell",   value = ChronoBars.USABLE_TYPE_PET_SPELL },
+	{ text="Item",       value = ChronoBars.USABLE_TYPE_ITEM },
 };
 
 
 ChronoBars.Frame_TotemSettings =
 {
+	{ type="options",    text="Totem type",     var="bar|totem.type",    options="root|Options_TotemType" },
+};
+
+ChronoBars.Options_TotemType =
+{
+	{ text="Fire",   value=ChronoBars.TOTEM_TYPE_FIRE },
+	{ text="Earth",  value=ChronoBars.TOTEM_TYPE_EARTH },
+	{ text="Water",  value=ChronoBars.TOTEM_TYPE_WATER },
+	{ text="Air",    value=ChronoBars.TOTEM_TYPE_AIR },
 };
 
 ChronoBars.Frame_CustomSettings =
 {
+	{ type="options",       text="Trigger",    var="bar|custom.trigger",    options="root|Options_CustomTrigger" },
+	{ type="numinput",      text="Duration",   var="bar|custom.duration" },
+};
+
+ChronoBars.Options_CustomTrigger = {
+
+	{ text="Spell cast successful",   value=ChronoBars.CUSTOM_TRIGGER_SPELL_CAST },
+	{ text="Another bar activated",   value=ChronoBars.CUSTOM_TRIGGER_BAR_ACTIVE },
 };
 
 ChronoBars.Frame_AutoSettings =
 {
+	{ type="options",   text="Slot",     var="bar|auto.type",     options="root|Options_AutoType" },
+};
+
+ChronoBars.Options_AutoType =
+{
+  { text="Main Hand",  value=CB.AUTO_TYPE_MAIN_HAND },
+  { text="Off Hand",   value=CB.AUTO_TYPE_OFF_HAND },
+  { text="Wand",       value=CB.AUTO_TYPE_WAND },
+  { text="Bow/Gun",    value=CB.AUTO_TYPE_BOW },
 };
 
 ChronoBars.Frame_EnchantSettings =
 {
+	{ type="options",    text="Slot",      var="bar|enchant.hand",     options="root|Options_EnchantHand" },
+};
+
+ChronoBars.Options_EnchantHand =
+{
+	{ text="Main Hand",  value=CB.HAND_MAIN },
+	{ text="Off Hand",   value=CB.HAND_OFF },
 };
 
 ChronoBars.Frame_StyleBar =
@@ -432,7 +476,7 @@ function ChronoBars.Options_Text_Get()
 	local options = {};
 	
 	local profile = CB.GetActiveProfile();
-	local bar = profile.groups[ CB.MenuId.groupId ].bars[ CB.MenuId.barId ];
+	local bar = CB.GetSettingsTable( "bar" );
 	
 	local numText = table.getn( bar.style.text );
 	for i=1,numText do
@@ -500,125 +544,214 @@ function ChronoBars.Func_BarPaste()
 end
 
 function ChronoBars.Func_BarPasteToAll()
+
+	local profile = CB.GetActiveProfile();
+	local oldGroupId = CB.temp.groupId;
+	local oldBarId = CB.temp.barId;
+	
+	CB.Func_BarCopy();
+	
+	local numGroups = table.getn(profile.groups);
+	for g=1,numGroups do
+	
+		local numBars = table.getn(profile.groups[g].bars);
+		for b=1,numBars do
+		
+			CB.temp.groupId = g;
+			CB.temp.barId = b;
+			CB.Func_BarPaste();
+		end
+	end;
+	
+	CB.temp.groupId = oldGroupId;
+	CB.temp.barId = oldBarId;
+	CB.UpdateSettings();
 end
 
 function ChronoBars.Func_GroupCopy()
+
+	CB.SetSettingsValue( "temp|groupWidth",    CB.GetSettingsValue( "group|width" ));
+	CB.SetSettingsValue( "temp|groupHeight",   CB.GetSettingsValue( "group|height" ));
+	CB.SetSettingsValue( "temp|groupPadding",  CB.GetSettingsValue( "group|padding" ));
+	CB.SetSettingsValue( "temp|groupSpacing",  CB.GetSettingsValue( "group|spacing" ));
+	CB.SetSettingsValue( "temp|groupMargin",   CB.GetSettingsValue( "group|margin" ));
+	CB.SetSettingsValue( "temp|groupGrow",     CB.GetSettingsValue( "group|grow" ));
+	CB.SetSettingsValue( "temp|groupLayout",   CB.GetSettingsValue( "group|layout" ));
+	CB.SetSettingsValue( "temp|groupStyle",    CB.GetSettingsValue( "group|style" ));
+  
 end
 
 function ChronoBars.Func_GroupPaste()
+
+	CB.SetSettingsValue( "group|width",    CB.GetSettingsValue( "temp|groupWidth" ));
+    CB.SetSettingsValue( "group|height",   CB.GetSettingsValue( "temp|groupHeight" ));
+	CB.SetSettingsValue( "group|padding",  CB.GetSettingsValue( "temp|groupPadding" ));
+	CB.SetSettingsValue( "group|spacing",  CB.GetSettingsValue( "temp|groupSpacing" ));
+	CB.SetSettingsValue( "group|margin",   CB.GetSettingsValue( "temp|groupMargin" ));
+	CB.SetSettingsValue( "group|grow",     CB.GetSettingsValue( "temp|groupGrow" ));
+	CB.SetSettingsValue( "group|layout",   CB.GetSettingsValue( "temp|groupLayout" ));
+	CB.SetSettingsValue( "group|style",    CB.GetSettingsValue( "temp|groupStyle" ));
+	
+end
+
+function ChronoBars.Func_GroupPasteToAll()
+
+	local profile = CB.GetActiveProfile();
+	local oldGroupId = CB.temp.groupId;
+	
+	CB.Func_GroupCopy();
+	
+	local numGroups = table.getn(profile.groups);
+	for g=1,numGroups do
+			
+		CB.temp.groupId = g;
+		CB.Func_GroupPaste();
+	end;
+	
+	CB.temp.groupId = oldGroupId;
+	CB.UpdateSettings();
 end
 
 --Bar movement
 
 function ChronoBars.Func_BarMoveUp()
-
-  local id = CB.MenuId;
   
-  local profile = ChronoBars.GetActiveProfile();
-  local group = profile.groups[ id.groupId ];
+  local profile = CB.GetActiveProfile();
+  local group = profile.groups[ CB.temp.groupId ];
   
   local offset = 0;
-  if (group.grow == ChronoBars.GROW_UP) then
+  if (group.grow == CB.GROW_UP) then
     offset = 1;
-  elseif (group.grow == ChronoBars.GROW_DOWN) then
+  elseif (group.grow == CB.GROW_DOWN) then
     offset = -1;
   end
   
-  ChronoBars.MoveBar( offset );
+  CB.MoveBar( offset );
   
 end
 
 function ChronoBars.Func_BarMoveDown()
 
-  local id = CB.MenuId;
-  
-  local profile = ChronoBars.GetActiveProfile();
-  local group = profile.groups[ id.groupId ];
+  local profile = CB.GetActiveProfile();
+  local group = profile.groups[ CB.temp.groupId ];
   
   local offset = 0;
-  if (group.grow == ChronoBars.GROW_UP) then
+  if (group.grow == CB.GROW_UP) then
     offset = -1;
-  elseif (group.grow == ChronoBars.GROW_DOWN) then
+  elseif (group.grow == CB.GROW_DOWN) then
     offset = 1;
   end
 
-  ChronoBars.MoveBar( offset );
+  CB.MoveBar( offset );
   
 end
 
 function ChronoBars.MoveBar( offset )
 
-  local id = CB.MenuId;
+  local profile = CB.GetActiveProfile();
+  local group = profile.groups[ CB.temp.groupId ];
   
-  local profile = ChronoBars.GetActiveProfile();
-  local group = profile.groups[ id.groupId ];
-  
-  local newBarId = id.barId + offset;
+  local newBarId = CB.temp.barId + offset;
   if (newBarId < 1) then return end;
   if (newBarId > table.getn( group.bars )) then return end;
 
   local tempBar = group.bars[ newBarId ];
-  group.bars[ newBarId ] = group.bars[ id.barId ];
-  group.bars[ id.barId ] = tempBar;
+  group.bars[ newBarId ] = group.bars[ CB.temp.barId ];
+  group.bars[ CB.temp.barId ] = tempBar;
 
-  ChronoBars.UpdateSettings();
-  CB.MenuId.barId = newBarId;
+  CB.temp.barId = newBarId;
+  CB.UpdateSettings();
   
 end
 
 --Bar/Group management
 
 function ChronoBars.Func_BarNew()
-	local id = CB.MenuId;
 
 	--Find bar that was right-clicked
-	local profile = ChronoBars.GetActiveProfile();
-	local curBar = profile.groups[ id.groupId ].bars[ id.barId ];
+	local profile = CB.GetActiveProfile();
+	local curBar = profile.groups[ CB.temp.groupId ].bars[ CB.temp.barId ];
 
-	--Create new bar and clone style from current bar
-	local newBar = CopyTable( ChronoBars.DEFAULT_BAR );
+	--Create new bar
+	local newBar = CopyTable( CB.DEFAULT_BAR );
+	table.insert( profile.groups[ CB.temp.groupId ].bars, newBar );
+	
+	--Clone style from current bar
 	newBar.style = CopyTable( curBar.style );
-	table.insert( profile.groups[ id.groupId ].bars, newBar );
-
-	ChronoBars.UpdateSettings();
+	CB.UpdateSettings();
+	
 end
 
 function ChronoBars.Func_BarDelete()
-	local id = CB.MenuId;
 
 	--Confirm with user
-	local name = ChronoBars.GetSettingsValue( "bar|name" );
-	ChronoBars.ShowConfirmFrame( "Are you sure you want to remove bar '"..tostring(name).."'?",
-		ChronoBars.DeleteBar_Accept, nil, { ["id"]=id, ["value"]=value } );
+	local name = CB.GetSettingsValue( "bar|name" );
+	CB.ShowConfirmFrame( "Are you sure you want to remove bar '"..tostring(name).."'?",
+		CB.Func_BarDeleteAccept );
 	
+end
+
+function ChronoBars.Func_BarDeleteAccept()
+	CB.Debug( "Removing bar "..tostring(CB.temp.groupId)..","..tostring(CB.temp.barId) );
+
+	--Check if last bar in group
+	local profile = CB.GetActiveProfile();
+	if (table.getn( profile.groups[ CB.temp.groupId ].bars ) <= 1) then
+		CB.Error( "Cannot delete last bar in the group! Delete group instead." );
+		return;
+	end
+	
+	--Delete bar
+	table.remove( profile.groups[ CB.temp.groupId ].bars, CB.temp.barId );
+	CB.UpdateSettings();
+  
 end
 
 function ChronoBars.Func_GroupNew()
-	local id = CB.MenuId;
 
 	--Find bar and group that was right-clicked
-	local profile = ChronoBars.GetActiveProfile();
-	local curBar = profile.groups[ id.groupId ].bars[ id.barId ];
-	local curGroup = profile.groups[ id.groupId ];
+	local profile = CB.GetActiveProfile();
+	local curBar = profile.groups[ CB.temp.groupId ].bars[ CB.temp.barId ];
+	local oldGroupId = CB.temp.groupId;
 
-	--Create new group and clone style from current bar to its first bar
-	local newGroup = CopyTable( ChronoBars.DEFAULT_GROUP );
-	ChronoBars.CopyGroup( curGroup );
-	ChronoBars.PasteGroup( newGroup );
-	newGroup.bars[1].style = CopyTable( curBar.style );
+	--Create new group
+	local newGroup = CopyTable( CB.DEFAULT_GROUP );
 	table.insert( profile.groups, newGroup);
-
-	ChronoBars.UpdateSettings();
+	
+	--Clone settings from current group
+	CB.Func_GroupCopy();
+	CB.temp.groupId = table.getn( profile.groups );
+	CB.Func_GroupPaste();
+	CB.temp.groupId = oldGroupId;
+	
+	--Clone style from current bar
+	newGroup.bars[1].style = CopyTable( curBar.style );
+	CB.UpdateSettings();
+	
 end
 
 function ChronoBars.Func_GroupDelete()
-	local id = CB.MenuId;
 	
 	--Confirm with user
-	ChronoBars.ShowConfirmFrame( "Are you sure you want to delete this group?",
-		ChronoBars.DeleteGroup_Accept, nil, { ["id"]=id, ["value"]=value } );
+	CB.ShowConfirmFrame( "Are you sure you want to delete this group?",
+		CB.Func_GroupDeleteAccept );
 end
 
+function ChronoBars.Func_GroupDeleteAccept ()
+	CB.Debug( "Removing group "..tostring(CB.temp.groupId) );
+
+	--Check if last group
+	local profile = CB.GetActiveProfile();
+	if (table.getn( profile.groups ) <= 1) then
+		CB.Error( "Cannot delete last group!" );
+		return;
+	end
+	
+	--Delete group
+	table.remove( profile.groups, CB.temp.groupId );
+	CB.UpdateSettings();
+	
+end
 
 --Construction
 --===========================================================================
@@ -911,7 +1044,12 @@ function ChronoBars.Config_OnInputChanged( inpFrame )
 	local item = inpFrame.item;
 	local newValue = inpFrame:GetText();
 	
-	CB.SetSettingsValue( item.var, newValue );
+	if (item.type == "numinput")
+	then CB.SetSettingsValue( item.var, tonumber(newValue) or 0 );
+	else CB.SetSettingsValue( item.var, newValue );
+	end
+	
+	inpFrame:SetText( tostring(CB.GetSettingsValue( item.var )) );
 	CB.UpdateSettings();
 	
 	if (item.update) then
@@ -958,9 +1096,6 @@ end
 function ChronoBars.UpdateBarConfig()
 
 	CB.FreeAllObjects();
-	--CB.configFrame:RemoveAllChildren();
-	--CB.Config_Construct( CB.configFrame, CB.Frame_Root );
-	
 	CB.configFrame:RemoveAllChildren();
 	CB.Config_Construct( CB.configFrame, CB.Frame_Root );
 	
@@ -971,9 +1106,6 @@ function ChronoBars.OpenBarConfig (bar)
  
 	CB.SetSettingsValue( "temp|groupId", bar.groupId );
 	CB.SetSettingsValue( "temp|barId", bar.barId );
-	
-	CB.MenuId.groupId = bar.groupId;
-	CB.MenuId.barId = bar.barId;
 
 	if (not CB.configFrame) then
 		CB.configFrame = CB.Frame_New( "ChronoBars.ConfigFrame", "ChronoBars", true);

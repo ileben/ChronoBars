@@ -60,7 +60,7 @@ function ChronoBars.FindPixelRatio ()
 end
 
 function ChronoBars.FormatSeconds (seconds, format)
-
+	
   if (format == ChronoBars.TIME_MINSEC) then
 
     local minutes = 0;
@@ -78,7 +78,7 @@ function ChronoBars.FormatSeconds (seconds, format)
     local time = seconds;
     local letter = "s";
     local fmt;
-
+	
     if (time >= 60) then
       time = time / 60;
       letter = "m";
