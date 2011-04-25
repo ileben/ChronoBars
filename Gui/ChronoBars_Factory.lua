@@ -58,6 +58,7 @@ function ChronoBars.NewObject( class )
 		elseif (class == "scrollframe") then object = CB.ScrollFrame_New ( "ChronoBars.ScrollFrame" .. factory.used );
 		elseif (class == "font")        then object = CB.FontDrop_New    ( "ChronoBars.FontDrop"    .. factory.used );
 		elseif (class == "texture")     then object = CB.TexDrop_New     ( "ChronoBars.TexDrop"     .. factory.used );
+		elseif (class == "window")      then object = CB.Window_New      ( "ChronoBars.Window"      .. factory.used );
 		end
 
 		--Add to list of objects

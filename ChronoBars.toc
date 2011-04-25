@@ -5,18 +5,19 @@
 ## Version: 1.13
 ## SavedVariables: ChronoBars_Settings
 ## SavedVariablesPerCharacter: ChronoBars_CharSettings
+
 Libs\LibStub\LibStub.lua
 Libs\CallbackHandler-1.0\CallbackHandler-1.0.lua
 Libs\LibSharedMedia-3.0\lib.xml
+
 ChronoBars_Util.lua
 ChronoBars_Defaults.lua
 ChronoBars.lua
 ChronoBars_UI.lua
 ChronoBars_Status.lua
-ChronoBars_OptionsGui.lua
-ChronoBars_Options.lua
-ChronoBars_GlobalOptions.lua
+
 Gui\ChronoBars_Object.lua
+Gui\ChronoBars_Basic.lua
 Gui\ChronoBars_Container.lua
 Gui\ChronoBars_ContainerTab.lua
 Gui\ChronoBars_ContainerScroll.lua
@@ -24,4 +25,9 @@ Gui\ChronoBars_Dropdown.lua
 Gui\ChronoBars_DropdownFont.lua
 Gui\ChronoBars_DropdownTex.lua
 Gui\ChronoBars_ColorSwatch.lua
+Gui\ChronoBars_Window.lua
 Gui\ChronoBars_Factory.lua
+
+Config\ChronoBars_Config.lua
+Config\ChronoBars_MainConfig.lua
+Config\ChronoBars_BarConfig.lua

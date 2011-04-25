@@ -58,12 +58,12 @@ ChronoBars.Frame_Manage =
 	{ type="scroll" },
 	
 	{ type="header",   text="Bar management" },
-	{ type="button",   text="New Bar",            func="root|Func_BarNew",     close=true },
-	{ type="button",   text="Delete Bar",         func="root|Func_BarDelete",  close=true },
+	{ type="button",   text="New Bar",            func="root|Func_BarNew" },
+	{ type="button",   text="Delete Bar",         func="root|Func_BarDelete" },
 	
 	{ type="header",   text="Group management" },
-	{ type="button",   text="New Group",            func="root|Func_GroupNew",    close=true },
-	{ type="button",   text="Delete Group",         func="root|Func_GroupDelete", close=true },
+	{ type="button",   text="New Group",            func="root|Func_GroupNew" },
+	{ type="button",   text="Delete Group",         func="root|Func_GroupDelete" },
 	
 	{ type="header",   text="Move bar" },
 	{ type="button",   text="Move Up",            func="root|Func_BarMoveUp" },
@@ -461,14 +461,6 @@ ChronoBars.Options_GrowDir =
 };
 
 
---Profile
-
-ChronoBars.Frame_Profile =
-{
-  { type="header",                  text="Profile Settings" },
-};
-
-
 --Text functions
 
 function ChronoBars.Options_Text_Get()
@@ -678,7 +670,9 @@ function ChronoBars.Func_BarNew()
 	
 	--Clone style from current bar
 	newBar.style = CopyTable( curBar.style );
+	
 	CB.UpdateSettings();
+	CB.HideBarConfig();
 	
 end
 
@@ -694,6 +688,7 @@ end
 function ChronoBars.Func_BarDeleteAccept()
 	CB.Debug( "Removing bar "..tostring(CB.temp.groupId)..","..tostring(CB.temp.barId) );
 
+
 	--Check if last bar in group
 	local profile = CB.GetActiveProfile();
 	if (table.getn( profile.groups[ CB.temp.groupId ].bars ) <= 1) then
@@ -703,8 +698,10 @@ function ChronoBars.Func_BarDeleteAccept()
 	
 	--Delete bar
 	table.remove( profile.groups[ CB.temp.groupId ].bars, CB.temp.barId );
+	
 	CB.UpdateSettings();
-  
+	CB.HideBarConfig();
+	
 end
 
 function ChronoBars.Func_GroupNew()
@@ -726,7 +723,9 @@ function ChronoBars.Func_GroupNew()
 	
 	--Clone style from current bar
 	newGroup.bars[1].style = CopyTable( curBar.style );
+	
 	CB.UpdateSettings();
+	CB.HideBarConfig();
 	
 end
 
@@ -749,348 +748,66 @@ function ChronoBars.Func_GroupDeleteAccept ()
 	
 	--Delete group
 	table.remove( profile.groups, CB.temp.groupId );
-	CB.UpdateSettings();
-	
-end
-
---Construction
---===========================================================================
-
-ChronoBars.Env = {};
-
-function ChronoBars.SetEnv( key, value )
-	CB.Env[ key ] = value;
-end
-
-function ChronoBars.GetEnv( key )
-	return CB.Env[ key ];
-end
-
-ChronoBars.FrameId = 0;
-
-function ChronoBars.GetNewFrameId()
-	CB.FrameId = CB.FrameId + 1;
-	return CB.FrameId;
-end
-
-function ChronoBars.Config_Construct( parentFrame, config )
-
-	--Walk all the items in the config table
-	local numItems = table.getn(config);
-	for i = 1, numItems do
-	repeat
-
-		local item = config[i];
-
-		--Check for condition		
-		if (item.conditionVar ~= nil) then
-			local curValue = CB.GetSettingsValue( item.conditionVar );
-			if (curValue ~= item.conditionValue) then
-				break;
-			end
-		end
-		
-		
-		--Construct item based on type
-		local frame = nil;
-		
-		if (item.type == "tabs") then
-		
-			--Create tab frame object
-			local tabFrame = CB.NewObject( "tabframe" );
-			tabFrame.OnTabChanged = ChronoBars.Config_OnTabChanged;
-			tabFrame.item = item;
-			frame = tabFrame;
-			
-			--Get tabs config
-			local tabConfig = CB.GetSettingsValue( item.tabs );
-			if (tabConfig == nil) then
-				CB.Print( "Missing tab config table '"..tostring(item.tabs).."'" );
-				break;
-			end
-			
-			--Add tabs from config
-			for t = 1, table.getn(tabConfig) do
-				tabFrame:AddTab( tabConfig[t].text );
-			end
-			tabFrame:UpdateTabs();
-			
-			--Select tab by index from environment variable
-			local s = CB.GetEnv( item.tabs.."Selection" ) or 1;
-			tabFrame:SelectTab(s);
-			
-			--Get frame config
-			local frameConfig = CB.GetSettingsValue( tabConfig[s].frame );
-			if (frameConfig ~= nil) then
-				
-				--Construct sub frame recursively
-				CB.Config_Construct( tabFrame, frameConfig );
-			end
-			
-			--Add to container
-			parentFrame:AddChild( tabFrame, true, true );
-		
-		elseif (item.type == "scroll") then
-		
-			--Create scroll frame object
-			local scrFrame = CB.NewObject( "scrollframe" );
-			frame = scrFrame;
-			
-			--[[
-			--Get frame config
-			local frameConfig = CB.GetSettingsValue( item.frame );
-			if (frameConfig ~= nil) then
-			
-				--Construct sub frame recursively
-				CB.Config_Construct( scrFrame, frameConfig );
-			end
-			--]]
-			
-			--Add to container
-			parentFrame:AddChild( scrFrame, true, true );
-			
-			parentFrame = scrFrame;
-			
-		elseif (item.type == "group") then
-		
-			--Create group frame object
-			local grpFrame = CB.NewObject( "groupframe" );
-			grpFrame:SetLabelText( item.text );
-			frame = grpFrame;
-			
-			--Get frame config
-			local frameConfig = CB.GetSettingsValue( item.frame );
-			if (frameConfig ~= nil) then
-			
-				--Construct sub frame recursively
-				CB.Config_Construct( grpFrame, frameConfig );
-			end
-			
-			--Add to container
-			parentFrame:AddChild( grpFrame, true, false );
-			
-			
-		elseif (item.type == "header") then
-		
-			--Create header frame object
-			local hdrFrame = CB.NewObject( "header" );
-			hdrFrame:SetText( CB.GetSettingsValue( item.text ));
-			frame = hdrFrame;
-			
-			--Add to container
-			parentFrame:AddChild( hdrFrame, true, false );
-			
-			
-		elseif (item.type == "options") then
-			
-			--Create dropdown object
-			local ddFrame = CB.NewObject( "dropdown" );
-			ddFrame:SetLabelText( item.text );
-			ddFrame.item = item;
-			frame = ddFrame;
-			
-			--Get options config
-			local ddConfig = CB.GetSettingsValue( item.options );
-			if (ddConfig == nil) then
-				CB.Print( "Missing options config table '"..tostring(item.options).."'" );
-				break;
-			end
-			
-			--Add items from config
-			for d = 1, table.getn(ddConfig) do
-				ddFrame:AddItem( ddConfig[d].text, ddConfig[d].value );
-			end
-			
-			--Get value and apply to object
-			local curValue = ChronoBars.GetSettingsValue( item.var );
-			ddFrame:SelectValue( curValue );
-			ddFrame.OnValueChanged = ChronoBars.Config_OnOptionChanged;
-			
-			--Add to container
-			parentFrame:AddChild( ddFrame );
-			
-			
-		elseif (item.type == "toggle") then
-		
-			--Create checkbox object
-			local cbFrame = CB.NewObject( "checkbox" );
-			cbFrame:SetText( item.text );
-			cbFrame.item = item;
-			frame = cbFrame;
-			
-			--Get value and apply to object
-			local curValue = ChronoBars.GetSettingsValue( item.var );
-			cbFrame:SetChecked( curValue );
-			cbFrame.OnValueChanged = ChronoBars.Config_OnToggleChanged;
-			
-			--Add to container
-			parentFrame:AddChild( cbFrame );
-			
-			
-		elseif (item.type == "input" or item.type == "numinput") then
-		
-			--Create input object
-			local inpFrame = CB.NewObject( "input" );
-			inpFrame:SetLabelText( item.text );
-			inpFrame.item = item;
-			frame = inpFrame;
-			
-			--Get value and apply to object
-			local curValue = ChronoBars.GetSettingsValue( item.var );
-			inpFrame:SetText( tostring(curValue) );
-			inpFrame.OnValueChanged = ChronoBars.Config_OnInputChanged;
-			
-			--Add to container
-			parentFrame:AddChild( inpFrame );
-			
-			
-		elseif (item.type == "color") then
-		
-			--Create color swatch object
-			local colFrame = CB.NewObject( "color" );
-			colFrame:SetText( item.text );
-			colFrame.item = item;
-			frame = colFrame;
-			
-			--Get value and apply to object
-			local c = ChronoBars.GetSettingsValue( item.var );
-			colFrame:SetColor( c.r, c.g, c.b, c.a );
-			colFrame.OnValueChanged = ChronoBars.Config_OnColorChanged;
-			
-			--Add to container
-			parentFrame:AddChild( colFrame );
-			
-			
-		elseif (item.type == "font" or item.type == "texture") then
-		
-			--Create font object
-			local fontFrame = CB.NewObject( item.type );
-			fontFrame:SetLabelText( item.text );
-			fontFrame.item = item;
-			frame = fontFrame;
-			
-			--Get value and apply to object
-			local curValue = ChronoBars.GetSettingsValue( item.var );
-			fontFrame:SelectValue( curValue );
-			fontFrame.OnValueChanged = ChronoBars.Config_OnOptionChanged;
-			
-			--Add to container
-			parentFrame:AddChild( fontFrame );
-			
-		elseif (item.type == "button") then
-		
-			--Create button object
-			local btnFrame = CB.NewObject( "button" );
-			btnFrame:SetText( item.text );
-			btnFrame.item = item;
-			frame = btnFrame;
-			
-			--Register script
-			btnFrame:SetScript( "OnClick", ChronoBars.Config_OnButtonClicked );
-			
-			--Add to container
-			parentFrame:AddChild( btnFrame );
-			
-		end
-		
-	until true
-	end
-end
-
-function ChronoBars.Config_OnTabChanged( tabFrame )
-	CB.Debug( "TAB CHANGED" );
-	
-	local item = tabFrame.item;
-	CB.SetEnv( item.tabs.."Selection", tabFrame:GetSelectedIndex() );
-	CB.UpdateBarConfig();
-	
-end
-
-function ChronoBars.Config_OnOptionChanged( ddFrame )
-	CB.Debug( "OPTION CHANGED" );
-	
-	local item = ddFrame.item;
-	local newValue = ddFrame:GetSelectedValue();
-	
-	CB.SetSettingsValue( item.var, newValue );
-	CB.UpdateSettings();
-	
-	if (item.update) then
-		CB.UpdateBarConfig();
-	end
-end
-
-function ChronoBars.Config_OnToggleChanged( cbFrame )
-	CB.Debug( "TOGGLE CHANGED" );
-	
-	local item = cbFrame.item;
-	local newValue = cbFrame:GetChecked();
-	
-	if (newValue)
-	then CB.SetSettingsValue( item.var, true );
-	else CB.SetSettingsValue( item.var, false );
-	end
 	
 	CB.UpdateSettings();
+	CB.HideBarConfig();
 	
-	if (item.update) then
-		CB.UpdateBarConfig();
+end
+
+
+--Config header
+--======================================================================
+
+function ChronoBars.ShowConfigHeader()
+
+  if (not CB.configHeader) then
+  
+	--Window
+	local f = CB.Window_New( "ChronoBars.ConfigHeader", "ChronoBars" );
+	f:SetPoint( "TOP", 0,-100 );
+	f:SetWidth( 400 );
+	f:SetHeight( 110 );
+	CB.configHeader = f;
+	
+	--Message text
+    local txt = f:CreateFontString( "ChronoBars.ConfigHeader.Label", "OVERLAY", "GameFontNormal" );
+    txt:SetTextColor( 1, 1, 1, 1 );
+    txt:SetPoint( "TOPLEFT", 20, -25 );
+    txt:SetPoint( "TOPRIGHT", -20, -25 );
+    txt:SetHeight( 40 );
+    txt:SetWordWrap( true );
+	txt:SetJustifyH( "LEFT" );
+    txt:SetText( "Config mode. Right-click a bar to open configuration menu." );
+    txt:Show();
+	
+    --Close button
+    local btnClose = CreateFrame( "Button", "ChronoBars.ConfigHeader.Close", f, "UIPanelButtonTemplate2" );
+    btnClose.frame = f;
+    btnClose:SetWidth( 100 );
+    btnClose:SetHeight( 25 );
+    btnClose:SetPoint( "BOTTOMRIGHT", f, "BOTTOMRIGHT", -20, 20 );
+    btnClose:SetText( "Exit config" );
+    btnClose:SetScript( "OnClick", ChronoBars.ConfigHeader_Close_OnClick );
+		
+  end
+  
+  CB.configHeader:Show();
+  
+end
+
+function ChronoBars.HideConfigHeader()
+	
+	if (CB.configHeader) then
+		CB.configHeader:Hide();
 	end
 end
 
-function ChronoBars.Config_OnInputChanged( inpFrame )
-	CB.Debug( "INPUT CHANGED" );
-	
-	local item = inpFrame.item;
-	local newValue = inpFrame:GetText();
-	
-	if (item.type == "numinput")
-	then CB.SetSettingsValue( item.var, tonumber(newValue) or 0 );
-	else CB.SetSettingsValue( item.var, newValue );
-	end
-	
-	inpFrame:SetText( tostring(CB.GetSettingsValue( item.var )) );
-	CB.UpdateSettings();
-	
-	if (item.update) then
-		CB.UpdateBarConfig();
-	end
+function ChronoBars.ConfigHeader_Close_OnClick()
+	CB.ModeRun();
 end
 
-function ChronoBars.Config_OnColorChanged( colFrame )
-	CB.Debug( "COLOR CHANGED" );
-	
-	local item = colFrame.item;
-	local newValue = colFrame:GetColor();
-	
-	CB.SetSettingsValue( item.var, newValue );
-	CB.UpdateSettings();
-	
-	if (item.update) then
-		CB.UpdateBarConfig();
-	end
-end
 
-function ChronoBars.Config_OnButtonClicked( btnFrame )
-	CB.Debug( "BUTTON CLICKED" );
-	
-	local item = btnFrame.item;
-	local func = ChronoBars.GetSettingsValue( item.func );
-	
-	if (func) then
-		func( item );
-	end
-	
-	if (item.update) then
-		CB.UpdateBarConfig();
-	end
-	
-	if (item.close) then
-		CB.CloseBarConfig();
-	end
-end
-
---Initialization
+--Config window
 --===================================================
 
 function ChronoBars.UpdateBarConfig()
@@ -1101,58 +818,42 @@ function ChronoBars.UpdateBarConfig()
 	
 end
 
-
-function ChronoBars.OpenBarConfig (bar)
+function ChronoBars.ShowBarConfig (bar)
  
 	CB.SetSettingsValue( "temp|groupId", bar.groupId );
 	CB.SetSettingsValue( "temp|barId", bar.barId );
 
 	if (not CB.configFrame) then
-		CB.configFrame = CB.Frame_New( "ChronoBars.ConfigFrame", "ChronoBars", true);
+		CB.configFrame = CB.Window_New( "ChronoBars.ConfigFrame", "ChronoBars", true, true );
+		CB.configFrame:RegisterScript( "OnShow", ChronoBars.ConfigFrame_OnShow );
+		CB.configFrame:RegisterScript( "OnHide", ChronoBars.ConfigFrame_OnHide );
+		CB.configFrame:SetPoint( "TOP", 0, -100 );
+		CB.configFrame:SetWidth( 350 );
+		CB.configFrame:SetHeight( 500 );
+		CB.configFrame:Hide();
 	end
 	
 	CB.UpdateBarConfig();
 	CB.configFrame:Show();
 end
 
-
-function ChronoBars.CloseBarConfig()
+function ChronoBars.HideBarConfig()
 
 	if (CB.configFrame) then
 		CB.configFrame:Hide();
 	end
 end
 
+function ChronoBars.ConfigFrame_OnShow()
 
-function ChronoBars.InitOptionsPanel ()
-
-  CB.Print( "InitOptionsPanel" );
-  local f = CreateFrame( "Frame", "ChronoBarsGlobalOptionsPanel", InterfaceOptionsFramePanelContainer );
-
-  local txtTest =  f:CreateFontString( "txtTest" );
-  txtTest:SetFontObject( "GameFontNormal" );
-  txtTest:SetJustifyH( "LEFT" );
-  txtTest:SetTextColor( 1.0, 1.0, 1.0, 1.0 );
-  txtTest:SetShadowOffset( 1, -1 );
-  txtTest:SetWordWrap( false );
-  txtTest:SetPoint( "TOPLEFT", 10, -10 );
-  txtTest:SetPoint( "BOTTOMRIGHT", -10, 10 );
-  txtTest:SetJustifyH( "LEFT" );
-  txtTest:SetJustifyV( "TOP" );
-  txtTest:SetText( "Global options coming soon.\n" ..
-    "Use |cffffff00/cb |cffffffffto toggle config mode.\n" ..
-    "Use |cffffff00/cb update X|cffffffff to set update interval to X seconds.\n" ..
-    "Use |cffffff00/cb reset groups|cffffffff to reset group positions to center of screen.\n" ..
-    "Use |cffffff00/cb reset profile|cffffffff to reset the entire profile." );
-  txtTest:SetWordWrap( true );
-  
-  --Add panel as an interface options category
-  f.name = "ChronoBars";
-  InterfaceOptions_AddCategory( f );
-  
+	if (CB.designMode) then
+		CB.HideConfigHeader();
+	end
 end
 
---Main entry point
-ChronoBars.InitOptionsPanel();
+function ChronoBars.ConfigFrame_OnHide()
 
-
+	if (CB.designMode) then
+		CB.ShowConfigHeader();
+	end
+end

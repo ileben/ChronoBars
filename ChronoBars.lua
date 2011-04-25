@@ -624,8 +624,9 @@ end
 --=====================================================
 
 function ChronoBars.ModeDesign ()
-	
+
   CB.designMode = true;
+  CB.ShowConfigHeader();
   CB.UpdateSettings();
   
   --Disable all group updates
@@ -644,10 +645,10 @@ end
 function ChronoBars.ModeRun ()
 
   CB.designMode = false;
+  CB.HideBarConfig();
+  CB.HideConfirmFrame();
+  CB.HideConfigHeader();
   CB.UpdateSettings();
-  
-  CB.CloseBarMenu();
-  CB.CloseBarConfig();
 
   --Get the character's active profile
   local profile = ChronoBars.GetActiveProfile();
