@@ -609,11 +609,12 @@ function ChronoBars.ShowConfirmFrame (message, acceptFunc, cancelFunc, arg)
     );
     
     f.text = txt;
-    ChronoBars.confirmFrame = f;
+	f:Hide();
+    CB.confirmFrame = f;
   end
   
   --Apply current value and show
-  local f = ChronoBars.confirmFrame;
+  local f = CB.confirmFrame;
   f.acceptFunc = acceptFunc;
   f.cancelFunc = cancelFunc;
   f.text:SetText( message  );

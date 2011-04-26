@@ -626,6 +626,7 @@ end
 function ChronoBars.ModeDesign ()
 
   CB.designMode = true;
+  CB.HideBarConfig();
   CB.ShowConfigHeader();
   CB.UpdateSettings();
   
@@ -672,6 +673,10 @@ function ChronoBars.ModeRun ()
     CB.Group_OnUpdate( CB.groups[g] );
   end
 end
+
+
+--NOTE: this should never be called outside design mode!!!
+--It will put the bar UI in the "editing" state.
 
 function ChronoBars.UpdateSettings ()
    

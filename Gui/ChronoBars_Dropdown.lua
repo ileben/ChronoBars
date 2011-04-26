@@ -115,9 +115,10 @@ function ChronoBars.Drop_New( name )
 	f.scroll = s;
 	
 	--Internal vars
-	f.texts = {};
-	f.values = {};
+	f.data = {};
+	f.numData = 0;
 	f.selection = 0;
+	
 	f.scrollValue = 0;
 	f.itemHeight = 0;
 	f.maxVisibleItems = 15;
@@ -206,31 +207,30 @@ function ChronoBars.Drop_Init( frame )
 		end
 	end
 	
+	--Reset data list
+	frame.numData = 0;
+	frame.selection = 0;
+	
 	--Reset scroll position
 	frame.scrollValue = 0;
 	frame.scroll:SetMinMaxValues(1,1);
 	frame.scroll:SetValue(1);
-	
-	--Reset selection
-	frame.selection = 0;
 	
 	--Add to global list of dropdowns
 	CB.RegisterDropdown( frame );
 end
 
 function ChronoBars.Drop_UpdateAllItems( frame )
-
-	local numItems = table.getn(frame.texts);
 	
 	--Size dropdown box to number of visible items
-	if (numItems > frame.maxVisibleItems)
+	if (frame.numData > frame.maxVisibleItems)
 	then frame.box:SetHeight( frame.maxVisibleItems * frame.itemHeight + 30 );
-	else frame.box:SetHeight( numItems * frame.itemHeight + 30 );
+	else frame.box:SetHeight( frame.numData * frame.itemHeight + 30 );
 	end
 	
 	--Update scroll range
-	if (numItems > frame.maxVisibleItems) then
-		frame.scroll:SetMinMaxValues( 1, numItems - frame.maxVisibleItems );
+	if (frame.numData > frame.maxVisibleItems) then
+		frame.scroll:SetMinMaxValues( 1, frame.numData - frame.maxVisibleItems );
 		frame.scroll:SetValueStep( 1 );
 		frame.scroll:Show();
 	else
@@ -248,11 +248,11 @@ function ChronoBars.Drop_UpdateAllItems( frame )
 	for i=1,frame.maxVisibleItems do
 	
 		local item = frame.items[i];
-		if (offset <= table.getn(frame.texts)) then
+		if (offset <= frame.numData) then
 		
 			--Update and show used items
 			item.index = offset;
-			frame:UpdateItem( item, frame.texts[offset], frame.values[offset] );
+			frame:UpdateItem( item, frame.data[offset].text, frame.data[offset].value );
 			item:Show();
 			
 			--Show check for selected item
@@ -277,9 +277,7 @@ function ChronoBars.Drop_Free( frame )
 	--Remove from global list of dropdowns
 	CB.UnregisterDropdown( frame );
 	
-	--Cleanup
-	CB.Util_ClearTable( frame.texts );
-	CB.Util_ClearTableKeys( frame.values );
+	--Superclass
 	ChronoBars.Object_Free( frame );
 end
 
@@ -308,7 +306,7 @@ function ChronoBars.Drop_UpdateItem( frame, item, text, value )
 end
 
 function ChronoBars.Drop_UpdateSelection( frame, index )
-	frame.text:SetText( frame.texts[index] );
+	frame.text:SetText( frame.data[index].text );
 end
 
 function ChronoBars.Drop_SetLabelText( frame, text )
@@ -317,27 +315,34 @@ end
 
 function ChronoBars.Drop_AddItem( frame, text, value )
 
+	--Create new data if missing
+	if (frame.numData == table.getn(frame.data)) then
+		table.insert( frame.data, { text="", value=nil } );
+	end
+	
 	--Store text and value
-	table.insert( frame.texts, text );
-	table.insert( frame.values, value );
+	frame.numData = frame.numData + 1;
+	frame.data[ frame.numData ].text = text;
+	frame.data[ frame.numData ].value = value;
 	
 	--Select first item
-	if (table.getn(frame.texts) == 1) then
+	if (frame.numData == 1) then
 		frame:SelectIndex(1);
 	end
 end
 
 function ChronoBars.Drop_SelectIndex( frame, index )
-	if (index >= 1 and index <= table.getn(frame.texts)) then
+	if (index >= 1 and index <= frame.numData) then
 		frame.selection = index;
 		frame:UpdateSelection( index );
 	end
 end
 
 function ChronoBars.Drop_SelectValue( frame, value )
-	for i,v in ipairs( frame.values ) do
-		if (v == value) then
+	for i,data in ipairs( frame.data ) do
+		if (data.value == value) then
 			frame:SelectIndex( i );
+			break;
 		end
 	end
 end
@@ -348,14 +353,14 @@ end
 
 function ChronoBars.Drop_GetSelectedText( frame )
 	if (frame.selection > 0)
-	then return frame.texts[ frame.selection ];
+	then return frame.data[ frame.selection ].text;
 	else return nil;
 	end
 end
 
 function ChronoBars.Drop_GetSelectedValue( frame )
 	if (frame.selection > 0)
-	then return frame.values[ frame.selection ];
+	then return frame.data[ frame.selection ].value;
 	else return nil;
 	end
 end

@@ -73,5 +73,5 @@ function ChronoBars.TexDrop_UpdateItem( frame, item, text, value )
 end
 
 function ChronoBars.TexDrop_UpdateSelection( frame, index )
-	frame.text:SetText( frame.texts[index] );
+	frame.text:SetText( frame.data[index].text );
 end

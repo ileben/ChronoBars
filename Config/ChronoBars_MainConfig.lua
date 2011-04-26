@@ -14,9 +14,18 @@ local CB = ChronoBars;
 
 ChronoBars.Frame_MainRoot =
 {
-	{ type="header",     text="Profile settings" },
-	{ type="options",    text="Current profile",   var="func|Var_CurrentProfile",  options="func|Options_CurrentProfile" },
-	{ type="options",    text="Copy from",         var="temp|copyFromProfile",     options="func|Options_CopyFromProfile" },
+	{ type="header",     text="Profile management" },
+	{ type="options",    text="Current profile",         var="func|Var_CurrentProfile",   options="func|Options_CurrentProfile" },
+	{ type="input",      text="Current profile name",    var="func|Var_ProfileName" },
+	{ type="button",     text="New profile",             func="root|Func_ProfileNew" },
+	{ type="button",     text="Delete profile",          func="root|Func_ProfileDelete" },
+	
+	{ type="header",     text="Link profile to spec" },
+	{ type="options",    text="Primary spec",      var="char|primaryProfile",       options="func|Options_LinkProfile" },
+	{ type="options",    text="Secondary spec",    var="char|secondaryProfile",     options="func|Options_LinkProfile" },
+
+	{ type="header",     text="Copy profile settings" },
+	{ type="options",    text="Copy from",         var="temp|copyProfile",          options="func|Options_CopyProfile" },
 	{ type="button",     text="Copy",              func="root|Func_ProfileCopy" },
 };
 
@@ -50,16 +59,107 @@ function ChronoBars.Var_CurrentProfile_Set( value )
 	end
 
 	--Switch to selected profile
+	CB.Print( "Switching profile to '"..value.."'" );
 	ChronoBars_CharSettings.activeProfile = value;
 	
-	CB.UpdateSettings();
-	CB.HideBarConfig();
+	CB.UpdateMainConfig();
+	CB.ModeDesign();
+	CB.ModeRun();
 	
 end
 
---Copy from profile
+--Profile name
 
-function ChronoBars.Options_CopyFromProfile_Get()
+function ChronoBars.Var_ProfileName_Get()
+
+	--Return name of the active profile
+	return ChronoBars_CharSettings.activeProfile;
+end
+
+function ChronoBars.Var_ProfileName_Set( newName )
+
+  --Check for existing profile
+  if (ChronoBars_Settings.profiles[ newName ] ~= nil) then
+    CB.Error( "Cannot rename profile. Another profile with this name exists!" );
+    return;
+  end
+  
+  --Change the name of the profile
+  local oldName = ChronoBars_CharSettings.activeProfile;
+  ChronoBars_Settings.profiles[ newName ] = ChronoBars_Settings.profiles[ oldName ];
+  ChronoBars_Settings.profiles[ oldName ] = nil;
+  ChronoBars_CharSettings.activeProfile = newName;
+  
+  --Update primary and secondary profile is set to this one
+  if (ChronoBars_CharSettings.primaryProfile == oldName) then
+    ChronoBars_CharSettings.primaryProfile = newName;
+  end
+  
+  if (ChronoBars_CharSettings.secondaryProfile == oldName) then
+    ChronoBars_CharSettings.secondaryProfile = newName;
+  end
+  
+  CB.UpdateMainConfig();
+  CB.ModeDesign();
+  CB.ModeRun();
+  
+end
+
+--New/Delete profile
+
+function ChronoBars.Func_ProfileNew()
+
+	--Find an available name
+	local newIndex = 1;
+	local newName = "NewProfile";
+
+	while (ChronoBars_Settings.profiles[ newName ] ~= nil) do
+		newIndex = newIndex + 1;
+		newName = "NewProfile"..newIndex;
+	end
+
+	--Add new profile and switch to it
+	CB.Print( "Switching to profile '"..newName.."'" );
+	ChronoBars_Settings.profiles[ newName ] = CopyTable( CB.DEFAULT_PROFILE );
+	ChronoBars_CharSettings.activeProfile = newName;
+	
+	CB.UpdateMainConfig();
+	CB.ModeDesign();
+	CB.ModeRun();
+
+end
+
+
+function ChronoBars.Func_ProfileDelete()
+
+	--Confirm with user
+	local delProfile = ChronoBars_CharSettings.activeProfile;
+	CB.ShowConfirmFrame( "Are you sure you want to delete profile '"..tostring(delProfile).."'?",
+		CB.Func_ProfileDelete_Accept, nil, delProfile );
+end
+
+function ChronoBars.Func_ProfileDelete_Accept( delProfile )
+  
+	--Check if deleting default profile
+	if (delProfile == "Default") then
+		CB.Error( "Cannot delete default profile!" );
+		return;
+	end
+	
+	--Delete profile and switch to default
+	ChronoBars_Settings.profiles[ delProfile ] = nil;
+	ChronoBars_CharSettings.activeProfile = "Default";
+
+	CB.UpdateMainConfig();
+	CB.ModeDesign();
+	CB.ModeRun();
+  
+end
+
+
+--Copy profile
+
+function ChronoBars.Options_CopyProfile_Get()
 	
 	local options = {};
 	
@@ -72,16 +172,16 @@ function ChronoBars.Options_CopyFromProfile_Get()
 	
 	--Init selection to first on the list
 	if (options[1] ~= nil) then
-		CB.SetSettingsValue( "temp|copyFromProfile", options[1].value );
+		CB.SetSettingsValue( "temp|copyProfile", options[1].value );
 	end
 	
 	return options;
 end
 
-function ChronoBars.Func_ProfileCopy (value)
+function ChronoBars.Func_ProfileCopy()
 
 	--Valid copy source must be selected
-	local srcProfile = CB.GetSettingsValue( "temp|copyFromProfile" );
+	local srcProfile = CB.GetSettingsValue( "temp|copyProfile" );
 	if (srcProfile == nil) then
 		return;
 	end
@@ -104,8 +204,26 @@ function ChronoBars.Func_ProfileCopy_Accept( srcProfile )
 	ChronoBars_Settings.profiles[ dstProfile ] =
 		CopyTable( ChronoBars_Settings.profiles[ srcProfile ] );
 
-	CB.UpdateSettings();		
-	CB.HideBarConfig();
+	CB.ModeDesign();
+	CB.ModeRun();
+	
+end
+
+--Link profile
+
+function ChronoBars.Options_LinkProfile_Get()
+
+	local options = {};
+	
+	--Add <none> option to unlink
+	table.insert( options, {text="<none>", value=nil } );
+	
+	--Add all existing profiles to options
+	for name,profile in pairs(ChronoBars_Settings.profiles) do
+		table.insert( options, { text=name, value=name } );
+	end
+	
+	return options;
 	
 end
 
