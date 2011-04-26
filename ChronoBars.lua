@@ -321,9 +321,9 @@ function ChronoBars.Upgrade_1_14 ()
 			for b=1,table.getn( profile.groups[g].bars ) do
 				local bar = profile.groups[g].bars[b];
 				
-				if (bar.style.text == nil) then
+				--if (bar.style.text == nil) then
 					bar.style.text = CopyTable( CB.DEFAULT_BAR.style.text );
-				end
+				--end
 			end
 		end
 	end

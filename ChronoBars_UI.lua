@@ -171,6 +171,18 @@ function ChronoBars.FormatName (bar, name, id, count, order)
   return nameString;
 end
 
+function ChronoBars.FormatText( format, effect, count, left, duration, target  )
+	
+	local value = format;
+	value = string.gsub( value, "$e", effect );
+	value = string.gsub( value, "$c", tostring(count) );
+	value = string.gsub( value, "$l", tostring(left) );
+	value = string.gsub( value, "$d", tostring(duration) );
+	value = string.gsub( value, "$t", target );
+	return value;
+	
+end
+
 
 --Bar and Group cache
 --================================================================================
@@ -394,7 +406,7 @@ function ChronoBars.Bar_Create (name)
 
   local fgBlink = bar:CreateTexture( nil, "ARTWORK" );
   bar.fgBlink = fgBlink;
-
+--[[
   local txtName = bar:CreateFontString( name.."txtname" );
   txtName:SetJustifyH( "LEFT" );
   txtName:SetTextColor( 1.0, 1.0, 1.0, 1.0 );
@@ -407,7 +419,7 @@ function ChronoBars.Bar_Create (name)
   txtTime:SetShadowOffset( 1, -1 );
   txtTime:SetWordWrap( false );
   bar.txtTime = txtTime;
-
+--]]
   local icon = bar:CreateTexture( nil, "ARTWORK" );
   bar.icon = icon;
 
@@ -477,12 +489,6 @@ function ChronoBars.Bar_ApplySettings (bar, profile, groupId, barId)
   local w = CB.RoundToPixel( gsettings.width );
 
   --Fetch LibSharedMedia paths
-  local fontPath = ChronoBars.LSM:Fetch( "font", settings.style.lsmFontHandle );
-  if (not fontPath) then
-    settings.style.lsmFontHandle = "Friz Quadrata TT";
-    fontPath = "Fonts\\FRIZQT__.TTF";
-  end
-
   local texPath = ChronoBars.LSM:Fetch( "statusbar", settings.style.lsmTexHandle );
   if (not texPath) then
     settings.style.lsmTexHandle = "None";
@@ -527,6 +533,91 @@ function ChronoBars.Bar_ApplySettings (bar, profile, groupId, barId)
     bar.fgBlink:SetPoint( "TOPRIGHT", bar.fg, "TOPLEFT", 0,0 );
   end
   
+  
+	--Create text table if missing
+	if (bar.text == nil) then
+		bar.text = {};
+	end
+	
+	--Hide all text widgets
+	for t=1,table.getn(bar.text) do
+		bar.text[t]:Hide();
+	end
+  
+	--Walk all the text settings
+	local numText = table.getn( settings.style.text );
+	for t=1,numText do
+	repeat
+
+		--Create new text if missing
+		if (t > table.getn( bar.text )) then
+			local newText = bar:CreateFontString( bar:GetName().."Text"..tostring(t) );
+			newText:SetShadowOffset( 1, -1 );
+			newText:SetWordWrap( false );
+			newText:Hide();
+			table.insert( bar.text, newText );
+		end
+		
+		--Check if text enabled
+		local tsettings = settings.style.text[t];
+		if (tsettings.enabled)
+		then bar.text[t]:Show();
+		else break
+		end
+		
+		--Font
+		local flags = nil;
+		if (tsettings.outline) then flags = "OUTLINE" end;
+
+		local fontPath = ChronoBars.LSM:Fetch( "font", tsettings.font );
+		if (not fontPath) then fontPath = "Fonts\\FRIZQT__.TTF" end;
+
+		bar.text[t]:SetFont( fontPath, tsettings.size, flags );
+
+		--Color
+		local tcol = tsettings.textColor;
+		bar.text[t]:SetTextColor( tcol.r, tcol.g, tcol.b, tcol.a );
+
+		--Position
+		bar.text[t]:ClearAllPoints();
+
+		if (tsettings.position == CB.POS_IN_LEFT) then
+			bar.text[t]:SetPoint("LEFT", bar, "LEFT");
+			bar.text[t]:SetJustifyH( "LEFT" );
+			
+		elseif (tsettings.position == CB.POS_IN_CENTER) then
+			bar.text[t]:SetPoint("LEFT", bar, "LEFT");
+			bar.text[t]:SetPoint("RIGHT", bar, "RIGHT");
+			bar.text[t]:SetJustifyH( "CENTER" );
+
+		elseif (tsettings.position == CB.POS_IN_RIGHT) then
+			bar.text[t]:SetPoint("RIGHT", bar, "RIGHT");
+			bar.text[t]:SetJustifyH( "RIGHT" );
+			
+		else
+			bar.text[t]:SetPoint("BOTTOMLEFT", bar, "TOPLEFT");
+
+		--[[
+		CB.POS_OUT_LEFT
+		CB.POS_OUT_RIGHT
+		CB.POS_ABOVE_LEFT
+		CB.POS_ABOVE_CENTER
+		CB.POS_ABOVE_RIGHT
+		CB.POS_BELOW_LEFT
+		CB.POS_BELOW_CENTER
+		CB.POS_BELOW_RIGHT--]]
+		end
+
+		--Text
+		local value = CB.FormatText( tsettings.format, bar.status.name, 0, 0, 0, "target"  );
+		bar.text[t]:SetText( value );
+		
+	until true
+	end
+	
+
+  
+	--[[
   --Time text
   local timeString;
   if (settings.type == ChronoBars.EFFECT_TYPE_CUSTOM)
@@ -579,7 +670,8 @@ function ChronoBars.Bar_ApplySettings (bar, profile, groupId, barId)
   end
 
   bar.txtName:Show();
-
+	--]]
+	
   --Icon
   if (settings.style.showIcon) then
 
@@ -805,13 +897,13 @@ function ChronoBars.Bar_UpdateUI (bar, now, interval)
   end
 
   --Set time text if active 
-  if (bar.status.active and bar.status.duration > 0)
-  then bar.txtTime:SetText( CB.FormatTime( bar, bar.status.left ));
-  else bar.txtTime:SetText( "" );
-  end
+  --if (bar.status.active and bar.status.duration > 0)
+  --then bar.txtTime:SetText( CB.FormatTime( bar, bar.status.left ));
+  --else bar.txtTime:SetText( "" );
+  --end
 
   --Set name text  
-  bar.txtName:SetText( CB.FormatName( bar, bar.status.text, nil, bar.status.count ));
+  --bar.txtName:SetText( CB.FormatName( bar, bar.status.text, nil, bar.status.count ));
 
   --Disable mouse events
   bar:EnableMouse( false );

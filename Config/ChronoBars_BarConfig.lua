@@ -370,7 +370,8 @@ ChronoBars.Frame_StyleText =
 	{ type="numinput", text="Font size",  var="bar|style.text[temp|textIndex].size" },
 	
 	{ type="color",    text="Text color",    var="bar|style.text[temp|textIndex].textColor" },
-	{ type="color",    text="Outline color", var="bar|style.text[temp|textIndex].outColor" },
+	--{ type="color",    text="Outline color", var="bar|style.text[temp|textIndex].outColor" },
+	{ type="toggle",   text="Shadow",         var="bar|style.text[temp|textIndex].shadow" },
 	{ type="toggle",   text="Outline",       var="bar|style.text[temp|textIndex].outline" },
 };
 
