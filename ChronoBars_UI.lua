@@ -406,7 +406,7 @@ function ChronoBars.Bar_Create (name)
 
   local fgBlink = bar:CreateTexture( nil, "ARTWORK" );
   bar.fgBlink = fgBlink;
---[[
+
   local txtName = bar:CreateFontString( name.."txtname" );
   txtName:SetJustifyH( "LEFT" );
   txtName:SetTextColor( 1.0, 1.0, 1.0, 1.0 );
@@ -419,6 +419,7 @@ function ChronoBars.Bar_Create (name)
   txtTime:SetShadowOffset( 1, -1 );
   txtTime:SetWordWrap( false );
   bar.txtTime = txtTime;
+  --[[
 --]]
   local icon = bar:CreateTexture( nil, "ARTWORK" );
   bar.icon = icon;
@@ -533,7 +534,7 @@ function ChronoBars.Bar_ApplySettings (bar, profile, groupId, barId)
     bar.fgBlink:SetPoint( "TOPRIGHT", bar.fg, "TOPLEFT", 0,0 );
   end
   
-  
+  --[[
 	--Create text table if missing
 	if (bar.text == nil) then
 		bar.text = {};
@@ -597,15 +598,15 @@ function ChronoBars.Bar_ApplySettings (bar, profile, groupId, barId)
 		else
 			bar.text[t]:SetPoint("BOTTOMLEFT", bar, "TOPLEFT");
 
-		--[[
-		CB.POS_OUT_LEFT
-		CB.POS_OUT_RIGHT
-		CB.POS_ABOVE_LEFT
-		CB.POS_ABOVE_CENTER
-		CB.POS_ABOVE_RIGHT
-		CB.POS_BELOW_LEFT
-		CB.POS_BELOW_CENTER
-		CB.POS_BELOW_RIGHT--]]
+		
+		--CB.POS_OUT_LEFT
+		--CB.POS_OUT_RIGHT
+		--CB.POS_ABOVE_LEFT
+		--CB.POS_ABOVE_CENTER
+		--CB.POS_ABOVE_RIGHT
+		--CB.POS_BELOW_LEFT
+		--CB.POS_BELOW_CENTER
+		--CB.POS_BELOW_RIGHT
 		end
 
 		--Text
@@ -614,10 +615,11 @@ function ChronoBars.Bar_ApplySettings (bar, profile, groupId, barId)
 		
 	until true
 	end
-	
+	--]]
 
-  
-	--[[
+	local fontPath = ChronoBars.LSM:Fetch( "font", settings.style.lsmFontHandle );
+	if (not fontPath) then fontPath = "Fonts\\FRIZQT__.TTF" end;  
+	
   --Time text
   local timeString;
   if (settings.type == ChronoBars.EFFECT_TYPE_CUSTOM)
@@ -670,6 +672,7 @@ function ChronoBars.Bar_ApplySettings (bar, profile, groupId, barId)
   end
 
   bar.txtName:Show();
+  --[[
 	--]]
 	
   --Icon
@@ -897,13 +900,13 @@ function ChronoBars.Bar_UpdateUI (bar, now, interval)
   end
 
   --Set time text if active 
-  --if (bar.status.active and bar.status.duration > 0)
-  --then bar.txtTime:SetText( CB.FormatTime( bar, bar.status.left ));
-  --else bar.txtTime:SetText( "" );
-  --end
+  if (bar.status.active and bar.status.duration > 0)
+  then bar.txtTime:SetText( CB.FormatTime( bar, bar.status.left ));
+  else bar.txtTime:SetText( "" );
+  end
 
   --Set name text  
-  --bar.txtName:SetText( CB.FormatName( bar, bar.status.text, nil, bar.status.count ));
+  bar.txtName:SetText( CB.FormatName( bar, bar.status.text, nil, bar.status.count ));
 
   --Disable mouse events
   bar:EnableMouse( false );

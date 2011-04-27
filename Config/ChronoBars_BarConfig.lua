@@ -69,46 +69,27 @@ ChronoBars.Frame_Manage =
 	{ type="button",   text="Move Up",            func="root|Func_BarMoveUp" },
 	{ type="button",   text="Move Down",          func="root|Func_BarMoveDown" },
 
-	{ type="header",   text="Bar settings" },	
-	{ type="options",  text="Copy/Paste",         var="temp|copyIndex",     options="root|Options_BarCopyPaste" },
-	{ type="button",   text="Copy",               func="root|Func_BarCopy" },
-	{ type="button",   text="Paste",              func="root|Func_BarPaste" },
-	{ type="button",   text="Paste to all",       func="root|Func_BarPasteToAll" },
-	
-	{ type="header",   text="Group settings" },
-	{ type="button",   text="Copy",               func="root|Func_GroupCopy" },
-	{ type="button",   text="Paste",              func="root|Func_GroupPaste" },
-	{ type="button",   text="Paste to all",       func="root|Func_GroupPasteToAll" },
+	{ type="header",   text="Copy/Paste settings" },
+	{ type="options",  text="Setting",            var="temp|copyIndex",     options="root|Options_CopyPaste" },
+	{ type="button",   text="Copy",               func="root|Func_Copy" },
+	{ type="button",   text="Paste",              func="root|Func_Paste" },
+	{ type="button",   text="Paste to all",       func="root|Func_PasteToAll" },
 };
 
-ChronoBars.Options_BarCopyPaste =
+ChronoBars.Options_CopyPaste =
 {
-	{ text="Front Color",              value=1 },
-	{ text="Back Color",               value=2 },
-	{ text="Text Color",               value=3 },
-	{ text="Texture",                  value=4 },
-	{ text="Font",                     value=5 },
-	{ text="Font Size",                value=6 },
-	{ text="Visibility",               value=7 },
-	{ text="Animation",                value=8 },
-	{ text="Entire Style",             value=9 },
-	{ text="Style Except Front Color", value=10 },
-	{ text="All Bar Settings",         value=11 },
-};
-
-ChronoBars.BarCopyTable =
-{
-	--[[ 1  --]] { var="bar|style.fgColor",             temp="temp|color" },
-	--[[ 2  --]] { var="bar|style.bgColor",             temp="temp|color" },
-	--[[ 3  --]] { var="bar|style.textColor",           temp="temp|color" },
-	--[[ 4  --]] { var="bar|style.lsmTexHandle",        temp="temp|tex" },
-	--[[ 5  --]] { var="bar|style.lsmFontHandle",       temp="temp|font" },
-	--[[ 6  --]] { var="bar|style.fontSize",            temp="temp|fontSize" },
-	--[[ 7  --]] { var="bar|style.visibility",          temp="temp|visibility" },
-	--[[ 8  --]] { var="bar|style.anim",                temp="temp|anim" },
-	--[[ 9  --]] { var="bar|style",                     temp="temp|style" },
-	--[[ 10 --]] { var="bar|style",                     temp="temp|style",    exception="bar|style.fgColor" },
-	--[[ 11 --]] { var="group|bars[temp|barId]",        temp="temp|bar" },
+	{ text="Front color",               value=1,    var="bar|style.fgColor",             temp="temp|color" },
+	{ text="Back color",                value=2,    var="bar|style.bgColor",             temp="temp|color" },
+	{ text="Text color",                value=3,    var="bar|style.textColor",           temp="temp|color" },
+	{ text="Texture",                   value=4,    var="bar|style.lsmTexHandle",        temp="temp|tex" },
+	{ text="Font",                      value=5,    var="bar|style.lsmFontHandle",       temp="temp|font" },
+	{ text="Font size",                 value=6,    var="bar|style.fontSize",            temp="temp|fontSize" },
+	{ text="Visibility",                value=7,    var="bar|style.visibility",          temp="temp|visibility" },
+	{ text="Animation",                 value=8,    var="bar|style.anim",                temp="temp|anim" },
+	{ text="Entire style",              value=9,    var="bar|style",                     temp="temp|style" },
+	{ text="Style except front color",  value=10,   var="bar|style",                     temp="temp|style",    exception="bar|style.fgColor" },
+	{ text="All bar Settings",          value=11,   var="group|bars[temp|barId]",        temp="temp|bar" },
+	{ text="Group settings",            value=12,   var="group" },
 };
 
 --Bar
@@ -495,23 +476,30 @@ end
 
 --Copy/Paste
 
-function ChronoBars.Func_BarCopy()
+function ChronoBars.Func_Copy()
 
 	--Get source / destination parameters
 	local copyIndex = CB.GetSettingsValue( "temp|copyIndex" ) or 1;
-	local copyItem = CB.BarCopyTable[ copyIndex ];
+	local copyItem = CB.Options_CopyPaste[ copyIndex ];
+
+	--Check for group copy
+	if (copyItem.var == "group") then
+		CB.Func_GroupCopy();
+	else
+		--Copy value to temporary variable
+		local value = CB.GetSettingsValue( copyItem.var );
+		CB.SetSettingsValue( copyItem.temp, value );
+	end
 	
-	--Copy value to temporary variable
-	local value = CB.GetSettingsValue( copyItem.var );
-	CB.SetSettingsValue( copyItem.temp, value );
-	CB.Print( "Value copied." );
+	--Notify user
+	CB.Print( "Copied "..copyItem.text.."." );
 end
 
-function ChronoBars.Func_BarPaste()
+function ChronoBars.Func_Paste()
 
 	--Get source / destination parameters
 	local copyIndex = CB.GetSettingsValue( "temp|copyIndex" ) or 1;
-	local copyItem = CB.BarCopyTable[ copyIndex ];
+	local copyItem = CB.Options_CopyPaste[ copyIndex ];
 	
 	--Copy exception
 	local exception = nil;
@@ -519,13 +507,25 @@ function ChronoBars.Func_BarPaste()
 		exception = CB.GetSettingsValue( copyItem.exception );
 	end
 	
-	--Paste value to target variable
-	local value = CB.GetSettingsValue( copyItem.temp );
-	if (value ~= nil) then
-		CB.SetSettingsValue( copyItem.var, value );
-		CB.Print( "Value pasted." );
+	--Check for group paste
+	if (copyItem.var == "group") then
+	
+		--Paste value to current group
+		if (CB.temp == nil or CB.temp.group == nil) then
+			CB.Error( "This value has not been copied yet." );
+			return;
+		else
+			CB.Func_GroupPaste();
+		end
 	else
-		CB.Error( "This value has not been copied yet!" );
+		--Paste value to target variable
+		local value = CB.GetSettingsValue( copyItem.temp );
+		if (value == nil) then
+			CB.Error( "This value has not been copied yet!" );
+			return;
+		else
+			CB.SetSettingsValue( copyItem.var, value );
+		end
 	end
 	
 	--Paste exception
@@ -533,76 +533,83 @@ function ChronoBars.Func_BarPaste()
 		CB.SetSettingsValue( copyItem.exception, exception );
 	end
 	
+	--Notify user
+	CB.Print( "Pasted "..copyItem.text.."." );
 	CB.UpdateSettings();
 end
 
-function ChronoBars.Func_BarPasteToAll()
+function ChronoBars.Func_PasteToAll()
 
+	--Get source / destination parameters
+	local copyIndex = CB.GetSettingsValue( "temp|copyIndex" ) or 1;
+	local copyItem = CB.Options_CopyPaste[ copyIndex ];
+	
+	--Store old id
 	local profile = CB.GetActiveProfile();
 	local oldGroupId = CB.temp.groupId;
 	local oldBarId = CB.temp.barId;
 	
-	CB.Func_BarCopy();
+	CB.Func_Copy();
 	
-	local numGroups = table.getn(profile.groups);
-	for g=1,numGroups do
-	
-		local numBars = table.getn(profile.groups[g].bars);
-		for b=1,numBars do
-		
+	--Check for group paste
+	if (copyItem.var == "group") then
+
+		--Paste to all groups
+		local numGroups = table.getn(profile.groups);
+		for g=1,numGroups do
+				
 			CB.temp.groupId = g;
-			CB.temp.barId = b;
-			CB.Func_BarPaste();
-		end
-	end;
+			CB.Func_Paste();
+		end;
+	else
+		--Paste to all bars
+		local numGroups = table.getn(profile.groups);
+		for g=1,numGroups do
+		
+			local numBars = table.getn(profile.groups[g].bars);
+			for b=1,numBars do
+			
+				CB.temp.groupId = g;
+				CB.temp.barId = b;
+				CB.Func_Paste();
+			end
+		end;
+	end
 	
+	--Restore old id
 	CB.temp.groupId = oldGroupId;
 	CB.temp.barId = oldBarId;
+	
 	CB.UpdateSettings();
 end
 
 function ChronoBars.Func_GroupCopy()
 
-	CB.SetSettingsValue( "temp|groupWidth",    CB.GetSettingsValue( "group|width" ));
-	CB.SetSettingsValue( "temp|groupHeight",   CB.GetSettingsValue( "group|height" ));
-	CB.SetSettingsValue( "temp|groupPadding",  CB.GetSettingsValue( "group|padding" ));
-	CB.SetSettingsValue( "temp|groupSpacing",  CB.GetSettingsValue( "group|spacing" ));
-	CB.SetSettingsValue( "temp|groupMargin",   CB.GetSettingsValue( "group|margin" ));
-	CB.SetSettingsValue( "temp|groupGrow",     CB.GetSettingsValue( "group|grow" ));
-	CB.SetSettingsValue( "temp|groupLayout",   CB.GetSettingsValue( "group|layout" ));
-	CB.SetSettingsValue( "temp|groupStyle",    CB.GetSettingsValue( "group|style" ));
-  
+	if (CB.temp == nil) then CB.temp = {} end;
+	if (CB.temp.group == nil) then CB.temp.group = {} end;
+	CB.SetSettingsValue( "temp|group.width",    CB.GetSettingsValue( "group|width" ));
+	CB.SetSettingsValue( "temp|group.height",   CB.GetSettingsValue( "group|height" ));
+	CB.SetSettingsValue( "temp|group.padding",  CB.GetSettingsValue( "group|padding" ));
+	CB.SetSettingsValue( "temp|group.spacing",  CB.GetSettingsValue( "group|spacing" ));
+	CB.SetSettingsValue( "temp|group.margin",   CB.GetSettingsValue( "group|margin" ));
+	CB.SetSettingsValue( "temp|group.grow",     CB.GetSettingsValue( "group|grow" ));
+	CB.SetSettingsValue( "temp|group.layout",   CB.GetSettingsValue( "group|layout" ));
+	CB.SetSettingsValue( "temp|group.style",    CB.GetSettingsValue( "group|style" ));
 end
 
 function ChronoBars.Func_GroupPaste()
-
-	CB.SetSettingsValue( "group|width",    CB.GetSettingsValue( "temp|groupWidth" ));
-    CB.SetSettingsValue( "group|height",   CB.GetSettingsValue( "temp|groupHeight" ));
-	CB.SetSettingsValue( "group|padding",  CB.GetSettingsValue( "temp|groupPadding" ));
-	CB.SetSettingsValue( "group|spacing",  CB.GetSettingsValue( "temp|groupSpacing" ));
-	CB.SetSettingsValue( "group|margin",   CB.GetSettingsValue( "temp|groupMargin" ));
-	CB.SetSettingsValue( "group|grow",     CB.GetSettingsValue( "temp|groupGrow" ));
-	CB.SetSettingsValue( "group|layout",   CB.GetSettingsValue( "temp|groupLayout" ));
-	CB.SetSettingsValue( "group|style",    CB.GetSettingsValue( "temp|groupStyle" ));
 	
-end
-
-function ChronoBars.Func_GroupPasteToAll()
-
-	local profile = CB.GetActiveProfile();
-	local oldGroupId = CB.temp.groupId;
+	if (CB.temp == nil) then return end;
+	if (CB.temp.group == nil) then return end;
+	CB.SetSettingsValue( "group|width",    CB.GetSettingsValue( "temp|group.width" ));
+    CB.SetSettingsValue( "group|height",   CB.GetSettingsValue( "temp|group.height" ));
+	CB.SetSettingsValue( "group|padding",  CB.GetSettingsValue( "temp|group.padding" ));
+	CB.SetSettingsValue( "group|spacing",  CB.GetSettingsValue( "temp|group.spacing" ));
+	CB.SetSettingsValue( "group|margin",   CB.GetSettingsValue( "temp|group.margin" ));
+	CB.SetSettingsValue( "group|grow",     CB.GetSettingsValue( "temp|group.grow" ));
+	CB.SetSettingsValue( "group|layout",   CB.GetSettingsValue( "temp|group.layout" ));
+	CB.SetSettingsValue( "group|style",    CB.GetSettingsValue( "temp|group.style" ));
 	
-	CB.Func_GroupCopy();
-	
-	local numGroups = table.getn(profile.groups);
-	for g=1,numGroups do
-			
-		CB.temp.groupId = g;
-		CB.Func_GroupPaste();
-	end;
-	
-	CB.temp.groupId = oldGroupId;
-	CB.UpdateSettings();
 end
 
 --Bar movement
