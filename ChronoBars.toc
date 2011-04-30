@@ -12,8 +12,10 @@ Libs\LibSharedMedia-3.0\lib.xml
 
 ChronoBars_Util.lua
 ChronoBars_Defaults.lua
+ChronoBars_Upgrade.lua
 ChronoBars.lua
-ChronoBars_UI.lua
+ChronoBars_GuiUtil.lua
+ChronoBars_Gui.lua
 ChronoBars_Status.lua
 
 Gui\ChronoBars_Object.lua

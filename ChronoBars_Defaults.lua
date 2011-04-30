@@ -89,14 +89,18 @@ ChronoBars.SORT_DESCENDING  = 3;
 ChronoBars.POS_IN_LEFT      = 1;
 ChronoBars.POS_IN_CENTER    = 2;
 ChronoBars.POS_IN_RIGHT     = 3;
-ChronoBars.POS_OUT_LEFT     = 4;
-ChronoBars.POS_OUT_RIGHT    = 5;
-ChronoBars.POS_ABOVE_LEFT   = 6;
-ChronoBars.POS_ABOVE_CENTER = 7;
-ChronoBars.POS_ABOVE_RIGHT  = 8;
-ChronoBars.POS_BELOW_LEFT   = 9;
-ChronoBars.POS_BELOW_CENTER = 10;
-ChronoBars.POS_BELOW_RIGHT  = 11;
+ChronoBars.POS_ABOVE_LEFT   = 4;
+ChronoBars.POS_ABOVE_CENTER = 5;
+ChronoBars.POS_ABOVE_RIGHT  = 6;
+ChronoBars.POS_BELOW_LEFT   = 7;
+ChronoBars.POS_BELOW_CENTER = 8;
+ChronoBars.POS_BELOW_RIGHT  = 9;
+ChronoBars.POS_LEFT_TOP     = 10;
+ChronoBars.POS_LEFT_MIDDLE  = 11;
+ChronoBars.POS_LEFT_BOTTOM  = 12;
+ChronoBars.POS_RIGHT_TOP    = 13;
+ChronoBars.POS_RIGHT_MIDDLE = 14;
+ChronoBars.POS_RIGHT_BOTTOM = 15;
 
 
 -- Define defaults
@@ -212,16 +216,14 @@ ChronoBars.DEFAULT_BAR =
 				
 				icon =  {
 							enabled = true,
-							position = ChronoBars.POS_OUT_LEFT,
+							position = ChronoBars.POS_LEFT_MIDDLE,
 							x = 0,
 							y = 0,
-							size = 20,
 							zoom = true,
-							sizeInherit = true,
+							size = 20,
 							padding = 0,
-							paddingInherit = true,
 							bgColor = { r = 0.0, g = 0.0, b = 0.0, a = 0.7 },
-							bgColorInherit = true,
+							inherit = true,
 				        },
 
 				showName       = true,

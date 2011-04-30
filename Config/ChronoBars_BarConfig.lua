@@ -78,18 +78,18 @@ ChronoBars.Frame_Manage =
 
 ChronoBars.Options_CopyPaste =
 {
-	{ text="Front color",               value=1,    var="bar|style.fgColor",             temp="temp|color" },
-	{ text="Back color",                value=2,    var="bar|style.bgColor",             temp="temp|color" },
-	{ text="Text color",                value=3,    var="bar|style.textColor",           temp="temp|color" },
-	{ text="Texture",                   value=4,    var="bar|style.lsmTexHandle",        temp="temp|tex" },
-	{ text="Font",                      value=5,    var="bar|style.lsmFontHandle",       temp="temp|font" },
-	{ text="Font size",                 value=6,    var="bar|style.fontSize",            temp="temp|fontSize" },
-	{ text="Visibility",                value=7,    var="bar|style.visibility",          temp="temp|visibility" },
-	{ text="Animation",                 value=8,    var="bar|style.anim",                temp="temp|anim" },
-	{ text="Entire style",              value=9,    var="bar|style",                     temp="temp|style" },
-	{ text="Style except front color",  value=10,   var="bar|style",                     temp="temp|style",    exception="bar|style.fgColor" },
-	{ text="All bar Settings",          value=11,   var="group|bars[temp|barId]",        temp="temp|bar" },
-	{ text="Group settings",            value=12,   var="group" },
+	{ text="Front color",               value=1,	var="bar|style.fgColor",             temp="temp|color" },
+	{ text="Back color",                value=2,	var="bar|style.bgColor",             temp="temp|color" },
+	{ text="Text color",                value=3,	var="bar|style.textColor",           temp="temp|color" },
+	{ text="Texture",                   value=4,	var="bar|style.lsmTexHandle",        temp="temp|tex" },
+	{ text="Icon",                      value=5,	var="bar|style.icon",                temp="temp|icon" },
+	{ text="Text",                      value=6,	var="bar|style.text",                temp="temp|text" },
+	{ text="Visibility",                value=7,	var="bar|style.visibility",          temp="temp|visibility" },
+	{ text="Animation",                 value=8,	var="bar|style.anim",                temp="temp|anim" },
+	{ text="Entire style",              value=9,	var="bar|style",                     temp="temp|style" },
+	{ text="Style except front color",  value=10,	var="bar|style",                     temp="temp|style",    exception="bar|style.fgColor" },
+	{ text="All bar Settings",          value=11,	var="group|bars[temp|barId]",        temp="temp|bar" },
+	{ text="Group settings",            value=12,	var="group" },
 };
 
 --Bar
@@ -311,22 +311,16 @@ ChronoBars.Frame_StyleIcon =
 	{ type="numinput", text="Offset X",  var="bar|style.icon.x" },
 	{ type="numinput", text="Offset Y",  var="bar|style.icon.y" },
 	{ type="toggle",   text="Zoom",      var="bar|style.icon.zoom" },
-	
-	{ type="numinput", text="Size",      var="bar|style.icon.size" },
-	{ type="toggle",   text="Inherit size from bar",  var="bar|style.icon.sizeInherit" },
-	
-	{ type="numinput", text="Padding",      var="bar|style.icon.padding" },
-	{ type="toggle",   text="Inherit padding from bar",  var="bar|style.icon.paddingInherit" },
 
-	{ type="color",    text="Back color",   var="bar|style.icon.bgColor" },
-	{ type="toggle",   text="Inherit back color from bar",  var="bar|style.icon.bgColorInherit" },
+	{ type="header",   text="Icon layout" },
+	{ type="toggle",   text="Inherit from bar",  var="bar|style.icon.inherit" },
+	{ type="numinput", text="Size",              var="bar|style.icon.size" },
+	{ type="numinput", text="Padding",           var="bar|style.icon.padding" },
+	{ type="color",    text="Back color",        var="bar|style.icon.bgColor" },
 };
 
 ChronoBars.Options_IconPosition =
 {
-	{ text="Outside Left",    value=CB.POS_OUT_LEFT },
-	{ text="Outside Right",   value=CB.POS_OUT_RIGHT },
-	
 	{ text="Above Left",      value=CB.POS_ABOVE_LEFT },
 	{ text="Above Center",    value=CB.POS_ABOVE_CENTER },
 	{ text="Above Right",     value=CB.POS_ABOVE_RIGHT },
@@ -334,6 +328,14 @@ ChronoBars.Options_IconPosition =
 	{ text="Below Left",      value=CB.POS_BELOW_LEFT },
 	{ text="Below Center",    value=CB.POS_BELOW_CENTER },
 	{ text="Below Right",     value=CB.POS_BELOW_RIGHT },
+	
+	{ text="Left Top",       value=CB.POS_LEFT_TOP },
+	{ text="Left Middle",    value=CB.POS_LEFT_MIDDLE },
+	{ text="Left Bottom",    value=CB.POS_LEFT_BOTTOM },
+	
+	{ text="Right Top",       value=CB.POS_RIGHT_TOP },
+	{ text="Right Middle",    value=CB.POS_RIGHT_MIDDLE },
+	{ text="Right Bottom",    value=CB.POS_RIGHT_BOTTOM },
 };
 
 ChronoBars.Frame_StyleSpark =
@@ -379,9 +381,6 @@ ChronoBars.Options_Position =
 	{ text="Inside Center",   value=CB.POS_IN_CENTER },
 	{ text="Inside Right",    value=CB.POS_IN_RIGHT },
 	
-	{ text="Outside Left",    value=CB.POS_OUT_LEFT },
-	{ text="Outside Right",   value=CB.POS_OUT_RIGHT },
-	
 	{ text="Above Left",      value=CB.POS_ABOVE_LEFT },
 	{ text="Above Center",    value=CB.POS_ABOVE_CENTER },
 	{ text="Above Right",     value=CB.POS_ABOVE_RIGHT },
@@ -389,6 +388,14 @@ ChronoBars.Options_Position =
 	{ text="Below Left",      value=CB.POS_BELOW_LEFT },
 	{ text="Below Center",    value=CB.POS_BELOW_CENTER },
 	{ text="Below Right",     value=CB.POS_BELOW_RIGHT },
+	
+	{ text="Left Top",       value=CB.POS_LEFT_TOP },
+	{ text="Left Middle",    value=CB.POS_LEFT_MIDDLE },
+	{ text="Left Bottom",    value=CB.POS_LEFT_BOTTOM },
+	
+	{ text="Right Top",       value=CB.POS_RIGHT_TOP },
+	{ text="Right Middle",    value=CB.POS_RIGHT_MIDDLE },
+	{ text="Right Bottom",    value=CB.POS_RIGHT_BOTTOM },
 };
 
 ChronoBars.Frame_StyleAnimation =
