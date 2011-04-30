@@ -112,6 +112,7 @@ end
 function ChronoBars.UI_AddBar (grp)
   local bar = CB.NewBar();
   table.insert( grp.bars, bar );
+  bar.removeInactive = false;
   bar.group = grp;
   bar:Show();
   return bar;
@@ -122,8 +123,8 @@ function ChronoBars.UI_RemoveGroup (grp)
   for g=1,numGroups do
     if (CB.groups[g] == grp) then
       CB.UI_RemoveAllBars( grp );
-      grp:Hide();
       CB.FreeGroup( grp );
+      grp:Hide();
       table.remove( CB.groups, g );
       return;
     end
@@ -134,8 +135,8 @@ function ChronoBars.UI_RemoveBar (bar)
   local numBars = table.getn( bar.group.bars );
   for b=1,numBars do
     if (bar.group.bars[b] == bar) then
-      bar:Hide();
       CB.FreeBar( bar );
+      bar:Hide();
       table.remove( bar.group.bars, b );
       return;
     end
@@ -145,8 +146,8 @@ end
 function ChronoBars.UI_RemoveAllBars (grp)
   local numBars = table.getn( grp.bars );
   for b=numBars,1,-1 do
-    grp.bars[ b ]:Hide();
     CB.FreeBar( grp.bars[ b ] );
+	grp.bars[ b ]:Hide();
     table.remove( grp.bars );
   end
 end
@@ -482,53 +483,7 @@ function ChronoBars.Bar_ApplySettings (bar, profile, groupId, barId)
 	until true
 	end
 	
-	--[[
-  --Icon
-  if (settings.style.showIcon) then
 
-    --Use ? texture if not found
-    local iconTex = bar.status.icon;
-    if (not iconTex) then iconTex = "Interface/Icons/INV_Misc_QuestionMark"; end
-    bar.icon:SetTexture( iconTex );
-    bar.icon:Show();
-
-    --Icon zoom
-    if (settings.style.iconZoom) then
-      local s = 0.08;
-      bar.icon:SetTexCoord( s, 1-s, s, 1-s );
-    else
-      bar.icon:SetTexCoord( 0,1,0,1 );
-    end
-
-    if (settings.style.iconSide == CB.SIDE_LEFT) then
-
-      --Enlarge background to cover the icon
-      bar.bg:SetPoint( "TOPRIGHT", 0,0 );
-      bar.bg:SetPoint( "BOTTOMLEFT", -h + pad, 0);
-
-      --Set icon to the left of the bar
-      bar.icon:SetPoint( "TOPRIGHT", bar, "TOPLEFT", 0, -pad );
-      bar.icon:SetPoint( "BOTTOMLEFT", bar, "BOTTOMLEFT", -h + 2*pad, pad );
-
-    elseif (settings.style.iconSide == CB.SIDE_RIGHT) then
-
-      --Enlarge background to cover the icon
-      bar.bg:SetPoint( "TOPRIGHT", h - pad, 0 );
-      bar.bg:SetPoint( "BOTTOMLEFT", 0, 0 );
-
-      --Set icon to the left of the bar
-      bar.icon:SetPoint( "TOPRIGHT", bar, "TOPRIGHT", h - 2*pad, -pad );
-      bar.icon:SetPoint( "BOTTOMLEFT", bar, "BOTTOMRIGHT", 0, pad );
-
-    end
-
-  else
-    --Shrink background to bar only
-    bar.bg:SetPoint( "TOPRIGHT", 0,0 );
-    bar.bg:SetPoint( "BOTTOMLEFT", 0,0 );
-    bar.icon:Hide();
-  end
-	--]]
   --Spark
   if (settings.style.showSpark) then
     bar.spark:SetWidth( settings.style.sparkWidth );
