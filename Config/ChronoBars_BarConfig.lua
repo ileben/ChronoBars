@@ -306,17 +306,34 @@ ChronoBars.Frame_StyleIcon =
 {
 	{ type="scroll" },
 	{ type="header",   text="Icon" },
-	{ type="toggle",   text="Enabled",   var="bar|style.showIcon" },
-	{ type="options",  text="Position",  var="bar|style.iconSide",  options="root|Options_IconPosition" },
-	{ type="numinput", text="Offset X",  },
-	{ type="numinput", text="Offset Y",  },
-	{ type="toggle",   text="Zoom",      var="bar|style.iconZoom" },
+	{ type="toggle",   text="Enabled",   var="bar|style.icon.enabled" },
+	{ type="options",  text="Position",  var="bar|style.icon.position",  options="root|Options_IconPosition" },
+	{ type="numinput", text="Offset X",  var="bar|style.icon.x" },
+	{ type="numinput", text="Offset Y",  var="bar|style.icon.y" },
+	{ type="toggle",   text="Zoom",      var="bar|style.icon.zoom" },
+	
+	{ type="numinput", text="Size",      var="bar|style.icon.size" },
+	{ type="toggle",   text="Inherit size from bar",  var="bar|style.icon.sizeInherit" },
+	
+	{ type="numinput", text="Padding",      var="bar|style.icon.padding" },
+	{ type="toggle",   text="Inherit padding from bar",  var="bar|style.icon.paddingInherit" },
+
+	{ type="color",    text="Back color",   var="bar|style.icon.bgColor" },
+	{ type="toggle",   text="Inherit back color from bar",  var="bar|style.icon.bgColorInherit" },
 };
 
 ChronoBars.Options_IconPosition =
 {
-	{ text="Left",    value = ChronoBars.SIDE_LEFT },
-	{ text="Right",   value = ChronoBars.SIDE_RIGHT },
+	{ text="Outside Left",    value=CB.POS_OUT_LEFT },
+	{ text="Outside Right",   value=CB.POS_OUT_RIGHT },
+	
+	{ text="Above Left",      value=CB.POS_ABOVE_LEFT },
+	{ text="Above Center",    value=CB.POS_ABOVE_CENTER },
+	{ text="Above Right",     value=CB.POS_ABOVE_RIGHT },
+	
+	{ text="Below Left",      value=CB.POS_BELOW_LEFT },
+	{ text="Below Center",    value=CB.POS_BELOW_CENTER },
+	{ text="Below Right",     value=CB.POS_BELOW_RIGHT },
 };
 
 ChronoBars.Frame_StyleSpark =
@@ -352,7 +369,7 @@ ChronoBars.Frame_StyleText =
 	
 	{ type="color",    text="Text color",    var="bar|style.text[temp|textIndex].textColor" },
 	--{ type="color",    text="Outline color", var="bar|style.text[temp|textIndex].outColor" },
-	{ type="toggle",   text="Shadow",         var="bar|style.text[temp|textIndex].shadow" },
+	{ type="color",    text="Shadow color",  var="bar|style.text[temp|textIndex].shadowColor" },
 	{ type="toggle",   text="Outline",       var="bar|style.text[temp|textIndex].outline" },
 };
 

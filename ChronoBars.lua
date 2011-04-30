@@ -321,8 +321,26 @@ function ChronoBars.Upgrade_1_14 ()
 			for b=1,table.getn( profile.groups[g].bars ) do
 				local bar = profile.groups[g].bars[b];
 				
+				if (bar.style.icon == nil) then
+					bar.style.icon = CopyTable( CB.DEFAULT_BAR.style.icon );
+					
+					bar.style.icon.enabled = bar.style.showIcon;
+					bar.style.icon.zoom = bar.style.iconZoom;
+					
+					if (bar.style.iconSide == CB.SIDE_LEFT)
+					then bar.style.icon.position = CB.POS_OUT_LEFT;
+					else bar.style.icon.position = CB.POS_OUT_RIGHT;
+					end
+				end
+				
 				if (bar.style.text == nil) then
 					bar.style.text = CopyTable( CB.DEFAULT_BAR.style.text );
+					
+					for t=1,table.getn(bar.style.text) do
+						bar.style.text[t].font = bar.style.lsmFontHandle;
+						bar.style.text[t].size = bar.style.fontSize;
+						bar.style.text[t].textColor = CopyTable( bar.style.textColor );
+					end
 				end
 			end
 		end

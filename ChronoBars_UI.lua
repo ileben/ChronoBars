@@ -174,13 +174,117 @@ end
 function ChronoBars.FormatText( format, effect, count, left, duration, target  )
 	
 	local value = format;
-	value = string.gsub( value, "$e", effect );
-	value = string.gsub( value, "$c", tostring(count) );
-	value = string.gsub( value, "$l", tostring(left) );
-	value = string.gsub( value, "$d", tostring(duration) );
-	value = string.gsub( value, "$t", target );
+	if (effect)   then value = string.gsub( value, "$e", tostring(effect) );    end
+	if (count)    then value = string.gsub( value, "$c", tostring(count) );     end
+	if (left)     then value = string.gsub( value, "$l", tostring(left) );      end
+	if (duration) then value = string.gsub( value, "$d", tostring(duration) );  end
+	if (target)   then value = string.gsub( value, "$t", tostring(target) );    end
 	return value;
 	
+end
+
+function ChronoBars.PositionFrame( frame, prevFrame, outsideFrame, insideFrame, position, x, y )
+
+	local justifyH;
+	frame:ClearAllPoints();
+
+	if (position == CB.POS_IN_LEFT) then
+	
+		if (prevFrame)
+		then frame:SetPoint("LEFT", prevFrame, "RIGHT", x, y);
+		else frame:SetPoint("LEFT", insideFrame, "LEFT", x, y);
+		end
+		
+		justifyH = "LEFT";
+		
+	elseif (position == CB.POS_IN_CENTER) then
+	
+		frame:SetPoint("LEFT", insideFrame, "LEFT", 0, y);
+		frame:SetPoint("RIGHT", insideFrame, "RIGHT", 0, y);
+		
+		justifyH = "CENTER";
+
+	elseif (position == CB.POS_IN_RIGHT) then
+	
+		if (prevFrame)
+		then frame:SetPoint("RIGHT", prevFrame, "LEFT", x, y);
+		else frame:SetPoint("RIGHT", insideFrame, "RIGHT", x, y);
+		end
+		
+		justifyH = "RIGHT";
+		
+	elseif (position == CB.POS_OUT_LEFT) then
+	
+		if (prevFrame)
+		then frame:SetPoint("RIGHT", prevFrame, "LEFT", x, y);
+		else frame:SetPoint("RIGHT", outsideFrame, "LEFT", x, y );
+		end
+		
+		justifyH = "RIGHT";
+		
+	elseif (position == CB.POS_OUT_RIGHT) then
+	
+		if (prevFrame)
+		then frame:SetPoint("LEFT", prevFrame, "RIGHT", x, y);
+		else frame:SetPoint("LEFT", outsideFrame, "RIGHT", x, y);
+		end
+		
+		justifyH = "LEFT";
+		
+	elseif (position == CB.POS_ABOVE_LEFT) then
+	
+		if (prevFrame)
+		then frame:SetPoint("BOTTOMLEFT", prevFrame, "BOTTOMRIGHT", x, y);
+		else frame:SetPoint("BOTTOMLEFT", outsideFrame, "TOPLEFT", x, y);
+		end
+		
+		justifyH = "LEFT";
+		
+	elseif (position == CB.POS_ABOVE_CENTER) then
+	
+		frame:SetPoint( "BOTTOMLEFT", outsideFrame, "TOPLEFT", 0, y );
+		frame:SetPoint( "BOTTOMRIGHT", outsideFrame, "TOPRIGHT", 0, y );
+		
+		justifyH = "CENTER";
+		
+	elseif (position == CB.POS_ABOVE_RIGHT) then
+	
+		if (prevFrame)
+		then frame:SetPoint( "BOTTOMRIGHT", prevFrame, "BOTTOMLEFT", x, y );
+		else frame:SetPoint( "BOTTOMRIGHT", outsideFrame, "TOPRIGHT", x, y );
+		end
+		
+		justifyH = "RIGHT";
+		
+	elseif (position == CB.POS_BELOW_LEFT) then
+	
+		if (prevFrame)
+		then frame:SetPoint("TOPLEFT", prevFrame, "TOPRIGHT", x, y);
+		else frame:SetPoint("TOPLEFT", outsideFrame, "BOTTOMLEFT", x, y);
+		end
+		
+		justifyH = "LEFT";
+		
+	elseif (position == CB.POS_BELOW_CENTER) then
+	
+		frame:SetPoint( "TOPLEFT", outsideFrame, "BOTTOMLEFT", 0, y );
+		frame:SetPoint( "TOPRIGHT", outsideFrame, "BOTTOMRIGHT", 0, y );
+		
+		justifyH = "CENTER";
+		
+	elseif (position == CB.POS_BELOW_RIGHT) then
+	
+		if (prevFrame)
+		then frame:SetPoint( "TOPRIGHT", prevFrame, "TOPLEFT", x, y );
+		else frame:SetPoint( "TOPRIGHT", outsideFrame, "BOTTOMRIGHT", x, y );
+		end
+		
+		justifyH = "RIGHT";
+	end
+	
+	if (frame.SetJustifyH and justifyH) then
+		frame:SetJustifyH( justifyH );
+	end
 end
 
 
@@ -406,23 +510,12 @@ function ChronoBars.Bar_Create (name)
 
   local fgBlink = bar:CreateTexture( nil, "ARTWORK" );
   bar.fgBlink = fgBlink;
-
-  local txtName = bar:CreateFontString( name.."txtname" );
-  txtName:SetJustifyH( "LEFT" );
-  txtName:SetTextColor( 1.0, 1.0, 1.0, 1.0 );
-  txtName:SetShadowOffset( 1, -1 );
-  txtName:SetWordWrap( false );
-  bar.txtName = txtName;
-
-  local txtTime = bar:CreateFontString (name.."txttime" );
-  txtTime:SetJustifyH( "RIGHT" );
-  txtTime:SetShadowOffset( 1, -1 );
-  txtTime:SetWordWrap( false );
-  bar.txtTime = txtTime;
-  --[[
---]]
+   
   local icon = bar:CreateTexture( nil, "ARTWORK" );
   bar.icon = icon;
+  
+  local iconBg = bar:CreateTexture( nil, "BACKGROUND" );
+  bar.icon.bg = iconBg;
 
   local spark = bar:CreateTexture( nil, "OVERLAY" );
   spark:SetTexture( "Interface\\CastingBar\\UI-CastingBar-Spark" );
@@ -491,10 +584,11 @@ function ChronoBars.Bar_ApplySettings (bar, profile, groupId, barId)
 
   --Fetch LibSharedMedia paths
   local texPath = ChronoBars.LSM:Fetch( "statusbar", settings.style.lsmTexHandle );
-  if (not texPath) then
-    settings.style.lsmTexHandle = "None";
-    texPath = "";
-  end
+  if (not texPath) then texPath = ""; end
+  
+  --Background
+  bar.bg:SetPoint( "BOTTOMLEFT", 0,0 );
+  bar.bg:SetPoint( "TOPRIGHT", 0,0 );
 
   --Back and front color and texture
   local b = settings.style.bgColor;
@@ -534,11 +628,71 @@ function ChronoBars.Bar_ApplySettings (bar, profile, groupId, barId)
     bar.fgBlink:SetPoint( "TOPRIGHT", bar.fg, "TOPLEFT", 0,0 );
   end
   
-  --[[
-	--Create text table if missing
+
+	--Create text tables if missing
 	if (bar.text == nil) then
 		bar.text = {};
 	end
+	--[[
+	if (bar.textStack = nil) then
+		bar.textStack = {};
+	end
+	
+	for pos,stack in pairs(bar.textStack) do
+		CB.Util_ClearTable(stack);
+	end
+	--]]
+	if (bar.prevText == nil) then
+		bar.prevText = {};
+	end
+	
+	CB.Util_ClearTableKeys( bar.prevText );
+	
+	
+	--Icon
+	local isettings = settings.style.icon;
+	if (isettings.enabled) then
+
+		bar.icon:Show();
+		bar.icon.bg:Show();
+		
+		--Texture
+		local iconTex = bar.status.icon;
+		if (not iconTex) then iconTex = "Interface/Icons/INV_Misc_QuestionMark"; end
+		bar.icon:SetTexture( iconTex );
+		
+		--Zoom
+		if (isettings.zoom) then
+		  local s = 0.08;
+		  bar.icon:SetTexCoord( s, 1-s, s, 1-s );
+		else
+		  bar.icon:SetTexCoord( 0,1,0,1 );
+		end
+		
+		--Back color
+		local bcol = settings.style.bgColor;
+		bar.icon.bg:SetTexture( bcol.r, bcol.g, bcol.b, bcol.a );
+		
+		--Size
+		bar.icon.bg:SetWidth( h );
+		bar.icon.bg:SetHeight( h );
+		
+		--Padding
+		bar.icon:SetPoint( "BOTTOMLEFT", bar.icon.bg, "BOTTOMLEFT", pad, pad );
+		bar.icon:SetPoint( "TOPRIGHT", bar.icon.bg, "TOPRIGHT", -pad,-pad );
+		
+		--Position
+		bar.prevText[ isettings.position ] = bar.icon.bg;
+		CB.PositionFrame( bar.icon.bg, nil, bar.bg, nil, isettings.position, isettings.x, isettings.y );
+		
+		--bar.icon:Hide();
+
+	else
+		bar.icon:Hide();
+		bar.icon.bg:Hide();
+	end
+  
+	
 	
 	--Hide all text widgets
 	for t=1,table.getn(bar.text) do
@@ -578,103 +732,32 @@ function ChronoBars.Bar_ApplySettings (bar, profile, groupId, barId)
 		--Color
 		local tcol = tsettings.textColor;
 		bar.text[t]:SetTextColor( tcol.r, tcol.g, tcol.b, tcol.a );
+		
+		--Shadow
+		local scol = tsettings.shadowColor;
+		bar.text[t]:SetShadowColor( scol.r, scol.g, scol.b, scol.a );
+		
+		--Create text stack for this position if missing
+		--if (bar.textStack[ tsettings.position ] == nil) then
+			--bar.textStack[ tsettings.position ] = {};
 
 		--Position
-		bar.text[t]:ClearAllPoints();
-
-		if (tsettings.position == CB.POS_IN_LEFT) then
-			bar.text[t]:SetPoint("LEFT", bar, "LEFT");
-			bar.text[t]:SetJustifyH( "LEFT" );
-			
-		elseif (tsettings.position == CB.POS_IN_CENTER) then
-			bar.text[t]:SetPoint("LEFT", bar, "LEFT");
-			bar.text[t]:SetPoint("RIGHT", bar, "RIGHT");
-			bar.text[t]:SetJustifyH( "CENTER" );
-
-		elseif (tsettings.position == CB.POS_IN_RIGHT) then
-			bar.text[t]:SetPoint("RIGHT", bar, "RIGHT");
-			bar.text[t]:SetJustifyH( "RIGHT" );
-			
-		else
-			bar.text[t]:SetPoint("BOTTOMLEFT", bar, "TOPLEFT");
-
+		--local textStack = bar.textStack[ tsettings.position ];
+		--local numStack = table.getn(textStack);
 		
-		--CB.POS_OUT_LEFT
-		--CB.POS_OUT_RIGHT
-		--CB.POS_ABOVE_LEFT
-		--CB.POS_ABOVE_CENTER
-		--CB.POS_ABOVE_RIGHT
-		--CB.POS_BELOW_LEFT
-		--CB.POS_BELOW_CENTER
-		--CB.POS_BELOW_RIGHT
-		end
-
+		--Position
+		local prevText = bar.prevText[ tsettings.position ];
+		bar.prevText[ tsettings.position ] = bar.text[t];
+		CB.PositionFrame( bar.text[t], prevText, bar.bg, bar, tsettings.position, tsettings.x, tsettings.y );
+		
 		--Text
 		local value = CB.FormatText( tsettings.format, bar.status.name, 0, 0, 0, "target"  );
 		bar.text[t]:SetText( value );
 		
 	until true
 	end
-	--]]
-
-	local fontPath = ChronoBars.LSM:Fetch( "font", settings.style.lsmFontHandle );
-	if (not fontPath) then fontPath = "Fonts\\FRIZQT__.TTF" end;  
 	
-  --Time text
-  local timeString;
-  if (settings.type == ChronoBars.EFFECT_TYPE_CUSTOM)
-  then timeString = ChronoBars.FormatTime( bar, settings.custom.duration, settings.fixed.duration );
-  else timeString = ChronoBars.FormatTime( bar, 0, settings.fixed.duration );
-  end
-  
-  bar.txtTime:SetFont( fontPath, settings.style.fontSize );
-  bar.txtTime:SetText( timeString );
-
-  local tcol = settings.style.textColor;
-  bar.txtTime:SetTextColor( tcol.r, tcol.g, tcol.b, tcol.a );
-  bar.txtTime:ClearAllPoints();
-
-  if (settings.style.timeSide == CB.SIDE_RIGHT) then
-    bar.txtTime:SetPoint( "BOTTOMRIGHT", -pad - 2, pad );
-    bar.txtTime:SetPoint( "TOPRIGHT", -pad - 2, -pad );
-    bar.txtTime:SetJustifyH( "RIGHT" );
-
-  elseif (settings.style.timeSide == CB.SIDE_LEFT) then
-    bar.txtTime:SetPoint( "BOTTOMLEFT", pad + 2, pad );
-    bar.txtTime:SetPoint( "TOPLEFT", pad + 2, -pad );
-    bar.txtTime:SetJustifyH( "LEFT" );
-  end
-
-  --Name / id / count text
-  local nameString = ChronoBars.FormatName( bar, bar.status.name, nil, 2, settings.aura.order );
-  bar.txtName:SetFont( fontPath, settings.style.fontSize );
-  bar.txtName:SetText( nameString );
-
-  local tcol = settings.style.textColor;
-  bar.txtName:SetTextColor( tcol.r, tcol.g, tcol.b, tcol.a );
-  bar.txtName:ClearAllPoints();
-  
-  if (settings.style.timeSide == CB.SIDE_RIGHT) then
-    bar.txtName:SetPoint( "BOTTOMLEFT", pad + 2, pad );
-    bar.txtName:SetPoint( "TOPRIGHT", bar.txtTime, "TOPLEFT", -2, 0 );
-
-  elseif (settings.style.timeSide == CB.SIDE_LEFT) then
-    bar.txtName:SetPoint( "BOTTOMLEFT", bar.txtTime, "BOTTOMRIGHT", 2, 0 );
-    bar.txtName:SetPoint( "TOPRIGHT", -pad - 2, -pad );
-  end
-  
-  if (settings.style.nameJustify == CB.JUSTIFY_LEFT) then
-    bar.txtName:SetJustifyH( "LEFT" );
-  elseif (settings.style.nameJustify == CB.JUSTIFY_CENTER) then
-    bar.txtName:SetJustifyH( "CENTER" );
-  elseif (settings.style.nameJustify == CB.JUSTIFY_RIGHT) then
-    bar.txtName:SetJustifyH( "RIGHT" );
-  end
-
-  bar.txtName:Show();
-  --[[
-	--]]
-	
+	--[[
   --Icon
   if (settings.style.showIcon) then
 
@@ -720,7 +803,7 @@ function ChronoBars.Bar_ApplySettings (bar, profile, groupId, barId)
     bar.bg:SetPoint( "BOTTOMLEFT", 0,0 );
     bar.icon:Hide();
   end
-
+	--]]
   --Spark
   if (settings.style.showSpark) then
     bar.spark:SetWidth( settings.style.sparkWidth );
@@ -898,7 +981,7 @@ function ChronoBars.Bar_UpdateUI (bar, now, interval)
   if (bar.status.icon) then
     bar.icon:SetTexture( bar.status.icon );
   end
-
+	--[[
   --Set time text if active 
   if (bar.status.active and bar.status.duration > 0)
   then bar.txtTime:SetText( CB.FormatTime( bar, bar.status.left ));
@@ -907,6 +990,21 @@ function ChronoBars.Bar_UpdateUI (bar, now, interval)
 
   --Set name text  
   bar.txtName:SetText( CB.FormatName( bar, bar.status.text, nil, bar.status.count ));
+--]]
+
+	local textLeft = nil;
+	local textDur = nil;
+	if (bar.status.active and bar.status.duration > 0) then
+		textLeft = CB.FormatTime( bar, bar.status.left );
+		textDur = CB.FormatTime( bar, bar.status.dur );
+	end
+
+	for t=1,table.getn(set.style.text) do
+		if (set.style.text[t].enabled) then
+			bar.text[t]:SetText( CB.FormatText( set.style.text[t].format,
+			bar.status.text, bar.status.count, textLeft, textDur, bar.status.target ));
+		end
+	end
 
   --Disable mouse events
   bar:EnableMouse( false );
