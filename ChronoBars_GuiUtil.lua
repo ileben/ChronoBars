@@ -188,6 +188,7 @@ ChronoBars.formatTableTemplate =
 	{ token = "$l", value = nil, found = false, s=nil, e=nil },
 	{ token = "$d", value = nil, found = false, s=nil, e=nil },
 	{ token = "$t", value = nil, found = false, s=nil, e=nil },
+	{ token = "$u", value = nil, found = false, s=nil, e=nil },
 };
 
 function ChronoBars.InitText( text )
@@ -213,7 +214,7 @@ function ChronoBars.InitText( text )
 	end
 end
 
-function ChronoBars.FormatText( text, effect, count, left, duration, target  )
+function ChronoBars.FormatText( text, effect, count, left, duration, target, info  )
 	
 	local final = text.settings.format;
 	
@@ -238,6 +239,10 @@ function ChronoBars.FormatText( text, effect, count, left, duration, target  )
 	
 	if (ftable[5].found) then
 		ftable[5].value = target;
+	end
+	
+	if (ftable[6].found) then
+		ftable[6].value = info;
 	end
 	
 	--Walk all the tokens

@@ -285,17 +285,24 @@ function ChronoBars.Bar_ApplySettings (bar, profile, groupId, barId)
 
   --Init bar status
   if (bar.status == nil) then bar.status = {} end
+  bar.status.desc = nil;
   bar.status.id = nil;
   bar.status.name = nil;
   bar.status.icon = nil;
   bar.status.count = nil;
-  bar.status.text = "";
+  bar.status.target = nil;
   bar.status.duration = nil;
   bar.status.expires = nil;
   bar.status.left = 0.0;
   bar.status.ratio = 0.0;
   bar.status.active = false;
   bar.status.animating = true;
+  
+  --bar.status.displayName = nil;
+  --bar.status.displayCount = nil;
+  --bar.status.displayTarget = nil;
+  --bar.status.displayDuration = nil;
+  --bar.status.displayLeft = nil;
   
   --Init effect status
   CB.Bar_InitEffect( bar );
@@ -352,10 +359,7 @@ function ChronoBars.Bar_ApplySettings (bar, profile, groupId, barId)
   end
   
 
-	--Create text tables if missing
-	if (bar.text == nil) then
-		bar.text = {};
-	end
+	
 	--[[
 	if (bar.textStack = nil) then
 		bar.textStack = {};
@@ -365,11 +369,13 @@ function ChronoBars.Bar_ApplySettings (bar, profile, groupId, barId)
 		CB.Util_ClearTable(stack);
 	end
 	--]]
-	if (bar.prevText == nil) then
-		bar.prevText = {};
+	
+	--Create layout table if missing
+	if (bar.prevFrame == nil) then
+		bar.prevFrame = {};
 	end
 	
-	CB.Util_ClearTableKeys( bar.prevText );
+	CB.Util_ClearTableKeys( bar.prevFrame );
 	
 	
 	--Icon
@@ -410,15 +416,30 @@ function ChronoBars.Bar_ApplySettings (bar, profile, groupId, barId)
 		bar.icon:SetPoint( "TOPRIGHT", bar.icon.bg, "TOPRIGHT", -p,-p );
 		
 		--Position
-		bar.prevText[ isettings.position ] = bar.icon.bg;
+		bar.prevFrame[ isettings.position ] = bar.icon.bg;
 		CB.PositionFrame( bar.icon.bg, nil, bar.bg, nil, isettings.position, isettings.x, isettings.y, 0 );
 
 	else
 		bar.icon:Hide();
 		bar.icon.bg:Hide();
 	end
-  
+
+	--Config text
+	local displayInfo = nil;
+	local displayCount = 0;
 	
+	if (settings.type == CB.EFFECT_TYPE_CD) then
+		displayInfo = "CD";
+		displayCount = nil;
+	elseif (settings.type == CB.EFFECT_TYPE_USABLE) then
+		displayInfo = "Usable";
+		displayCount = nil;
+	end
+	
+	--Create text table if missing
+	if (bar.text == nil) then
+		bar.text = {};
+	end
 	
 	--Hide all text widgets
 	for t=1,table.getn(bar.text) do
@@ -475,13 +496,13 @@ function ChronoBars.Bar_ApplySettings (bar, profile, groupId, barId)
 		--local numStack = table.getn(textStack);
 		
 		--Position
-		local prevText = bar.prevText[ tsettings.position ];
-		bar.prevText[ tsettings.position ] = bar.text[t];
-		CB.PositionFrame( bar.text[t], prevText, bar.bg, bar, tsettings.position, tsettings.x, tsettings.y, 5 );
+		local prevFrame = bar.prevFrame[ tsettings.position ];
+		bar.prevFrame[ tsettings.position ] = bar.text[t];
+		CB.PositionFrame( bar.text[t], prevFrame, bar.bg, bar, tsettings.position, tsettings.x, tsettings.y, 5 );
 		
 		--Text
 		CB.InitText( bar.text[t] );
-		CB.FormatText( bar.text[t], bar.status.name, 0, 0, 0, "Target Name" );
+		CB.FormatText( bar.text[t], bar.status.desc, displayCount, 0, 0, "Target Name", displayInfo );
 		
 	until true
 	end
@@ -665,26 +686,35 @@ function ChronoBars.Bar_UpdateUI (bar, now, interval)
     bar.icon:SetTexture( bar.status.icon );
   end
 
-	--Hide time left and duration when inactive or infinite,
-	--hide count if smaller than 2
-	local textLeft = nil;
-	local textDur = nil;
-	local textCount = nil;
-	
+	--Formatting input
+	local displayLeft = nil;
+	local displayDur = nil;
+	local displayCount = nil;
+	local displayInfo = nil;
+
+	--Show time left and duration if active and not infinite,	
 	if (bar.status.active and bar.status.duration > 0) then
-		textLeft = bar.status.left;
-		textDur = bar.status.dur;
+		displayLeft = bar.status.left;
+		displayDur = bar.status.dur;
+	end
+
+	--Show count if bigger than 1
+	if (bar.status.count and bar.status.count > 1) then
+		displayCount = bar.status.count;
 	end
 	
-	if (bar.status.count and bar.status.count > 1) then
-		textCount = bar.status.count;
+	--Show usable/CD info
+	if (set.type == CB.EFFECT_TYPE_CD) then
+		displayInfo = "CD";
+	elseif (set.type == CB.EFFECT_TYPE_USABLE) then
+		displayInfo = "Usable";
 	end
 
 	--Format all text
 	for t=1,table.getn(set.style.text) do
 		if (set.style.text[t].enabled) then
-			CB.FormatText( bar.text[t], bar.status.text, textCount,
-			textLeft, textDur, bar.status.target );
+			CB.FormatText( bar.text[t], bar.status.name, displayCount,
+			displayLeft, displayDur, bar.status.target, displayInfo );
 		end
 	end
 

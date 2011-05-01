@@ -135,6 +135,14 @@ ChronoBars.PRESET_TEXT_EFFECT = CB.Util_MergeTables( CB.DEFAULT_TEXT,
   position   = CB.POS_IN_LEFT,
 });
 
+ChronoBars.PRESET_TEXT_INFO = CB.Util_MergeTables( CB.DEFAULT_TEXT,
+{
+	enabled  = false,
+	name     = "Usable/CD",
+	format   = "$u",
+	position = CB.POS_IN_LEFT,
+});
+
 ChronoBars.PRESET_TEXT_COUNT = CB.Util_MergeTables( CB.DEFAULT_TEXT,
 {
   enabled    = true,
@@ -146,7 +154,7 @@ ChronoBars.PRESET_TEXT_COUNT = CB.Util_MergeTables( CB.DEFAULT_TEXT,
 ChronoBars.PRESET_TEXT_TIME_LEFT = CB.Util_MergeTables( CB.DEFAULT_TEXT,
 {
   enabled    = true,
-  name       = "Time Left",
+  name       = "Time left",
   format     = "$l",
   position   = CB.POS_IN_RIGHT,
 });
@@ -210,10 +218,11 @@ ChronoBars.DEFAULT_BAR =
   style       = {
 				text =  {
 							ChronoBars.PRESET_TEXT_EFFECT,
+							ChronoBars.PRESET_TEXT_TARGET,
+							ChronoBars.PRESET_TEXT_INFO,
 							ChronoBars.PRESET_TEXT_COUNT,
 							ChronoBars.PRESET_TEXT_TIME_LEFT,
 							ChronoBars.PRESET_TEXT_TIME_TOTAL,
-							ChronoBars.PRESET_TEXT_TARGET,
 				        },
 				
 				icon =  {
