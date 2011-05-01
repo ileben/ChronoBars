@@ -334,6 +334,7 @@ function ChronoBars.Upgrade_1_14 ()
 					bar.style.text = CopyTable( CB.DEFAULT_BAR.style.text );
 					
 					for t=1,table.getn(bar.style.text) do
+						bar.style.text[t].timeFormat = bar.style.timeFormat;
 						bar.style.text[t].font = bar.style.lsmFontHandle;
 						bar.style.text[t].size = bar.style.fontSize;
 						bar.style.text[t].textColor = CopyTable( bar.style.textColor );

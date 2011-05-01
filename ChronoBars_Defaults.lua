@@ -111,6 +111,8 @@ ChronoBars.DEFAULT_TEXT =
   enabled     = true,
   name        = "NewText",
   format      = "$e",
+  timeFormat  = CB.TIME_SINGLE,
+  
   position    = CB.POS_IN_CENTER,
   x           = 0,
   y           = 0,

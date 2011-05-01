@@ -66,41 +66,45 @@ end
 --==========================================================================
 
 function ChronoBars.FormatSeconds (seconds, format)
+
+	if (seconds == nil) then
+		return "";
+	end
 	
-  if (format == ChronoBars.TIME_MINSEC) then
+	if (format == CB.TIME_MINSEC) then
 
-    local minutes = 0;
-    seconds = math.ceil( seconds );
+		local minutes = 0;
+		seconds = math.ceil( seconds );
 
-    if (seconds >= 60) then
-      minutes = math.floor( seconds / 60 );
-      seconds = math.ceil( seconds - minutes * 60 );
-    end
+		if (seconds >= 60) then
+		  minutes = math.floor( seconds / 60 );
+		  seconds = math.ceil( seconds - minutes * 60 );
+		end
 
-    return string.format( "%i:%02i", minutes, seconds );
+		return string.format( "%i:%02i", minutes, seconds );
 
-  else
+	else
 
-    local time = seconds;
-    local letter = "s";
-    local fmt;
-	
-    if (time >= 60) then
-      time = time / 60;
-      letter = "m";
-    end
+		local time = seconds;
+		local letter = "s";
+		local fmt;
+		
+		if (time >= 60) then
+		  time = time / 60;
+		  letter = "m";
+		end
 
-    if (format == ChronoBars.TIME_DECIMAL) then
-      time = math.ceil( time * 10 ) / 10;
-      fmt = "%.1f";
-    else
-      time = math.ceil( time );
-      fmt = "%i";
-    end
+		if (format == CB.TIME_DECIMAL) then
+		  time = math.ceil( time * 10 ) / 10;
+		  fmt = "%.1f";
+		else
+		  time = math.ceil( time );
+		  fmt = "%i";
+		end
 
-    return string.format( fmt..letter, time);
+		return string.format( fmt..letter, time);
 
-  end
+	end
 end
 
 function ChronoBars.FormatTime (bar, time, fixed)
@@ -177,41 +181,81 @@ function ChronoBars.FormatName (bar, name, id, count, order)
   return nameString;
 end
 
-local formatTable =
+ChronoBars.formatTableTemplate =
 {
-	{ token = "$e", value = nil },
-	{ token = "$c", value = nil },
-	{ token = "$l", value = nil },
-	{ token = "$d", value = nil },
-	{ token = "$t", value = nil },
-}
+	{ token = "$e", value = nil, found = false, s=nil, e=nil },
+	{ token = "$c", value = nil, found = false, s=nil, e=nil },
+	{ token = "$l", value = nil, found = false, s=nil, e=nil },
+	{ token = "$d", value = nil, found = false, s=nil, e=nil },
+	{ token = "$t", value = nil, found = false, s=nil, e=nil },
+};
 
-function ChronoBars.FormatText( format, effect, count, left, duration, target  )
-	
-	local value = format;
+function ChronoBars.InitText( text )
 
-	--Prepare replacement values
-	formatTable[1].value = effect;
-	formatTable[2].value = count;
-	formatTable[3].value = left;
-	formatTable[4].value = duration;
-	formatTable[5].value = target;
+	local format = text.settings.format;
 	
-	--Walk through all tokens
-	local s;local e;
-	for k,item in pairs(formatTable) do
+	--Create table if missing
+	if (text.formatTable == nil) then
+		text.formatTable = CopyTable( CB.formatTableTemplate );
+	end
 	
-		--Find token in string
-		s,e = string.find( value, item.token, 1, true );
-		if (s ~= nil and e ~= nil) then
+	--Walk all the tokens
+	for k,item in pairs(text.formatTable) do
+
+		--Find token
+		item.s,item.e = string.find( format, item.token, 1, true );
 		
-			--Replace value or skip if missing
-			if (item.value == nil or item.value == "") then return "" end
-			value = string.sub( value, 1, s-1 ) .. tostring(item.value) .. string.sub( value, e+1 );
+		--Check if valid
+		if (item.s and item.e)
+		then item.found = true;
+		else item.found = false;
+		end
+	end
+end
+
+function ChronoBars.FormatText( text, effect, count, left, duration, target  )
+	
+	local final = text.settings.format;
+	
+	--Prepare replacement values
+	local ftable = text.formatTable;
+	
+	if (ftable[1].found) then
+		ftable[1].value = effect;
+	end
+
+	if (ftable[2].found) then
+		ftable[2].value = count;
+	end
+	
+	if (ftable[3].found) then
+		ftable[3].value = CB.FormatSeconds( left, text.settings.timeFormat );
+	end
+	
+	if (ftable[4].found) then
+		ftable[4].value = CB.FormatSeconds( duration, text.settings.timeFormat );
+	end
+	
+	if (ftable[5].found) then
+		ftable[5].value = target;
+	end
+	
+	--Walk all the tokens
+	for k,item in pairs(ftable) do
+		if (item.found) then
+		
+			--Bail if required value is missing
+			if (item.value == nil or item.value == "") then
+				final = "";
+				break;
+			end
+			
+			--Replace value
+			final = string.sub( final, 1, item.s-1 ) .. tostring(item.value) .. string.sub( final, item.e+1 );
 		end
 	end
 	
-	return value;
+	text:SetText( final );
 	
 end
 
@@ -224,19 +268,21 @@ function ChronoBars.PositionFrame( frame, prevFrame, outsideFrame, insideFrame, 
 	local s = CB.RoundToPixel( spacing );
 	
 	frame:ClearAllPoints();
+	
+	--INSIDE
 
 	if (position == CB.POS_IN_LEFT) then
 	
 		if (prevFrame)
-		then frame:SetPoint("LEFT", prevFrame, "RIGHT", x+s, y);
-		else frame:SetPoint("LEFT", insideFrame, "LEFT", x+s, y);
+		then frame:SetPoint("LEFT", prevFrame,   "RIGHT", x+s, y);
+		else frame:SetPoint("LEFT", insideFrame, "LEFT",  x+s, y);
 		end
 		
 		justifyH = "LEFT";
 		
 	elseif (position == CB.POS_IN_CENTER) then
 	
-		frame:SetPoint("LEFT", insideFrame, "LEFT", 0, y);
+		frame:SetPoint("LEFT", insideFrame,  "LEFT",  0, y);
 		frame:SetPoint("RIGHT", insideFrame, "RIGHT", 0, y);
 		
 		justifyH = "CENTER";
@@ -244,15 +290,17 @@ function ChronoBars.PositionFrame( frame, prevFrame, outsideFrame, insideFrame, 
 	elseif (position == CB.POS_IN_RIGHT) then
 	
 		if (prevFrame)
-		then frame:SetPoint("RIGHT", prevFrame, "LEFT", x-s, y);
+		then frame:SetPoint("RIGHT", prevFrame,   "LEFT",  x-s, y);
 		else frame:SetPoint("RIGHT", insideFrame, "RIGHT", x-s, y);
 		end
 		
 		justifyH = "RIGHT";
+	
+	--ABOVE
 		
 	elseif (position == CB.POS_ABOVE_LEFT) then
 	
-		frame:SetPoint( "BOTTOM", outsideFrame, "TOP", 0, y+s );
+		frame:SetPoint( "BOTTOM", outsideFrame, "TOP", 0, y );
 		
 		if (prevFrame)
 		then frame:SetPoint("LEFT", prevFrame,    "RIGHT", x+s, 0);
@@ -263,100 +311,125 @@ function ChronoBars.PositionFrame( frame, prevFrame, outsideFrame, insideFrame, 
 		
 	elseif (position == CB.POS_ABOVE_CENTER) then
 	
-		frame:SetPoint( "BOTTOMLEFT", outsideFrame, "TOPLEFT", 0, y+s );
-		frame:SetPoint( "BOTTOMRIGHT", outsideFrame, "TOPRIGHT", 0, y+s );
+		frame:SetPoint( "BOTTOM", outsideFrame, "TOP",    0, y );
+		frame:SetPoint( "CENTER", outsideFrame, "CENTER", x, 0 );
 		
 		justifyH = "CENTER";
 		
 	elseif (position == CB.POS_ABOVE_RIGHT) then
 	
+		frame:SetPoint( "BOTTOM", outsideFrame, "TOP", 0, y );
+	
 		if (prevFrame)
-		then frame:SetPoint( "BOTTOMRIGHT", prevFrame, "BOTTOMLEFT", x-s, y );
-		else frame:SetPoint( "BOTTOMRIGHT", outsideFrame, "TOPRIGHT", x, y+s );
+		then frame:SetPoint( "RIGHT", prevFrame,    "LEFT",  x-s, 0 );
+		else frame:SetPoint( "RIGHT", outsideFrame, "RIGHT", x,   0 );
 		end
 		
 		justifyH = "RIGHT";
+	
+	--BELOW
 		
 	elseif (position == CB.POS_BELOW_LEFT) then
 	
+		frame:SetPoint( "TOP", outsideFrame, "BOTTOM", 0, y );
+		
 		if (prevFrame)
-		then frame:SetPoint("TOPLEFT", prevFrame, "TOPRIGHT", x+s, y);
-		else frame:SetPoint("TOPLEFT", outsideFrame, "BOTTOMLEFT", x, y-s);
+		then frame:SetPoint("LEFT", prevFrame,    "RIGHT", x+s, 0);
+		else frame:SetPoint("LEFT", outsideFrame, "LEFT",  x,   0);
 		end
 		
 		justifyH = "LEFT";
 		
 	elseif (position == CB.POS_BELOW_CENTER) then
 	
-		frame:SetPoint( "TOPLEFT", outsideFrame, "BOTTOMLEFT", 0, y-s );
-		frame:SetPoint( "TOPRIGHT", outsideFrame, "BOTTOMRIGHT", 0, y-s );
+		frame:SetPoint( "TOP", outsideFrame,    "BOTTOM", 0, y );
+		frame:SetPoint( "CENTER", outsideFrame, "CENTER", x, 0 );
 		
 		justifyH = "CENTER";
 		
 	elseif (position == CB.POS_BELOW_RIGHT) then
-	
+
+		frame:SetPoint( "TOP", outsideFrame, "BOTTOM", 0, y );
+		
 		if (prevFrame)
-		then frame:SetPoint( "TOPRIGHT", prevFrame, "TOPLEFT", x-s, y );
-		else frame:SetPoint( "TOPRIGHT", outsideFrame, "BOTTOMRIGHT", x, y-s );
+		then frame:SetPoint( "RIGHT", prevFrame,    "LEFT",  x-s, 0 );
+		else frame:SetPoint( "RIGHT", outsideFrame, "RIGHT", x,   0 );
 		end
 		
 		justifyH = "RIGHT";
 		
+	--LEFT
+	
 	elseif (position == CB.POS_LEFT_BOTTOM) then
 	
+		frame:SetPoint( "BOTTOM", outsideFrame, "BOTTOM", 0, y );
+		
 		if (prevFrame)
-		then frame:SetPoint("BOTTOMRIGHT", prevFrame, "BOTTOMLEFT", x-s, y);
-		else frame:SetPoint("BOTTOMRIGHT", outsideFrame, "BOTTOMLEFT", x-s, y );
+		then frame:SetPoint( "RIGHT", prevFrame,    "LEFT", x-s, 0 );
+		else frame:SetPoint( "RIGHT", outsideFrame, "LEFT", x-s, 0 );
 		end
 		
 		justifyH = "RIGHT";
 		
 	elseif (position == CB.POS_LEFT_MIDDLE) then
 	
+		frame:SetPoint( "CENTER", outsideFrame, "CENTER", 0, y );
+		
 		if (prevFrame)
-		then frame:SetPoint("RIGHT", prevFrame, "LEFT", x-s, y);
-		else frame:SetPoint("RIGHT", outsideFrame, "LEFT", x-s, y );
+		then frame:SetPoint( "RIGHT", prevFrame,    "LEFT", x-s, 0 );
+		else frame:SetPoint( "RIGHT", outsideFrame, "LEFT", x-s, 0 );
 		end
 		
 		justifyH = "RIGHT";
 		
 	elseif (position == CB.POS_LEFT_TOP) then
 	
+		frame:SetPoint( "TOP", outsideFrame, "TOP", 0, y );
+		
 		if (prevFrame)
-		then frame:SetPoint("TOPRIGHT", prevFrame, "TOPLEFT", x-s, y);
-		else frame:SetPoint("TOPRIGHT", outsideFrame, "TOPLEFT", x-s, y );
+		then frame:SetPoint( "RIGHT", prevFrame,    "LEFT", x-s, 0 );
+		else frame:SetPoint( "RIGHT", outsideFrame, "LEFT", x-s, 0 );
 		end
 		
 		justifyH = "RIGHT";
 		
+	--RIGHT
+		
 	elseif (position == CB.POS_RIGHT_BOTTOM) then
 	
+		frame:SetPoint( "BOTTOM", outsideFrame, "BOTTOM", 0, y );
+		
 		if (prevFrame)
-		then frame:SetPoint("BOTTOMLEFT", prevFrame, "BOTTOMRIGHT", x+s, y);
-		else frame:SetPoint("BOTTOMLEFT", outsideFrame, "BOTTOMRIGHT", x+s, y );
+		then frame:SetPoint( "LEFT", prevFrame,    "RIGHT", x+s, 0 );
+		else frame:SetPoint( "LEFT", outsideFrame, "RIGHT", x+s, 0 );
 		end
 		
 		justifyH = "LEFT";
 		
 	elseif (position == CB.POS_RIGHT_MIDDLE) then
 	
+		frame:SetPoint( "CENTER", outsideFrame, "CENTER", 0, y );
+		
 		if (prevFrame)
-		then frame:SetPoint("LEFT", prevFrame, "RIGHT", x+s, y);
-		else frame:SetPoint("LEFT", outsideFrame, "RIGHT", x+s, y );
+		then frame:SetPoint( "LEFT", prevFrame,    "RIGHT", x+s, 0 );
+		else frame:SetPoint( "LEFT", outsideFrame, "RIGHT", x+s, 0 );
 		end
 		
 		justifyH = "LEFT";
 		
 	elseif (position == CB.POS_RIGHT_TOP) then
 	
+		frame:SetPoint( "TOP", outsideFrame, "TOP", 0, y );
+		
 		if (prevFrame)
-		then frame:SetPoint("TOPLEFT", prevFrame, "TOPRIGHT", x+s, y);
-		else frame:SetPoint("TOPLEFT", outsideFrame, "TOPRIGHT", x+s, y );
+		then frame:SetPoint( "LEFT", prevFrame,    "RIGHT", x+s, 0 );
+		else frame:SetPoint( "LEFT", outsideFrame, "RIGHT", x+s, 0 );
 		end
 		
 		justifyH = "LEFT";
 	end
 	
+	--Justify if dealing with text frame
 	if (frame.SetJustifyH and justifyH) then
 		frame:SetJustifyH( justifyH );
 	end

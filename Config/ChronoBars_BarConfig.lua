@@ -358,21 +358,29 @@ ChronoBars.Frame_StyleText =
 	
 	{ type="header",   text="bar|style.text[temp|textIndex].name" },
 	
-	{ type="toggle",   text="Enabled",    var="bar|style.text[temp|textIndex].enabled" },
-	{ type="input",    text="Name",       var="bar|style.text[temp|textIndex].name" },
-	{ type="input",    text="Format",     var="bar|style.text[temp|textIndex].format" },
+	{ type="toggle",   text="Enabled",     var="bar|style.text[temp|textIndex].enabled" },
+	{ type="input",    text="Name",        var="bar|style.text[temp|textIndex].name" },
+	{ type="input",    text="Format",      var="bar|style.text[temp|textIndex].format" },
+	{ type="options",  text="Text format", var="bar|style.text[temp|textIndex].timeFormat", options="root|Options_TimeFormat" },
 	
-	{ type="options",  text="Position",   var="bar|style.text[temp|textIndex].position",   options="root|Options_Position" },
-	{ type="numinput", text="Offset X",   var="bar|style.text[temp|textIndex].x" },
-	{ type="numinput", text="Offset Y",   var="bar|style.text[temp|textIndex].y" },
+	{ type="options",  text="Position",    var="bar|style.text[temp|textIndex].position",   options="root|Options_Position" },
+	{ type="numinput", text="Offset X",    var="bar|style.text[temp|textIndex].x" },
+	{ type="numinput", text="Offset Y",    var="bar|style.text[temp|textIndex].y" },
 	
-	{ type="font",     text="Font",       var="bar|style.text[temp|textIndex].font" },
-	{ type="numinput", text="Font size",  var="bar|style.text[temp|textIndex].size" },
+	{ type="font",     text="Font",        var="bar|style.text[temp|textIndex].font" },
+	{ type="numinput", text="Font size",   var="bar|style.text[temp|textIndex].size" },
 	
 	{ type="color",    text="Text color",    var="bar|style.text[temp|textIndex].textColor" },
 	--{ type="color",    text="Outline color", var="bar|style.text[temp|textIndex].outColor" },
 	{ type="color",    text="Shadow color",  var="bar|style.text[temp|textIndex].shadowColor" },
 	{ type="toggle",   text="Outline",       var="bar|style.text[temp|textIndex].outline" },
+};
+
+ChronoBars.Options_TimeFormat =
+{
+	{ text="Single unit (1m)",        value=CB.TIME_SINGLE },
+	{ text="One decimal (1.1m)",      value=CB.TIME_DECIMAL },
+	{ text="Minutes:seconds (1:10)",  value=CB.TIME_MINSEC },
 };
 
 ChronoBars.Options_Position =

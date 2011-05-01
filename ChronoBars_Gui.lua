@@ -439,8 +439,11 @@ function ChronoBars.Bar_ApplySettings (bar, profile, groupId, barId)
 			table.insert( bar.text, newText );
 		end
 		
-		--Check if text enabled
+		--Store reference to settings
 		local tsettings = settings.style.text[t];
+		bar.text[t].settings = tsettings;
+
+		--Check if text enabled
 		if (tsettings.enabled)
 		then bar.text[t]:Show();
 		else break
@@ -477,8 +480,8 @@ function ChronoBars.Bar_ApplySettings (bar, profile, groupId, barId)
 		CB.PositionFrame( bar.text[t], prevText, bar.bg, bar, tsettings.position, tsettings.x, tsettings.y, 5 );
 		
 		--Text
-		local value = CB.FormatText( tsettings.format, bar.status.name, 0, 0, 0, "target"  );
-		bar.text[t]:SetText( value );
+		CB.InitText( bar.text[t] );
+		CB.FormatText( bar.text[t], bar.status.name, 0, 0, 0, "Target Name" );
 		
 	until true
 	end
@@ -661,28 +664,27 @@ function ChronoBars.Bar_UpdateUI (bar, now, interval)
   if (bar.status.icon) then
     bar.icon:SetTexture( bar.status.icon );
   end
-	--[[
-  --Set time text if active 
-  if (bar.status.active and bar.status.duration > 0)
-  then bar.txtTime:SetText( CB.FormatTime( bar, bar.status.left ));
-  else bar.txtTime:SetText( "" );
-  end
 
-  --Set name text  
-  bar.txtName:SetText( CB.FormatName( bar, bar.status.text, nil, bar.status.count ));
---]]
-
+	--Hide time left and duration when inactive or infinite,
+	--hide count if smaller than 2
 	local textLeft = nil;
 	local textDur = nil;
+	local textCount = nil;
+	
 	if (bar.status.active and bar.status.duration > 0) then
-		textLeft = CB.FormatTime( bar, bar.status.left );
-		textDur = CB.FormatTime( bar, bar.status.dur );
+		textLeft = bar.status.left;
+		textDur = bar.status.dur;
+	end
+	
+	if (bar.status.count and bar.status.count > 1) then
+		textCount = bar.status.count;
 	end
 
+	--Format all text
 	for t=1,table.getn(set.style.text) do
 		if (set.style.text[t].enabled) then
-			bar.text[t]:SetText( CB.FormatText( set.style.text[t].format,
-			bar.status.text, bar.status.count, textLeft, textDur, bar.status.target ));
+			CB.FormatText( bar.text[t], bar.status.text, textCount,
+			textLeft, textDur, bar.status.target );
 		end
 	end
 
