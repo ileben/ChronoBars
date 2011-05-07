@@ -374,6 +374,10 @@ ChronoBars.Frame_StyleText =
 	--{ type="color",    text="Outline color", var="bar|style.text[temp|textIndex].outColor" },
 	{ type="color",    text="Shadow color",  var="bar|style.text[temp|textIndex].shadowColor" },
 	{ type="toggle",   text="Outline",       var="bar|style.text[temp|textIndex].outline" },
+	
+	{ type="header",   text="Priority" },
+	{ type="options",  text="Swap with",   var="temp|textSwapIndex",   options="func|Options_TextSwap" },
+	{ type="button",   text="Swap",        func="root|Func_TextSwap",  update=true },
 };
 
 ChronoBars.Options_TimeFormat =
@@ -504,6 +508,37 @@ end
 
 function ChronoBars.Func_DeleteText()
 	CB.Print( "DELETE TEXT" );
+end
+
+function ChronoBars.Options_TextSwap_Get()
+
+	local options = CB.Options_Text_Get();
+	table.remove( options, CB.GetSettingsValue( "temp|textIndex" ));
+	
+	if (CB.GetSettingsValue( "temp|textSwapIndex" ) == nil) then
+		CB.SetSettingsValue( "temp|textSwapIndex", options[1].value );
+	end
+	
+	return options;
+end
+
+function ChronoBars.Func_TextSwap()
+
+	local profile = CB.GetActiveProfile();
+	local bar = CB.GetSettingsTable( "bar" );
+	
+	local src = CB.GetSettingsValue( "temp|textIndex" );
+	local dst = CB.GetSettingsValue( "temp|textSwapIndex" );
+	
+	local temp = bar.style.text[dst];
+	bar.style.text[dst] = bar.style.text[src];
+	bar.style.text[src] = temp;
+	
+	CB.SetSettingsValue( "temp|textIndex", dst );
+	CB.SetSettingsValue( "temp|textSwapIndex", src );
+	
+	CB.UpdateSettings();
+
 end
 
 --Copy/Paste

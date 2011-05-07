@@ -330,7 +330,7 @@ function ChronoBars.Upgrade_1_14 ()
 					end
 				end
 				
-				--if (bar.style.text == nil) then
+				if (bar.style.text == nil) then
 					bar.style.text = CopyTable( CB.DEFAULT_BAR.style.text );
 					
 					for t=1,table.getn(bar.style.text) do
@@ -339,7 +339,7 @@ function ChronoBars.Upgrade_1_14 ()
 						bar.style.text[t].size = bar.style.fontSize;
 						bar.style.text[t].textColor = CopyTable( bar.style.textColor );
 					end
-				--end
+				end
 			end
 		end
 	end
