@@ -353,15 +353,18 @@ ChronoBars.Frame_StyleText =
 	{ type="header",     text="Text" },
 	
 	{ type="options",  text="Text",        var="temp|textIndex",  options="func|Options_Text", update=true },
-	{ type="button",   text="New Text",    func="root|Func_NewText" },
-	{ type="button",   text="Delete Text", func="root|Func_DeleteText" },
+	{ type="button",   text="New Text",    func="root|Func_NewText",     update=true },
+	{ type="button",   text="Delete Text", func="root|Func_DeleteText",  update=true },
 	
 	{ type="header",   text="bar|style.text[temp|textIndex].name" },
 	
 	{ type="toggle",   text="Enabled",     var="bar|style.text[temp|textIndex].enabled" },
-	{ type="input",    text="Name",        var="bar|style.text[temp|textIndex].name" },
+	
+	{ type="input",    text="Name",        var="bar|style.text[temp|textIndex].name",  update=true,
+	  conditionVar="bar|style.text[temp|textIndex].default", conditionValue=false },
+	  
 	{ type="input",    text="Format",      var="bar|style.text[temp|textIndex].format" },
-	{ type="options",  text="Text format", var="bar|style.text[temp|textIndex].timeFormat", options="root|Options_TimeFormat" },
+	{ type="options",  text="Time format", var="bar|style.text[temp|textIndex].timeFormat", options="root|Options_TimeFormat" },
 	
 	{ type="options",  text="Position",    var="bar|style.text[temp|textIndex].position",   options="root|Options_Position" },
 	{ type="numinput", text="Offset X",    var="bar|style.text[temp|textIndex].x" },
@@ -484,15 +487,15 @@ ChronoBars.Options_GrowDir =
 function ChronoBars.Options_Text_Get()
 
 	local options = {};
-	
-	local profile = CB.GetActiveProfile();
 	local bar = CB.GetSettingsTable( "bar" );
 	
 	local numText = table.getn( bar.style.text );
 	for i=1,numText do
 	
 		local text = bar.style.text[i];
-		table.insert( options, { text = text.name, value = i } );
+		local name = text.name;
+		if (text.default) then name = "Builtin: "..name end;
+		table.insert( options, { text = name, value = i } );
 	end
 	
 	if (CB.GetSettingsValue( "temp|textIndex" ) == nil) then
@@ -503,11 +506,46 @@ function ChronoBars.Options_Text_Get()
 end
 
 function ChronoBars.Func_NewText()
-	CB.Print( "NEW TEXT" );
+	
+	--Create new text settings and mark not built-in
+	local newText = CopyTable( CB.DEFAULT_TEXT );
+	newText.default = false;
+	
+	--Add to bar settings
+	local bar = CB.GetSettingsTable( "bar" );
+	table.insert( bar.style.text, newText );
+	
+	--Switch selection to new text
+	CB.SetSettingsValue( "temp|textIndex", table.getn( bar.style.text ));
+	
+	CB.UpdateSettings();
 end
 
 function ChronoBars.Func_DeleteText()
-	CB.Print( "DELETE TEXT" );
+
+	--Get selected text index
+	local textIndex = CB.GetSettingsValue( "temp|textIndex" );
+
+	--Get selected text settings
+	local bar = CB.GetSettingsTable( "bar" );
+	local text = bar.style.text[ textIndex ];
+	
+	--Prevent deletion of built-in text
+	if (text.default) then
+		CB.Error( "Cannot delete built-in text!" );
+		return;
+	end
+	
+	--Remove from bar settings
+	table.remove( bar.style.text, textIndex );
+	
+	--Clamp selection
+	local numText = table.getn( bar.style.text );
+	if (textIndex > numText) then
+		CB.SetSettingsValue( "temp|textIndex", numText );
+	end
+	
+	CB.UpdateSettings();
 end
 
 function ChronoBars.Options_TextSwap_Get()
@@ -524,9 +562,7 @@ end
 
 function ChronoBars.Func_TextSwap()
 
-	local profile = CB.GetActiveProfile();
 	local bar = CB.GetSettingsTable( "bar" );
-	
 	local src = CB.GetSettingsValue( "temp|textIndex" );
 	local dst = CB.GetSettingsValue( "temp|textSwapIndex" );
 	

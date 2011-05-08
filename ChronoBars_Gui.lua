@@ -688,14 +688,14 @@ function ChronoBars.Bar_UpdateUI (bar, now, interval)
 
 	--Formatting input
 	local displayLeft = nil;
-	local displayDur = nil;
+	local displayDuration = nil;
 	local displayCount = nil;
 	local displayInfo = nil;
 
 	--Show time left and duration if active and not infinite,	
 	if (bar.status.active and bar.status.duration > 0) then
 		displayLeft = bar.status.left;
-		displayDur = bar.status.dur;
+		displayDuration = bar.status.duration;
 	end
 
 	--Show count if bigger than 1
@@ -714,7 +714,7 @@ function ChronoBars.Bar_UpdateUI (bar, now, interval)
 	for t=1,table.getn(set.style.text) do
 		if (set.style.text[t].enabled) then
 			CB.FormatText( bar.text[t], bar.status.name, displayCount,
-			displayLeft, displayDur, bar.status.target, displayInfo );
+			displayLeft, displayDuration, bar.status.target, displayInfo );
 		end
 	end
 
