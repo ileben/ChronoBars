@@ -207,10 +207,6 @@ ChronoBars.DEFAULT_BAR =
   enchant     = {
                   hand = ChronoBars.HAND_MAIN,
                 },
-  display     = {
-                  enabled = false,
-                  name = "DisplayName",
-                },
   fixed       = {
                   enabled = false,
                   duration = 0,

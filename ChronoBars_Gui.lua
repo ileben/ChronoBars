@@ -298,11 +298,6 @@ function ChronoBars.Bar_ApplySettings (bar, profile, groupId, barId)
   bar.status.active = false;
   bar.status.animating = true;
   
-  --bar.status.displayName = nil;
-  --bar.status.displayCount = nil;
-  --bar.status.displayTarget = nil;
-  --bar.status.displayDuration = nil;
-  --bar.status.displayLeft = nil;
   
   --Init effect status
   CB.Bar_InitEffect( bar );

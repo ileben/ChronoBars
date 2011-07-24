@@ -45,9 +45,21 @@ ChronoBars.Frame_Root =
 
 ChronoBars.Tabs_Root =
 {
+--[[
 	{ text="Manage",   frame="root|Frame_Manage" },
 	{ text="Bar",      frame="root|Frame_Bar" },
 	{ text="Group",    frame="root|Frame_Group" },
+--]]
+
+	{ text="Manage",     frame="root|Frame_Manage" },	
+	{ text="Effect",     frame="root|Frame_Effect" },
+	{ text="Bar",        frame="root|Frame_StyleBar" },
+	{ text="Icon",       frame="root|Frame_StyleIcon" },
+	{ text="Spark",      frame="root|Frame_StyleSpark" },
+	{ text="Text",       frame="root|Frame_StyleText" },
+	{ text="Animation",  frame="root|Frame_StyleAnimation" },
+	{ text="Visibility", frame="root|Frame_StyleVisibility" },
+	{ text="Group",      frame="root|Frame_Group" },
 };
 
 --Manage
@@ -93,6 +105,7 @@ ChronoBars.Options_CopyPaste =
 
 --Bar
 
+--[[
 ChronoBars.Frame_Bar =
 {
 	{ type="header",   text="Bar Settings" },
@@ -110,12 +123,14 @@ ChronoBars.Tabs_Bar =
 	{ text="Animation",  frame="root|Frame_StyleAnimation" },
 	{ text="Visibility", frame="root|Frame_StyleVisibility" },
 };
+--]]
 
 ChronoBars.Frame_Effect =
 {
 	{ type="scroll" },
 	{ type="header",      text="Effect" },
-	
+
+	{ type="toggle",      text="Enabled",         var="bar|enabled" },
 	{ type="input",       text="Effect name",     var="bar|name" },
 	{ type="options",     text="Effect type",     var="bar|type",   options="root|Options_EffectType",  update=true },
 	
@@ -146,12 +161,8 @@ ChronoBars.Frame_Effect =
 	 
 	
 	{ type="header",      text="Override" },
-	  
-	{ type="input",       text="Display name",        var="bar|display.name" },
-	{ type="toggle",      text="Use display name",    var="bar|display.enabled" },
-	
+	{ type="toggle",      text="Use maximum time",           var="bar|fixed.enabled" },	
 	{ type="numinput",    text="Maximum time (seconds)",     var="bar|fixed.duration" },
-	{ type="toggle",      text="Use maximum time",           var="bar|fixed.enabled" },
 };
 
 ChronoBars.Options_EffectType =
@@ -429,7 +440,7 @@ ChronoBars.Frame_StyleVisibility =
 	{ type="scroll" },
 	{ type="header",   text="Visibility" },
 	{ type="options",  text="Show bar",            var="bar|style.visibility",   options="root|Options_Visibility" },
-	{ type="toggle",   text="Hide out of combat" },
+	--{ type="toggle",   text="Hide out of combat" },
 };
 
 ChronoBars.Options_Visibility =
