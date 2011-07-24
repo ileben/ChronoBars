@@ -396,24 +396,24 @@ function ChronoBars.Bar_UpdateStatusMultiAura (bar, status, now, event, ...)
     if (not (applied or removed or refresh)) then return end;
     
     --Check if source of event is player
-    local srcGuid = select( 3, ... );
+    local srcGuid = select( 4, ... );
     if (srcGuid ~= UnitGUID("player")) then return end;
     
     --Check if aura name matches effect
-    local spellName = select( 10, ... );
+    local spellName = select( 13, ... );
     if (spellName ~= status.name) then return end;
     
     --Check if aura type matches effect
-    local auraType = select( 12, ... );
+    local auraType = select( 15, ... );
     if (auraType == "BUFF"   and set.aura.type ~= CB.AURA_TYPE_BUFF) then return end;
     if (auraType == "DEBUFF" and set.aura.type ~= CB.AURA_TYPE_DEBUFF) then return end;
     
     --Get unit info
-    unitGuid = select( 6, ... );
-    unitName = select( 7, ... );
+    unitGuid = select( 8, ... );
+    unitName = select( 9, ... );
     
     --Get UnitID from UnitFlags
-    local unitFlags = select( 8, ... );
+    local unitFlags = select( 10, ... );
     if (bit.band( unitFlags, COMBATLOG_OBJECT_TARGET) > 0) then
       unitId = "target";
     elseif (bit.band( unitFlags, COMBATLOG_OBJECT_FOCUS) > 0) then
@@ -821,7 +821,7 @@ function ChronoBars.Bar_InitStatusAuto (bar, status)
   end
 end
 
-function ChronoBars.Bar_UpdateStatusAuto (bar, status, now, event, arg1, arg2, arg3)
+function ChronoBars.Bar_UpdateStatusAuto (bar, status, now, event, arg1, arg2, arg3, arg4)
   
   local set = bar.settings;
   
@@ -862,7 +862,7 @@ function ChronoBars.Bar_UpdateStatusAuto (bar, status, now, event, arg1, arg2, a
     --Check if player swinged with weapon
     elseif (event == "COMBAT_LOG_EVENT_UNFILTERED"
     and strsub( arg2, 1, 5 ) == "SWING"
-    and arg3 == UnitGUID("player")) then
+    and arg4 == UnitGUID("player")) then
     
       --Get attack speed
       local attackSpeed;
