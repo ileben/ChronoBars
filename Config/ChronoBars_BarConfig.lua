@@ -29,7 +29,6 @@ ChronoBars.Frame_Test =
 {
 	{ type="input",   text="Some input:",   var="bar|name" },
 	{ type="options",  text="Some options:",  var="bar|type",   options="root|Options_EffectType" },
-	{ type="font",     text="Font",   var="bar|style.lsmFontHandle" },
 };
 
 --Config structure
@@ -78,17 +77,17 @@ ChronoBars.Frame_Manage =
 
 ChronoBars.Options_CopyPaste =
 {
-	{ text="Front color",               value=1,	var="bar|style.fgColor",             temp="temp|color" },
-	{ text="Back color",                value=2,	var="bar|style.bgColor",             temp="temp|color" },
-	{ text="Text color",                value=3,	var="bar|style.textColor",           temp="temp|color" },
-	{ text="Texture",                   value=4,	var="bar|style.lsmTexHandle",        temp="temp|tex" },
-	{ text="Icon",                      value=5,	var="bar|style.icon",                temp="temp|icon" },
-	{ text="Text",                      value=6,	var="bar|style.text",                temp="temp|text" },
-	{ text="Visibility",                value=7,	var="bar|style.visibility",          temp="temp|visibility" },
-	{ text="Animation",                 value=8,	var="bar|style.anim",                temp="temp|anim" },
-	{ text="Entire style",              value=9,	var="bar|style",                     temp="temp|style" },
-	{ text="Style except front color",  value=10,	var="bar|style",                     temp="temp|style",    exception="bar|style.fgColor" },
-	{ text="All bar Settings",          value=11,	var="group|bars[temp|barId]",        temp="temp|bar" },
+	{ text="Front color",               value=1,	var="bar|style.fgColor",            temp="temp|color" },
+	{ text="Back color",                value=2,	var="bar|style.bgColor",            temp="temp|color" },
+	{ text="Texture",                   value=3,	var="bar|style.lsmTexHandle",       temp="temp|tex" },
+	{ text="Icon",                      value=4,	var="bar|style.icon",               temp="temp|icon" },
+	{ text="Spark",						value=5,	var="bar|style.spark",	            temp="temp|spark" },
+	{ text="Text",                      value=6,	var="bar|style.text",               temp="temp|text" },
+	{ text="Visibility",                value=7,	var="bar|style.visibility",         temp="temp|visibility" },
+	{ text="Animation",                 value=8,	var="bar|style.anim",               temp="temp|anim" },
+	{ text="Entire style",              value=9,	var="bar|style",                    temp="temp|style" },
+	{ text="Style except front color",  value=10,	var="bar|style",                    temp="temp|style",    exception="bar|style.fgColor" },
+	{ text="All bar Settings",          value=11,	var="group|bars[temp|barId]",       temp="temp|bar" },
 	{ text="Group settings",            value=12,	var="group" },
 };
 

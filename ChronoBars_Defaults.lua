@@ -216,18 +216,25 @@ ChronoBars.DEFAULT_BAR =
                   duration = 0,
                 },
   style       = {
+				
+				fullSide       = CB.SIDE_RIGHT,
+				fillUp         = false,
+				fgColor        = { r = 0.0, g = 0.4, b = 0.8, a = 1.0 },
+				bgColor        = { r = 0.0, g = 0.0, b = 0.0, a = 0.7 },
+				lsmTexHandle   = "None",
+				
 				text =  {
-							ChronoBars.PRESET_TEXT_EFFECT,
-							ChronoBars.PRESET_TEXT_TARGET,
-							ChronoBars.PRESET_TEXT_INFO,
-							ChronoBars.PRESET_TEXT_COUNT,
-							ChronoBars.PRESET_TEXT_TIME_LEFT,
-							ChronoBars.PRESET_TEXT_TIME_TOTAL,
+							CB.PRESET_TEXT_EFFECT,
+							CB.PRESET_TEXT_TARGET,
+							CB.PRESET_TEXT_INFO,
+							CB.PRESET_TEXT_COUNT,
+							CB.PRESET_TEXT_TIME_LEFT,
+							CB.PRESET_TEXT_TIME_TOTAL,
 				        },
 				
 				icon =  {
 							enabled = true,
-							position = ChronoBars.POS_LEFT_MIDDLE,
+							position = CB.POS_LEFT_MIDDLE,
 							x = 0,
 							y = 0,
 							zoom = true,
@@ -241,16 +248,7 @@ ChronoBars.DEFAULT_BAR =
 							width = 20,
 							height = 1.8,
 						},
-				fullSide       = ChronoBars.SIDE_RIGHT,
-				fillUp         = false,
-				fgColor        = { r = 0.0, g = 0.4, b = 0.8, a = 1.0 },
-				bgColor        = { r = 0.0, g = 0.0, b = 0.0, a = 0.7 },
-				textColor      = { r = 1.0, g = 1.0, b = 1.0, a = 1.0 },
-				fontSize       = 12,
-				timeFormat     = ChronoBars.TIME_SINGLE,
-				lsmFontHandle  = "Friz Quadrata TT",
-				lsmTexHandle   = "None",
-				visibility  = ChronoBars.VISIBLE_ACTIVE,
+				
 				anim  = {
 						up = true,
 						down = true,
@@ -259,6 +257,9 @@ ChronoBars.DEFAULT_BAR =
 						blinkUsable = true,
 						fade = true,
 					  },
+					  
+				visibility  = CB.VISIBLE_ACTIVE,
+				
 				},
 };
 
