@@ -307,9 +307,9 @@ function ChronoBars.UpgradeChar_1_12 ()
 end
 
 
--- 1.14
+-- 2.0
 
-function ChronoBars.Upgrade_1_14 ()
+function ChronoBars.Upgrade_2_0 ()
 
 	for pname, profile in pairs( ChronoBars_Settings.profiles ) do
 		for g=1,table.getn( profile.groups ) do
@@ -357,5 +357,5 @@ function ChronoBars.Upgrade_1_14 ()
 	end
 end
 
-function ChronoBars.UpgradeChar_1_14 ()
+function ChronoBars.UpgradeChar_2_0 ()
 end
