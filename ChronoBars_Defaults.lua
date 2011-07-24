@@ -243,6 +243,7 @@ ChronoBars.DEFAULT_BAR =
 							bgColor = { r = 0.0, g = 0.0, b = 0.0, a = 0.7 },
 							inherit = true,
 				        },
+				
 				spark = {
 							enabled = true,
 							width = 20,
@@ -250,14 +251,14 @@ ChronoBars.DEFAULT_BAR =
 						},
 				
 				anim  = {
-						up = true,
-						down = true,
-						blinkSlow = true,
-						blinkFast = true,
-						blinkUsable = true,
-						fade = true,
-					  },
-					  
+							up = true,
+							down = true,
+							blinkSlow = true,
+							blinkFast = true,
+							blinkUsable = true,
+							fade = true,
+						},
+				
 				visibility  = CB.VISIBLE_ACTIVE,
 				
 				},
