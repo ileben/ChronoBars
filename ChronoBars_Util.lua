@@ -109,6 +109,42 @@ function ChronoBars.Util_GetSpellIcon (spellName)
   CB.iconCache[ spellName ] = "";
 end
 
+--Item ID cache
+--========================================================
+
+function ChronoBars.Util_GetItemID (itemName)
+
+	for invID = 1,19 do
+	
+		local id = GetInventoryItemID( "player", invID );
+		if (id) then
+		
+			local name = GetItemInfo(id);
+			if (name == itemName) then
+				return id;
+			end
+		end
+	end
+	
+	for bagID = 0,4 do
+	
+		local numSlots = GetContainerNumSlots( bagID );
+		for bagSlot = 1, numSlots do
+		
+			local id = GetContainerItemID( bagID, bagSlot );
+			if (id) then
+			
+				local name = GetItemInfo(id);
+				if (name == itemName) then
+					return id;
+				end
+			end
+		end
+	end
+	
+	return nil;
+end
+
 --Enchant scanning from weapon tooltip
 --========================================================
 

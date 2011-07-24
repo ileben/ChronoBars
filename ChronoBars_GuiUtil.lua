@@ -183,12 +183,12 @@ end
 
 ChronoBars.formatTableTemplate =
 {
-	{ token = "$e", value = nil, found = false, s=nil, e=nil },
-	{ token = "$c", value = nil, found = false, s=nil, e=nil },
-	{ token = "$l", value = nil, found = false, s=nil, e=nil },
-	{ token = "$d", value = nil, found = false, s=nil, e=nil },
-	{ token = "$t", value = nil, found = false, s=nil, e=nil },
-	{ token = "$u", value = nil, found = false, s=nil, e=nil },
+	{ token = "$e", value = nil, found = false },
+	{ token = "$c", value = nil, found = false },
+	{ token = "$l", value = nil, found = false },
+	{ token = "$d", value = nil, found = false },
+	{ token = "$t", value = nil, found = false },
+	{ token = "$u", value = nil, found = false },
 };
 
 function ChronoBars.InitText( text )
@@ -204,10 +204,10 @@ function ChronoBars.InitText( text )
 	for k,item in pairs(text.formatTable) do
 
 		--Find token
-		item.s,item.e = string.find( format, item.token, 1, true );
+		local s,e = string.find( format, item.token, 1, true );
 		
 		--Check if valid
-		if (item.s and item.e)
+		if (s and e)
 		then item.found = true;
 		else item.found = false;
 		end
@@ -256,7 +256,8 @@ function ChronoBars.FormatText( text, effect, count, left, duration, target, inf
 			end
 			
 			--Replace value
-			final = string.sub( final, 1, item.s-1 ) .. tostring(item.value) .. string.sub( final, item.e+1 );
+			local s,e = string.find( final, item.token, 1, true );
+			final = string.sub( final, 1, s-1 ) .. tostring(item.value) .. string.sub( final, e+1 );
 		end
 	end
 	

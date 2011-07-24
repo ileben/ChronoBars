@@ -224,11 +224,12 @@ function ChronoBars.InitStatusItem( status )
 
     --Init bar name and icon by item id or name
     if (status.id) then
-      status.name = select( 1,  GetItemInfo( status.id ) );
-      status.icon = select( 10, GetItemInfo( status.id ) );
+		status.name = select( 1,  GetItemInfo( status.id ) );
+		status.icon = select( 10, GetItemInfo( status.id ) );
     else
-	  status.name = status.desc;
-      status.icon = GetItemIcon( status.desc );
+		status.id = CB.Util_GetItemID( status.desc );
+		status.name = status.desc;
+		status.icon = GetItemIcon( status.desc );
     end
 	
 end
@@ -529,10 +530,7 @@ function ChronoBars.Bar_UpdateStatusCd (bar, status, now)
 
   local set = bar.settings;
   local start, duration;
-  
-  --if (set.cd.type == CB.CD_TYPE_SPELL or
-      --set.cd.type == CB.CD_TYPE_PET_SPELL) then
-      
+       
   if (set.cd.type == CB.CD_TYPE_SPELL) then
       
     --Get spell cooldown by ID or name
@@ -546,7 +544,7 @@ function ChronoBars.Bar_UpdateStatusCd (bar, status, now)
     --Get item cooldown by ID or name
     if (status.id)
     then start, duration = GetItemCooldown( status.id );
-    else start, duration = GetItemCooldown( status.name );
+    else start, duration = nil; --doesn't work with item name anymore :(
     end
   end
 
