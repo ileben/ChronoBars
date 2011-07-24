@@ -65,7 +65,7 @@ end
 --Text formatting
 --==========================================================================
 
-function ChronoBars.FormatSeconds (seconds, format)
+function ChronoBars.FormatTime (seconds, format)
 
 	if (seconds == nil) then
 		return "";
@@ -105,80 +105,6 @@ function ChronoBars.FormatSeconds (seconds, format)
 		return string.format( fmt..letter, time);
 
 	end
-end
-
-function ChronoBars.FormatTime (bar, time, fixed)
-
-  local set = bar.settings;
-  local timeString = "";
-
-  if (set.style.showTime) then
-    if (set.type ~= ChronoBars.EFFECT_TYPE_USABLE) then
-
-      if (time) then
-        timeString = ChronoBars.FormatSeconds( time, set.style.timeFormat );
-      end
-
-      if (fixed) then
-        if (set.fixed.enabled) then
-          local fixedString = ChronoBars.FormatSeconds( fixed, set.style.timeFormat );
-          timeString = timeString.."/"..fixedString;
-        end
-      end
-    end
-  end
-
-  return timeString;
-end
-
-function ChronoBars.FormatName (bar, name, id, count, order)
-
-  local set = bar.settings;
-  local nameString = "";
-
-  if (set.style.showName) then
-
-    if (set.display.enabled) then
-      nameString = set.display.name;
-    elseif (name) then
-      nameString = name;
-    end
-
-    if (id) then
-      nameString = "("..tostring( id )..") "..nameString;
-    end
-  end
-
-  if (count and count > 1) then
-    if (set.type == ChronoBars.EFFECT_TYPE_AURA) then
-      if (set.style.showCount) then
-        if (set.style.countSide == ChronoBars.SIDE_LEFT)
-        then nameString = "["..tostring(count).."]  "..nameString;
-        else nameString = nameString.."  ["..tostring(count).."]";
-        end
-      end
-    end
-  end
-
-  if (order and order > 1) then
-    if (set.type == ChronoBars.EFFECT_TYPE_AURA) then
-      nameString = nameString.." #"..tostring(order);
-    end
-  end
-
-  if (set.type == ChronoBars.EFFECT_TYPE_CD) then
-    if (set.style.showCd) then
-      nameString = nameString.." CD";
-    end
-  end
-
-  if (set.type == ChronoBars.EFFECT_TYPE_USABLE) then
-    if (set.style.showUsable) then
-      nameString = nameString.." Usable";
-    end
-  end
-
-  return nameString;
 end
 
 ChronoBars.formatTableTemplate =
@@ -230,11 +156,11 @@ function ChronoBars.FormatText( text, effect, count, left, duration, target, inf
 	end
 	
 	if (ftable[3].found) then
-		ftable[3].value = CB.FormatSeconds( left, text.settings.timeFormat );
+		ftable[3].value = CB.FormatTime( left, text.settings.timeFormat );
 	end
 	
 	if (ftable[4].found) then
-		ftable[4].value = CB.FormatSeconds( duration, text.settings.timeFormat );
+		ftable[4].value = CB.FormatTime( duration, text.settings.timeFormat );
 	end
 	
 	if (ftable[5].found) then

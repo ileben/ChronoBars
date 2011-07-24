@@ -247,27 +247,6 @@ ChronoBars.Menu_TextRoot =
 
 ChronoBars.Menu_Text =
 {
-  { type="title",           title="Text" },
-  { text="Show Name",       type="toggle",    var="bar|style.showName" },
-  { text="Show Count",      type="toggle",    var="bar|style.showCount" },
-  { text="Show Time",       type="toggle",    var="bar|style.showTime" },
-  { text="Show CD",         type="toggle",    var="bar|style.showCd" },
-  { text="Show Usable",     type="toggle",    var="bar|style.showUsable" },
-
-  { type="separator" },
-  { text="Name Align",         type="menu",      menu="root|Menu_Justify" },
-  { text="Count Side",         type="menu",      menu="root|Menu_CountSide" },
-  { text="Time Side",          type="menu",      menu="root|Menu_TimeSide" },
-  { text="Time Format",        type="menu",      menu="root|Menu_TimeFormat" },
-  
-  { type="separator" },
-  { text="Font",               type="menu",      menu="func|Var_MenuFont" },
-  { text="Font Size...",       type="numinput",  var="bar|style.fontSize",  input="Font size:" },
-  { text="Text Color",         type="color",     var="bar|style.textColor" },
-};
-
-ChronoBars.Menu_Text2 =
-{
   { type="title",          title="bar|style.text[textId].name" },
   { text="Enabled",        type="toggle",        var="bar|style.text[textId].enabled" },
   
@@ -331,33 +310,11 @@ ChronoBars.Menu_Animation =
   { text="Fade out when expired",               type="toggle",  var="bar|style.anim.fade" },
 };
 
-ChronoBars.Menu_Justify =
-{
-  { type="title",   title="Alignment" },
-  { text="Left",    type="option",  var="bar|style.nameJustify",  option = ChronoBars.JUSTIFY_LEFT },
-  { text="Center",  type="option",  var="bar|style.nameJustify",  option = ChronoBars.JUSTIFY_CENTER },
-  { text="Right",   type="option",  var="bar|style.nameJustify",  option = ChronoBars.JUSTIFY_RIGHT },
-};
-
 ChronoBars.Menu_IconSide = {
 
   { type="title", title="Icon Side" };
   { text="Left",    type="option",   var="bar|style.iconSide",   option = ChronoBars.SIDE_LEFT },
   { text="Right",   type="option",   var="bar|style.iconSide",   option = ChronoBars.SIDE_RIGHT },
-};
-
-ChronoBars.Menu_TimeSide = {
-
-  { type="title",   title="Time Side" };
-  { text="Name || Time",   type="option",   var="bar|style.timeSide",   option = ChronoBars.SIDE_RIGHT },
-  { text="Time || Name",   type="option",   var="bar|style.timeSide",   option = ChronoBars.SIDE_LEFT },
-};
-
-ChronoBars.Menu_CountSide = {
-
-  { type="title",   title="Count Side" };
-  { text="Name [count]",   type="option",   var="bar|style.countSide",   option = ChronoBars.SIDE_RIGHT },
-  { text="[count] Name",   type="option",   var="bar|style.countSide",   option = ChronoBars.SIDE_LEFT },
 };
 
 ChronoBars.Menu_FullSide = {
@@ -1280,7 +1237,7 @@ function ChronoBars.Var_MenuText_Get ()
 		{
 			text   = bar.style.text[t].name,
 			type   = "menu",
-			menu   = "root|Menu_Text2",
+			menu   = "root|Menu_Text",
 			env    = { textId = t }
 		};
 		
