@@ -318,6 +318,7 @@ function ChronoBars.Upgrade_1_14 ()
 			for b=1,table.getn( profile.groups[g].bars ) do
 				local bar = profile.groups[g].bars[b];
 				
+				--Icon
 				if (bar.style.icon == nil) then
 					bar.style.icon = CopyTable( CB.DEFAULT_BAR.style.icon );
 					
@@ -330,6 +331,16 @@ function ChronoBars.Upgrade_1_14 ()
 					end
 				end
 				
+				--Spark
+				if (bar.style.spark == nil) then
+					bar.style.spark = CopyTable( CB.DEFAULT_BAR.style.spark );
+					
+					bar.style.spark.enabled = bar.style.showSpark;
+					bar.style.spark.width = bar.style.sparkWidth;
+					bar.style.spark.height = bar.style.sparkHeight;
+				end
+				
+				--Text
 				if (bar.style.text == nil) then
 					bar.style.text = CopyTable( CB.DEFAULT_BAR.style.text );
 					
@@ -340,6 +351,7 @@ function ChronoBars.Upgrade_1_14 ()
 						bar.style.text[t].textColor = CopyTable( bar.style.textColor );
 					end
 				end
+				
 			end
 		end
 	end

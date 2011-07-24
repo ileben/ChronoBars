@@ -509,9 +509,9 @@ function ChronoBars.Bar_ApplySettings (bar, profile, groupId, barId)
 	
 
   --Spark
-  if (settings.style.showSpark) then
-    bar.spark:SetWidth( settings.style.sparkWidth );
-    bar.spark:SetHeight( h * settings.style.sparkHeight );
+  if (settings.style.spark.enabled) then
+    bar.spark:SetWidth( settings.style.spark.width );
+    bar.spark:SetHeight( h * settings.style.spark.height );
     bar.spark:Show();
 
     if (settings.style.fullSide == CB.SIDE_RIGHT)
@@ -643,7 +643,7 @@ function ChronoBars.Bar_UpdateUI (bar, now, interval)
   if (bar.status.duration == 0 or bar.anim.ratio == 0) then
     bar.spark:Hide();
   else
-    if (set.style.showSpark) then
+    if (set.style.spark.enabled) then
       bar.spark:Show();
     end
   end
@@ -778,14 +778,7 @@ function ChronoBars.Group_UpdateBounds (grp, bar, L, R, B, T)
   then barT = bar;
   else barB = bar;
   end
-  
-  if (bar.settings.style.showIcon) then
-    if (bar.settings.style.iconSide == CB.SIDE_LEFT)
-    then barL = bar;
-    else barR = bar;
-    end
-  end
-  
+
   return barL, barR, barB, barT;
   
 end

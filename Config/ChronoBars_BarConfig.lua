@@ -342,9 +342,9 @@ ChronoBars.Frame_StyleSpark =
 {
 	{ type="scroll" },
 	{ type="header",   text="Spark" },
-	{ type="toggle",   text="Enabled",  var="bar|style.showSpark" },
-	{ type="numinput", text="Height",   var="bar|style.sparkHeight"  },
-	{ type="numinput", text="Width",    var="bar|style.sparkWidth" },
+	{ type="toggle",   text="Enabled",  var="bar|style.spark.enabled" },
+	{ type="numinput", text="Width",    var="bar|style.spark.width" },
+	{ type="numinput", text="Height",   var="bar|style.spark.height"  },
 };
 
 ChronoBars.Frame_StyleText =
