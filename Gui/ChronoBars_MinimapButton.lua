@@ -63,7 +63,7 @@ function CB.MinimapButton_New( name )
 	background:SetPoint("TOPLEFT", 7, -5)
 	
 	local icon = button:CreateTexture(nil, "ARTWORK")
-	icon:SetWidth(20); icon:SetHeight(20)
+	icon:SetWidth(18); icon:SetHeight(18)
 	icon:SetTexCoord(0.05, 0.95, 0.05, 0.95)
 	icon:SetPoint("TOPLEFT", 7, -5)
 	button.icon = icon
