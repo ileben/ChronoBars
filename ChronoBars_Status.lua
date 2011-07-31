@@ -23,12 +23,12 @@ function ChronoBars.Bar_InitEffect (bar)
     bar.effectStatus = {};
   end
 
-  --Get the list of effect names
+  --Break the comma-separated list of effect names
   CB.Util_ClearTable( bar.effectDesc );
-  CB.Util_CaptureList( bar.effectDesc, strsplit( ",", set.name ) );
-  bar.numEffectStatus = table.getn( bar.effectDesc );
+  CB.Util_CommaSeparate( bar.effectDesc, set.name );
   
   --Walk the list of effects
+  bar.numEffectStatus = table.getn( bar.effectDesc );
   for i=1,bar.numEffectStatus do
     
     --Add new effect status if missing
@@ -38,7 +38,7 @@ function ChronoBars.Bar_InitEffect (bar)
     
     --Reset effect status
     local status = bar.effectStatus[ i ];
-    status.desc = strtrim( bar.effectDesc[ i ] );
+	status.desc = bar.effectDesc[ i ];
     status.id = tonumber( status.desc );
     status.name = nil;
     status.count = nil;

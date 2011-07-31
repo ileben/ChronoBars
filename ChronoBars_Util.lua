@@ -70,6 +70,52 @@ function ChronoBars.Util_CaptureList (t, ...)
 end
 
 
+--Break a comma-separated string into an array
+--===========================================================
+
+function ChronoBars.Util_CommaSeparate( t, str )
+
+	--Create new temp table if it doesn't exist
+	if (CB.commaList == nil) then
+		CB.commaList = {};
+	end
+
+	--Clear temp table
+	CB.Util_ClearTable( CB.commaList );
+		
+	--Parse string tokens
+	local s,e = strfind(str, '[,"]', 1);
+	while (s and e) do
+	
+		table.insert(CB.commaList, strsub(str, 1, s-1));
+	
+		if (strsub( str, s,s ) == '"') then
+			
+			local e = strfind(str, '["]', s+1);
+			if (e) then
+			
+				table.insert(CB.commaList, strsub(str, s+1, e-1));
+				s = e;
+			end
+		end
+
+		str = strsub(str, s+1);		
+		s,e = strfind(str, '[,"]', 1);
+	end
+	
+	table.insert(CB.commaList, str);
+	
+	--Output non-empty strings into given table
+	for i=1,table.getn( CB.commaList ) do
+	
+		str = strtrim( CB.commaList[i] );
+		if (str ~= "") then
+		
+			table.insert( t, str );
+		end
+	end
+end
+
 --Spell icon cache
 --========================================================
 
