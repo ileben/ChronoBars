@@ -746,36 +746,36 @@ end
 
 function ChronoBars.Bar_UpdateStatusCustom (bar, status, now, event, arg1, arg2)
 
-  local set = bar.settings;
-  local activate = false;
+	local set = bar.settings;
+	local activate = false;
+	
+	if (set.custom.trigger == CB.CUSTOM_TRIGGER_SPELL_CAST) then
 
-  if (set.custom.trigger == CB.CUSTOM_TRIGGER_SPELL_CAST) then
+		--Check if spell with matching name was cast
+		if (event == "UNIT_SPELLCAST_SUCCEEDED" and arg1 == "player") then
+			local spellName = arg2;
+			if (spellName == status.name) then
+				activate = true;
+			end
+		end
+
+	elseif (set.custom.trigger == CB.CUSTOM_TRIGGER_BAR_ACTIVE) then
+
+		--Check if bar with matching name just activated
+		if (event == "CHRONOBARS_BAR_ACTIVATED") then
+			local otherBar = arg1;
+			if (strfind( otherBar.settings.name, status.desc )) then
+				status.icon = otherBar.icon:GetTexture();
+				activate = true;
+			end
+		end
+	end
   
-    --Check if spell with matching name was cast
-    if (event == "UNIT_SPELLCAST_SUCCEEDED" and arg1 == "player") then
-      local spellName = arg2;
-      if (spellName == status.name) then
-        activate = true;
-      end
-    end
-    
-  elseif (set.custom.trigger == CB.CUSTOM_TRIGGER_BAR_ACTIVE) then
-  
-    --Check if bar with matching name just activated
-    if (event == "CHRONOBARS_BAR_ACTIVATED") then
-      local otherBar = arg1;
-      if (strfind( otherBar.settings.name, status.name )) then
-        status.icon = otherBar.icon:GetTexture();
-        activate = true;
-      end
-    end
-  end
-  
-  --Activate bar if trigger detected
-  if (activate) then
-    status.duration = set.custom.duration;
-    status.expires = now + set.custom.duration;
-  end
+	--Activate bar if trigger detected
+	if (activate) then
+		status.duration = set.custom.duration;
+		status.expires = now + set.custom.duration;
+	end
   
 end
 
