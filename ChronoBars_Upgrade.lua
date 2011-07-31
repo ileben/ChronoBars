@@ -359,3 +359,18 @@ end
 
 function ChronoBars.UpgradeChar_2_0 ()
 end
+
+
+-- 2.1
+
+function CB.Upgrade_2_1 ()
+end
+
+function CB.UpgradeChar_2_1 ()
+
+	local save = ChronoBars_CharSettings;
+	
+	if (save.minimapButtonPos == nil) then
+		save.minimapButtonPos = CB.DEFAULT_CHAR_SETTINGS.minimapButtonPos;
+	end
+end

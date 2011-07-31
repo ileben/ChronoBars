@@ -14,7 +14,7 @@ local CB = ChronoBars;
 --=================================================================================
 
 ChronoBars.VERSION = "2.0";
-ChronoBars.UPGRADE_LIST = { "1.2","1.3","1.4","1.5","1.6","1.8", "1.9", "1.10", "1.12", "2.0" };
+ChronoBars.UPGRADE_LIST = { "1.2","1.3","1.4","1.5","1.6","1.8", "1.9", "1.10", "1.12", "2.0", "2.1" };
 
 function ChronoBars.CompareVersions (old, new)
 
@@ -158,13 +158,7 @@ end
 function ChronoBars.SlashHandler (msg)
 
   if (msg == "") then
-    if (ChronoBars.designMode) then
-      ChronoBars.Print( "Switching to |cff00ff00RUN |cffffffffmode" );
-      ChronoBars.ModeRun();
-    else
-      ChronoBars.Print( "Switching to |cffff0000SETUP |cffffffffmode" );
-      ChronoBars.ModeDesign();
-    end
+	CB.ModeToggle();
 
   elseif (msg == "debug") then
     ChronoBars_Settings.debugEnabled = true;
@@ -264,10 +258,21 @@ function ChronoBars.MainFrame_ADDON_LOADED( addonName, ... )
 end
 
 function ChronoBars.MainFrame_PLAYER_LOGIN (...)
-  CB.CheckSettings();
-  CB.ModeDesign();
-  CB.ModeRun();
-  CB.initUI = true;
+
+	--Upgrade settings if needed
+	CB.CheckSettings();
+	
+	--Update all bars
+	CB.ModeDesign();
+	CB.ModeRun();
+  
+	--Create new minimap button if missing
+	if (CB.button == nil) then
+		CB.button = CB.CreateMinimapButton();
+	end
+	
+	--Mark init
+	CB.initUI = true;
 end
 
 function ChronoBars.MainFrame_DISPLAY_SIZE_CHANGED (...)
@@ -304,7 +309,20 @@ end
 --Mode
 --=====================================================
 
-function ChronoBars.ModeDesign ()
+function ChronoBars.ModeToggle()
+
+    if (ChronoBars.designMode) then
+		ChronoBars.Print( "Switching to |cff00ff00RUN |cffffffffmode" );
+		ChronoBars.ModeRun();
+    else
+		ChronoBars.Print( "Switching to |cffff0000SETUP |cffffffffmode" );
+		ChronoBars.ModeDesign();
+    end
+	
+end
+	
+	
+function ChronoBars.ModeDesign()
 
   CB.designMode = true;
   CB.HideBarConfig();
@@ -324,7 +342,7 @@ function ChronoBars.ModeDesign ()
 end
 
 
-function ChronoBars.ModeRun ()
+function ChronoBars.ModeRun()
 
   CB.designMode = false;
   CB.HideBarConfig();
@@ -394,3 +412,47 @@ function ChronoBars.UpdateSettings ()
     CB.Group_ApplySettings( grp, profile, g );
   end
 end
+
+
+--Minimap button
+--===================================================
+
+function CB.CreateMinimapButton()
+
+	local button = CB.MinimapButton_New( "ChronoBars_MinimapButton" );
+	button:SetIcon( "Interface\\AddOns\\ChronoBars\\Textures\\icon.tga" );
+	button:SetPosition( ChronoBars_CharSettings.minimapButtonPos );
+	
+	button.OnPositionChanged	= CB.MMB_OnPositionChanged;
+	button.OnTooltipShow		= CB.MMB_OnTooltipShow;
+	button.OnClick				= CB.MMB_OnClick;
+	
+	return button;
+end
+
+function CB.MMB_OnPositionChanged( button )
+
+	ChronoBars_CharSettings.minimapButtonPos = button:GetPosition();
+end
+
+function CB.MMB_OnTooltipShow( button )
+
+	GameTooltip:ClearLines();
+	GameTooltip:AddLine("ChronoBars", 1, 1, 0);
+	GameTooltip:AddLine("|cffffff00Click |cffffffffto toggle bar config");
+	GameTooltip:AddLine("|cffffff00Right-Click |cffffffffto open global config");
+end
+
+function CB.MMB_OnClick( button, mouseButton )
+
+	if (mouseButton == "LeftButton") then
+		
+		CB.ModeToggle();
+		
+	elseif (mouseButton == "RightButton") then
+	
+		CB.ModeRun();
+		CB.ShowMainConfig();
+	end
+end
+

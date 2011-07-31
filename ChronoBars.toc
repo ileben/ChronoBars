@@ -29,6 +29,7 @@ Gui\ChronoBars_DropdownTex.lua
 Gui\ChronoBars_ColorSwatch.lua
 Gui\ChronoBars_Window.lua
 Gui\ChronoBars_Factory.lua
+Gui\ChronoBars_MinimapButton.lua
 
 Config\ChronoBars_Config.lua
 Config\ChronoBars_MainConfig.lua
