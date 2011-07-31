@@ -211,31 +211,12 @@ end
 
 function ChronoBars.Init ()
   
-  --The only purpose of main frame is to handle initialization events and global update
+  --Need to wait until PLAYER_LOGIN for all the game textures to be loaded
   ChronoBars.frame = CreateFrame( "Frame", "ChronoBars_MainFrame" );
   ChronoBars.frame:SetScript( "OnEvent", ChronoBars.MainFrame_OnEvent );
-  ChronoBars.frame:RegisterEvent( "ADDON_LOADED" );
   ChronoBars.frame:RegisterEvent( "PLAYER_LOGIN" );
-  ChronoBars.frame:RegisterEvent( "DISPLAY_SIZE_CHANGED" );
-  ChronoBars.frame:RegisterEvent( "ACTIVE_TALENT_GROUP_CHANGED" );
   
-  --Cache makes it possible to reuse UI elements
-  CB.cache = {};
-  CB.cache.bars = {};
-  CB.cache.groups = {};
-  CB.cache.numUsedBars = 0;
-  CB.cache.numUsedGroups = 0;
-  
-  --Group/bar UI hierarchy
-  CB.groups = {};
-
 end
-
---Initialization flags
-ChronoBars.initUI = false;
-ChronoBars.initUpdate = false;
-ChronoBars.lastUpdate = 0;
-ChronoBars.designMode = false;
 
 --Main entry point
 ChronoBars.Init ();
@@ -244,18 +225,21 @@ ChronoBars.Init ();
 --Events
 --=====================================================
 
-function ChronoBars.MainFrame_ADDON_LOADED( addonName, ... )
-
-  --Check that it's really us being loaded
-  if (addonName ~= "ChronoBars") then return end
-  
-  --Hmmmmmm doesn't seem to work correctly from here :/
-  --ChronoBars.CheckSettings();
-  
-end
-
 function ChronoBars.MainFrame_PLAYER_LOGIN (...)
 
+	--Cache makes it possible to reuse UI elements
+	CB.cache = {};
+	CB.cache.bars = {};
+	CB.cache.groups = {};
+	CB.cache.numUsedBars = 0;
+	CB.cache.numUsedGroups = 0;
+
+	--Group/bar UI hierarchy
+	CB.groups = {};
+	
+	--Start in design mode
+	CB.designMode = false;
+	
 	--Upgrade settings if needed
 	CB.CheckSettings();
 	
@@ -268,39 +252,43 @@ function ChronoBars.MainFrame_PLAYER_LOGIN (...)
 		CB.button = CB.CreateMinimapButton();
 	end
 	
-	--Mark init
-	CB.initUI = true;
-end
-
-function ChronoBars.MainFrame_DISPLAY_SIZE_CHANGED (...)
-  if (ChronoBars.initUI) then
-    CB.ModeDesign();
-    CB.ModeRun();
-  end
+	--Register other events that require init to be done
+	CB.frame:RegisterEvent( "ACTIVE_TALENT_GROUP_CHANGED" );
+	CB.frame:RegisterEvent( "DISPLAY_SIZE_CHANGED" );
+	
 end
 
 function ChronoBars.MainFrame_ACTIVE_TALENT_GROUP_CHANGED ()
-  local spec = GetActiveTalentGroup( false, false );
 
-  --Find name of the linked profile
-  local specProfile = nil;
-  if (spec == 1)
-  then specProfile = ChronoBars_CharSettings.primaryProfile;
-  else specProfile = ChronoBars_CharSettings.secondaryProfile;
-  end
+	--Find index of the current spec
+	local spec = GetActiveTalentGroup( false, false );
 
-  --Check that profile is linked and exists
-  if (specProfile ~= nil) then
-    if (ChronoBars_Settings.profiles[ specProfile ] ~= nil) then
-    
-      --Switch to linked profile
-      ChronoBars.Print( "Switching profile to '" .. specProfile .. "' to match spec." );
-      ChronoBars_CharSettings.activeProfile = specProfile;
-      CB.ModeDesign();
-      CB.ModeRun();
-    end
-  end
+	--Find name of the linked profile
+	local specProfile = nil;
+	if (spec == 1)
+	then specProfile = ChronoBars_CharSettings.primaryProfile;
+	else specProfile = ChronoBars_CharSettings.secondaryProfile;
+	end
 
+	--Check that profile is linked and exists
+	if (specProfile ~= nil) then
+		if (ChronoBars_Settings.profiles[ specProfile ] ~= nil) then
+
+			--Switch to linked profile
+			ChronoBars.Print( "Switching profile to '" .. specProfile .. "' to match spec." );
+			ChronoBars_CharSettings.activeProfile = specProfile;
+			CB.ModeDesign();
+			CB.ModeRun();
+		end
+	end
+
+end
+
+function ChronoBars.MainFrame_DISPLAY_SIZE_CHANGED (...)
+
+	--Update all bars to fix pixel alignment
+    CB.ModeDesign();
+    CB.ModeRun();
 end
 
 --Mode
