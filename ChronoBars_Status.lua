@@ -927,7 +927,7 @@ function ChronoBars.Bar_UpdateStatusEnchant (bar, status, now, event, ...)
   
     --Check if name of the enchant matches
     local enchantName = CB.Util_GetWeaponEnchantName( slotId );
-    if (enchantName and strfind( enchantName, status.name )) then
+    if (enchantName and strfind( enchantName, status.desc )) then
     
       --There is no way to get total duration, assuming 30min
       status.duration = 1800;
