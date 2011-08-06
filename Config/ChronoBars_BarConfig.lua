@@ -379,6 +379,7 @@ ChronoBars.Frame_StyleText =
 	{ type="options",  text="Position",    var="bar|style.text[temp|textIndex].position",   options="root|Options_Position" },
 	{ type="numinput", text="Offset X",    var="bar|style.text[temp|textIndex].x" },
 	{ type="numinput", text="Offset Y",    var="bar|style.text[temp|textIndex].y" },
+	{ type="numinput", text="Width",       var="bar|style.text[temp|textIndex].width" },
 	
 	{ type="font",     text="Font",        var="bar|style.text[temp|textIndex].font" },
 	{ type="numinput", text="Font size",   var="bar|style.text[temp|textIndex].size" },

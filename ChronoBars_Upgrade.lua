@@ -374,3 +374,29 @@ function CB.UpgradeChar_2_1 ()
 		save.minimapButtonPos = CB.DEFAULT_CHAR_SETTINGS.minimapButtonPos;
 	end
 end
+
+-- 2.1
+
+function CB.Upgrade_2_2 ()
+
+	for pname, profile in pairs( ChronoBars_Settings.profiles ) do
+		for g=1,table.getn( profile.groups ) do
+			local grp = profile.groups[g];
+
+			for b=1,table.getn( profile.groups[g].bars ) do
+				local bar = profile.groups[g].bars[b];
+				
+				--Text width
+				for t=1,table.getn( bar.style.text ) do
+					if (bar.style.text[t].width == nil) then
+						bar.style.text[t].width = 0;
+					end
+				end
+				
+			end
+		end
+	end
+end
+
+function CB.UpgradeChar_2_2 ()
+end

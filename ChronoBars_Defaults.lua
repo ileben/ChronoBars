@@ -13,7 +13,7 @@ local CB = ChronoBars;
 --==============================================================
 
 ChronoBars.VERSION = "2.1";
-ChronoBars.UPGRADE_LIST = { "1.2","1.3","1.4","1.5","1.6","1.8", "1.9", "1.10", "1.12", "2.0", "2.1" };
+ChronoBars.UPGRADE_LIST = { "1.2","1.3","1.4","1.5","1.6","1.8", "1.9", "1.10", "1.12", "2.0", "2.1", "2.2" };
 
 -- Define constants
 --==============================================================
@@ -122,6 +122,7 @@ ChronoBars.DEFAULT_TEXT =
   position    = CB.POS_IN_CENTER,
   x           = 0,
   y           = 0,
+  width       = 0,
   
   font        = "Friz Quadrata TT",
   size        = 12,
@@ -266,83 +267,7 @@ ChronoBars.DEFAULT_BAR =
 				},
 };
 
---[[
-ChronoBars.DEFAULT_BAR =
-{
-  enabled     = true,
-  name        = "Effect",
-  type        = ChronoBars.EFFECT_TYPE_AURA,
-  aura        = {
-                  unit = ChronoBars.AURA_UNIT_PLAYER,
-                  type = ChronoBars.AURA_TYPE_BUFF,
-                  byPlayer = false,
-                  sum = false,
-                  order = 1,
-                },
-  cd          = {
-                  type = ChronoBars.CD_TYPE_SPELL,
-                },
-  usable      = {
-                  type = ChronoBars.USABLE_TYPE_SPELL,
-                  includeCd = true,
-                },
-  totem       = {
-                  type = ChronoBars.TOTEM_TYPE_FIRE,
-                },
-  custom      = {
-                  trigger = ChronoBars.CUSTOM_TRIGGER_SPELL_CAST,
-                  duration = 0,
-                },
-  auto        = {
-                  type = ChronoBars.AUTO_TYPE_MAIN_HAND,
-                },
-  enchant     = {
-                  hand = ChronoBars.HAND_MAIN,
-                },
-  display     = {
-                  enabled = false,
-                  name = "DisplayName",
-                },
-  fixed       = {
-                  enabled = false,
-                  duration = 0,
-                },
-  style       = {
-                  showName       = true,
-                  showIcon       = true,
-                  showTime       = true,
-                  showCount      = true,
-                  showCd         = true,
-                  showUsable     = true,
-                  showSpark      = true,
-                  nameJustify    = ChronoBars.JUSTIFY_LEFT,
-                  timeSide       = ChronoBars.SIDE_RIGHT,
-                  countSide      = ChronoBars.SIDE_RIGHT,
-                  fullSide       = ChronoBars.SIDE_RIGHT,
-                  iconSide       = ChronoBars.SIDE_LEFT,
-                  iconZoom       = true,
-                  fillUp         = false,
-                  fgColor        = { r = 0.0, g = 0.4, b = 0.8, a = 1.0 },
-                  bgColor        = { r = 0.0, g = 0.0, b = 0.0, a = 0.7 },
-                  textColor      = { r = 1.0, g = 1.0, b = 1.0, a = 1.0 },
-                  fontSize       = 12,
-                  sparkHeight    = 1.8,
-                  sparkWidth     = 20,
-                  timeFormat     = ChronoBars.TIME_SINGLE,
-                  lsmFontHandle  = "Friz Quadrata TT",
-                  lsmTexHandle   = "None",
-                  visibility  = ChronoBars.VISIBLE_ACTIVE,
-                  anim  = {
-                            up = true,
-                            down = true,
-                            blinkSlow = true,
-                            blinkFast = true,
-                            blinkUsable = true,
-                            fade = true,
-                          },
-                },
-};
---]]
+
 ChronoBars.DEFAULT_GROUP = {
   bars         = {},
   x            = 0,

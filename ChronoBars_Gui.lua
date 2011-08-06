@@ -495,6 +495,12 @@ function ChronoBars.Bar_ApplySettings (bar, profile, groupId, barId)
 		bar.prevFrame[ tsettings.position ] = bar.text[t];
 		CB.PositionFrame( bar.text[t], prevFrame, bar.bg, bar, tsettings.position, tsettings.x, tsettings.y, 5 );
 		
+		--Maximum width
+		if (tsettings.width <= 0)
+		then bar.text[t]:SetWidth(0);
+		else bar.text[t]:SetWidth(tsettings.width);
+		end
+		
 		--Text
 		CB.InitText( bar.text[t] );
 		CB.FormatText( bar.text[t], bar.status.name or bar.status.desc, displayCount, 0, 0, "Target Name", displayInfo );
