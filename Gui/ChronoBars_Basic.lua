@@ -87,14 +87,12 @@ function ChronoBars.Input_OnFocusGained( input )
 end
 
 function ChronoBars.Input_OnFocusLost( input )
-	local frame = input.frame;
-	input:SetText( frame.oldValue );
-end
 
-function ChronoBars.Input_OnEscapePressed( input )
 	local frame = input.frame;
-	input:SetText( frame.oldValue );
-	input:ClearFocus();
+	frame.oldValue = input:GetText();
+	
+	local script = frame.OnValueChanged;
+	if (script) then script( frame ); end
 end
 
 function ChronoBars.Input_OnEnterPressed( input )
@@ -105,6 +103,12 @@ function ChronoBars.Input_OnEnterPressed( input )
 	
 	local script = frame.OnValueChanged;
 	if (script) then script( frame ); end
+end
+
+function ChronoBars.Input_OnEscapePressed( input )
+	local frame = input.frame;
+	input:SetText( frame.oldValue );
+	input:ClearFocus();
 end
 
 function ChronoBars.Input_OnSizeChanged( input )
