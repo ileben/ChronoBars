@@ -354,17 +354,6 @@ function ChronoBars.Bar_ApplySettings (bar, profile, groupId, barId)
   end
   
 
-	
-	--[[
-	if (bar.textStack = nil) then
-		bar.textStack = {};
-	end
-	
-	for pos,stack in pairs(bar.textStack) do
-		CB.Util_ClearTable(stack);
-	end
-	--]]
-	
 	--Create layout table if missing
 	if (bar.prevFrame == nil) then
 		bar.prevFrame = {};
@@ -481,15 +470,7 @@ function ChronoBars.Bar_ApplySettings (bar, profile, groupId, barId)
 		--Shadow
 		local scol = tsettings.shadowColor;
 		bar.text[t]:SetShadowColor( scol.r, scol.g, scol.b, scol.a );
-		
-		--Create text stack for this position if missing
-		--if (bar.textStack[ tsettings.position ] == nil) then
-			--bar.textStack[ tsettings.position ] = {};
-
-		--Position
-		--local textStack = bar.textStack[ tsettings.position ];
-		--local numStack = table.getn(textStack);
-		
+				
 		--Position
 		local prevFrame = bar.prevFrame[ tsettings.position ];
 		bar.prevFrame[ tsettings.position ] = bar.text[t];
