@@ -497,7 +497,7 @@ function ChronoBars.Bar_ApplySettings (bar, profile, groupId, barId)
 		
 		--Text
 		CB.InitText( bar.text[t] );
-		CB.FormatText( bar.text[t], bar.status.desc, displayCount, 0, 0, "Target Name", displayInfo );
+		CB.FormatText( bar.text[t], bar.status.name or bar.status.desc, displayCount, 0, 0, "Target Name", displayInfo );
 		
 	until true
 	end
