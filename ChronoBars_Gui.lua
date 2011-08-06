@@ -196,22 +196,26 @@ end
 --===========================================================================
 
 function ChronoBars.Bar_OnMouseDown (bar, button)
-  if (button == "RightButton" and ChronoBars.designMode) then
-	ChronoBars.ShowBarConfig (bar);
+  if (button == "RightButton" and CB.designMode) then
+	CB.ShowBarConfig (bar);
   end
+end
+
+function ChronoBars.BarIcon_OnMouseDown( icon, button )
+	CB.Bar_OnMouseDown( icon.bar, button );
 end
 
 
 function ChronoBars.Bar_OnDragStart (bar)
 
-  if (ChronoBars.designMode) then
+  if (CB.designMode) then
     bar.group:StartMoving();
   end
 end
 
 function ChronoBars.Bar_OnDragStop (bar)
 
-  if (ChronoBars.designMode) then
+  if (CB.designMode) then
     bar.group:StopMovingOrSizing();
     local x = bar.group:GetLeft();
     local y = bar.group:GetBottom();
@@ -220,6 +224,15 @@ function ChronoBars.Bar_OnDragStop (bar)
     ChronoBars.UpdateSettings();
   end
 end
+
+function ChronoBars.BarIcon_OnDragStart( icon )
+	CB.Bar_OnDragStart( icon.bar );
+end
+
+function ChronoBars.BarIcon_OnDragStop( icon )
+	CB.Bar_OnDragStop( icon.bar );
+end
+
 
 function ChronoBars.Bar_Create (name)
 
@@ -233,12 +246,19 @@ function ChronoBars.Bar_Create (name)
 
   local fgBlink = bar:CreateTexture( nil, "ARTWORK" );
   bar.fgBlink = fgBlink;
-   
-  local icon = bar:CreateTexture( nil, "ARTWORK" );
+  
+  local icon = CreateFrame( "Frame", name.."IconFrame" );
+  icon:SetParent( bar );
+  icon.bar = bar;
   bar.icon = icon;
   
-  local iconBg = bar:CreateTexture( nil, "BACKGROUND" );
-  bar.icon.bg = iconBg;
+  local iconBg = icon:CreateTexture( nil, "BACKGROUND" );
+  iconBg:SetAllPoints( icon );
+  icon.bg = iconBg;
+  
+  local iconTex = icon:CreateTexture( nil, "ARTWORK" );
+  iconTex:SetAllPoints( icon );
+  icon.tex = iconTex;
 
   local spark = bar:CreateTexture( nil, "OVERLAY" );
   spark:SetTexture( "Interface\\CastingBar\\UI-CastingBar-Spark" );
@@ -258,6 +278,12 @@ function ChronoBars.Bar_Create (name)
   bar:SetScript( "OnDragStart", ChronoBars.Bar_OnDragStart );
   bar:SetScript( "OnDragStop", ChronoBars.Bar_OnDragStop );
   bar:SetScript( "OnMouseDown", ChronoBars.Bar_OnMouseDown );
+
+  bar.icon:EnableMouse( true );  
+  bar.icon:RegisterForDrag( "LeftButton" );
+  bar.icon:SetScript( "OnDragStart", ChronoBars.BarIcon_OnDragStart );
+  bar.icon:SetScript( "OnDragStop", ChronoBars.BarIcon_OnDragStop );
+  bar.icon:SetScript( "OnMouseDown", ChronoBars.BarIcon_OnMouseDown );
   
   bar.events = {};
 
@@ -367,19 +393,18 @@ function ChronoBars.Bar_ApplySettings (bar, profile, groupId, barId)
 	if (isettings.enabled) then
 
 		bar.icon:Show();
-		bar.icon.bg:Show();
 		
 		--Texture
 		local iconTex = bar.status.icon;
 		if (not iconTex) then iconTex = "Interface/Icons/INV_Misc_QuestionMark"; end
-		bar.icon:SetTexture( iconTex );
+		bar.icon.tex:SetTexture( iconTex );
 		
 		--Zoom
 		if (isettings.zoom) then
 		  local s = 0.08;
-		  bar.icon:SetTexCoord( s, 1-s, s, 1-s );
+		  bar.icon.tex:SetTexCoord( s, 1-s, s, 1-s );
 		else
-		  bar.icon:SetTexCoord( 0,1,0,1 );
+		  bar.icon.tex:SetTexCoord( 0,1,0,1 );
 		end
 		
 		--Back color
@@ -390,22 +415,22 @@ function ChronoBars.Bar_ApplySettings (bar, profile, groupId, barId)
 		--Size
 		local s = CB.RoundToPixel( isettings.size );
 		if (isettings.inherit) then s = h end
-		bar.icon.bg:SetWidth( s );
-		bar.icon.bg:SetHeight( s );
+		bar.icon:SetWidth( s );
+		bar.icon:SetHeight( s );
 		
 		--Padding
 		local p = CB.RoundToPixel( isettings.padding );
 		if (isettings.inherit) then p = pad end
-		bar.icon:SetPoint( "BOTTOMLEFT", bar.icon.bg, "BOTTOMLEFT", p, p );
-		bar.icon:SetPoint( "TOPRIGHT", bar.icon.bg, "TOPRIGHT", -p,-p );
+		bar.icon.tex:ClearAllPoints();
+		bar.icon.tex:SetPoint( "BOTTOMLEFT", bar.icon, "BOTTOMLEFT", p, p );
+		bar.icon.tex:SetPoint( "TOPRIGHT", bar.icon, "TOPRIGHT", -p,-p );
 		
 		--Position
-		bar.prevFrame[ isettings.position ] = bar.icon.bg;
-		CB.PositionFrame( bar.icon.bg, nil, bar.bg, nil, isettings.position, isettings.x, isettings.y, 0 );
+		bar.prevFrame[ isettings.position ] = bar.icon;
+		CB.PositionFrame( bar.icon, nil, bar.bg, nil, isettings.position, isettings.x, isettings.y, 0 );
 
 	else
 		bar.icon:Hide();
-		bar.icon.bg:Hide();
 	end
 
 	--Config text
@@ -512,6 +537,7 @@ function ChronoBars.Bar_ApplySettings (bar, profile, groupId, barId)
 
   --Enable for mouse events
   bar:EnableMouse( true );
+  bar.icon:EnableMouse( true );
   
 end
 
@@ -665,7 +691,7 @@ function ChronoBars.Bar_UpdateUI (bar, now, interval)
 
   --Update bar icon
   if (bar.status.icon) then
-    bar.icon:SetTexture( bar.status.icon );
+    bar.icon.tex:SetTexture( bar.status.icon );
   end
 
 	--Formatting input
@@ -702,6 +728,7 @@ function ChronoBars.Bar_UpdateUI (bar, now, interval)
 
   --Disable mouse events
   bar:EnableMouse( false );
+  bar.icon:EnableMouse( false );
 
 end
 
