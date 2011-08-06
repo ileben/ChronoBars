@@ -247,10 +247,8 @@ function ChronoBars.MainFrame_PLAYER_LOGIN (...)
 	CB.ModeDesign();
 	CB.ModeRun();
   
-	--Create new minimap button if missing
-	if (CB.button == nil) then
-		CB.button = CB.CreateMinimapButton();
-	end
+	--Update other stuff
+	CB.UpdateMainSettings();
 	
 	--Register other events that require init to be done
 	CB.frame:RegisterEvent( "ACTIVE_TALENT_GROUP_CHANGED" );
@@ -312,7 +310,7 @@ function ChronoBars.ModeDesign()
   CB.designMode = true;
   CB.HideBarConfig();
   CB.ShowConfigHeader();
-  CB.UpdateSettings();
+  CB.UpdateBarSettings();
   
   --Disable all group updates
   for g=1,table.getn( CB.cache.groups ) do
@@ -332,7 +330,7 @@ function ChronoBars.ModeRun()
   CB.designMode = false;
   CB.HideBarConfig();
   CB.HideConfigHeader();
-  CB.UpdateSettings();
+  CB.UpdateBarSettings();
 
   --Get the character's active profile
   local profile = ChronoBars.GetActiveProfile();
@@ -362,7 +360,7 @@ end
 --NOTE: this should never be called outside design mode!!!
 --It will put the bar UI in the "editing" state.
 
-function ChronoBars.UpdateSettings ()
+function ChronoBars.UpdateBarSettings ()
    
   --Update pixel-perfect state
   CB.FindPixelRatio();
@@ -396,6 +394,32 @@ function ChronoBars.UpdateSettings ()
     --Apply group settings
     CB.Group_ApplySettings( grp, profile, g );
   end
+end
+
+
+function ChronoBars.UpdateMainSettings()
+
+	local set = ChronoBars_CharSettings;
+	
+	if (set.minimapButtonEnabled) then
+	
+		--Create new minimap button if missing
+		if (CB.button == nil) then
+			CB.button = CB.CreateMinimapButton();
+		end
+		
+		--Update its position and show it
+		CB.button:SetPosition( set.minimapButtonPos );
+		CB.button:Show();
+	else
+	
+		--Hide minimap button if exists
+		if (CB.button) then
+			CB.button:ClearAllPoints();
+			CB.button:SetParent(nil);
+			CB.button:Hide();
+		end
+	end
 end
 
 

@@ -27,6 +27,10 @@ ChronoBars.Frame_MainRoot =
 	{ type="header",     text="Copy profile settings" },
 	{ type="options",    text="Copy from",         var="temp|copyProfile",          options="func|Options_CopyProfile" },
 	{ type="button",     text="Copy",              func="root|Func_ProfileCopy" },
+	
+	{ type="header",     text="Minimap button" },
+	{ type="toggle",     text="Enabled",            var="char|minimapButtonEnabled" },
+	{ type="numinput",   text="Position (degrees)", var="char|minimapButtonPos" },
 };
 
 
@@ -233,8 +237,7 @@ end
 
 function ChronoBars.UpdateMainConfig()
 
-	CB.mainConfigFrame:RemoveAllChildren();
-	CB.Config_Construct( CB.mainConfigFrame, CB.Frame_MainRoot );
+	CB.Config_Show( CB.mainConfigFrame, CB.Frame_MainRoot, CB.UpdateMainSettings );
 end
 
 function ChronoBars.ShowMainConfig()

@@ -399,4 +399,10 @@ function CB.Upgrade_2_2 ()
 end
 
 function CB.UpgradeChar_2_2 ()
+
+	local save = ChronoBars_CharSettings;
+	
+	if (save.minimapButtonEnabled == nil) then
+		save.minimapButtonEnabled = true;
+	end
 end

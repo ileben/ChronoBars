@@ -529,7 +529,7 @@ function ChronoBars.Func_NewText()
 	--Switch selection to new text
 	CB.SetSettingsValue( "temp|textIndex", table.getn( bar.style.text ));
 	
-	CB.UpdateSettings();
+	CB.UpdateBarSettings();
 end
 
 function ChronoBars.Func_DeleteText()
@@ -556,7 +556,7 @@ function ChronoBars.Func_DeleteText()
 		CB.SetSettingsValue( "temp|textIndex", numText );
 	end
 	
-	CB.UpdateSettings();
+	CB.UpdateBarSettings();
 end
 
 function ChronoBars.Options_TextSwap_Get()
@@ -584,7 +584,7 @@ function ChronoBars.Func_TextSwap()
 	CB.SetSettingsValue( "temp|textIndex", dst );
 	CB.SetSettingsValue( "temp|textSwapIndex", src );
 	
-	CB.UpdateSettings();
+	CB.UpdateBarSettings();
 
 end
 
@@ -649,7 +649,7 @@ function ChronoBars.Func_Paste()
 	
 	--Notify user
 	CB.Print( "Pasted "..copyItem.text.."." );
-	CB.UpdateSettings();
+	CB.UpdateBarSettings();
 end
 
 function ChronoBars.Func_PasteToAll()
@@ -694,7 +694,7 @@ function ChronoBars.Func_PasteToAll()
 	CB.temp.groupId = oldGroupId;
 	CB.temp.barId = oldBarId;
 	
-	CB.UpdateSettings();
+	CB.UpdateBarSettings();
 end
 
 function ChronoBars.Func_GroupCopy()
@@ -774,7 +774,7 @@ function ChronoBars.MoveBar( offset )
   group.bars[ CB.temp.barId ] = tempBar;
 
   CB.temp.barId = newBarId;
-  CB.UpdateSettings();
+  CB.UpdateBarSettings();
   
 end
 
@@ -793,7 +793,7 @@ function ChronoBars.Func_BarNew()
 	--Clone style from current bar
 	newBar.style = CopyTable( curBar.style );
 	
-	CB.UpdateSettings();
+	CB.UpdateBarSettings();
 	CB.HideBarConfig();
 	
 end
@@ -821,7 +821,7 @@ function ChronoBars.Func_BarDeleteAccept()
 	--Delete bar
 	table.remove( profile.groups[ CB.temp.groupId ].bars, CB.temp.barId );
 	
-	CB.UpdateSettings();
+	CB.UpdateBarSettings();
 	CB.HideBarConfig();
 	
 end
@@ -846,7 +846,7 @@ function ChronoBars.Func_GroupNew()
 	--Clone style from current bar
 	newGroup.bars[1].style = CopyTable( curBar.style );
 	
-	CB.UpdateSettings();
+	CB.UpdateBarSettings();
 	CB.HideBarConfig();
 	
 end
@@ -871,7 +871,7 @@ function ChronoBars.Func_GroupDeleteAccept ()
 	--Delete group
 	table.remove( profile.groups, CB.temp.groupId );
 	
-	CB.UpdateSettings();
+	CB.UpdateBarSettings();
 	CB.HideBarConfig();
 	
 end
@@ -949,10 +949,7 @@ end
 
 function ChronoBars.UpdateBarConfig()
 
-	--CB.FreeAllObjects();
-	CB.configFrame:RemoveAllChildren();
-	CB.Config_Construct( CB.configFrame, CB.Frame_Root );
-	
+	CB.Config_Show( CB.configFrame, CB.Frame_Root, CB.UpdateBarSettings );
 end
 
 function ChronoBars.ShowBarConfig (bar)

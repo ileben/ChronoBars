@@ -222,6 +222,18 @@ end
 --===========================================================================
 
 ChronoBars.configTemp = {};
+ChronoBars.configFunc = nil;
+
+
+function ChronoBars.Config_Show( parentFrame, config, func )
+
+	--Store update function
+	CB.configFunc = func;
+	
+	--Remove all existing gui elements and construct new gui
+	parentFrame:RemoveAllChildren();
+	CB.Config_Construct( parentFrame, config );
+end
 
 
 function ChronoBars.Config_Construct( parentFrame, config )
@@ -464,7 +476,10 @@ function ChronoBars.Config_OnOptionChanged( ddFrame )
 	local newValue = ddFrame:GetSelectedValue();
 	
 	CB.SetSettingsValue( item.var, newValue );
-	CB.UpdateSettings();
+	
+	if (CB.configFunc) then
+		CB.configFunc();
+	end
 	
 	if (item.update) then
 		CB.UpdateBarConfig();
@@ -482,7 +497,9 @@ function ChronoBars.Config_OnToggleChanged( cbFrame )
 	else CB.SetSettingsValue( item.var, false );
 	end
 	
-	CB.UpdateSettings();
+	if (CB.configFunc) then
+		CB.configFunc();
+	end
 	
 	if (item.update) then
 		CB.UpdateBarConfig();
@@ -501,7 +518,10 @@ function ChronoBars.Config_OnInputChanged( inpFrame )
 	end
 	
 	inpFrame:SetText( tostring(CB.GetSettingsValue( item.var )) );
-	CB.UpdateSettings();
+	
+	if (CB.configFunc) then
+		CB.configFunc();
+	end
 	
 	if (item.update) then
 		CB.UpdateBarConfig();
@@ -515,7 +535,10 @@ function ChronoBars.Config_OnColorChanged( colFrame )
 	local newValue = colFrame:GetColor();
 	
 	CB.SetSettingsValue( item.var, newValue );
-	CB.UpdateSettings();
+	
+	if (CB.configFunc) then
+		CB.configFunc();
+	end
 	
 	if (item.update) then
 		CB.UpdateBarConfig();

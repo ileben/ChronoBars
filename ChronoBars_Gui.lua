@@ -221,7 +221,7 @@ function ChronoBars.Bar_OnDragStop (bar)
     local y = bar.group:GetBottom();
     bar.group.settings.x = x - GetScreenWidth()/2;
     bar.group.settings.y = y - GetScreenHeight()/2;
-    ChronoBars.UpdateSettings();
+    ChronoBars.UpdateBarSettings();
   end
 end
 

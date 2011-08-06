@@ -306,7 +306,7 @@ function ChronoBars.ResetProfile_Accept (arg)
 
   local pname = ChronoBars_CharSettings.activeProfile;
   ChronoBars_Settings.profiles[ pname ] = CopyTable( ChronoBars.DEFAULT_PROFILE );
-  ChronoBars.UpdateSettings();
+  ChronoBars.UpdateBarSettings();
   
 end
 
@@ -320,5 +320,5 @@ function ChronoBars.ResetGroups_Accept (arg)
     profile.groups[g].y = 0;
   end
   
-  ChronoBars.UpdateSettings();
+  ChronoBars.UpdateBarSettings();
 end

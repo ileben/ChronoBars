@@ -185,5 +185,8 @@ function CB.MinimapButton_UpdatePosition( button )
 		x = math.max(-80, math.min(x*diagRadius, 80))
 		y = math.max(-80, math.min(y*diagRadius, 80))
 	end
+	
+	button:ClearAllPoints();
+	button:SetParent(Minimap);
 	button:SetPoint("CENTER", Minimap, "CENTER", x, y)
 end
