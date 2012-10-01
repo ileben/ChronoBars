@@ -1,8 +1,8 @@
-## Interface: 40200
+## Interface: 50001
 ## Title: ChronoBars
 ## Notes: Bars that track buffs, debuffs, cooldowns, and totems
 ## Author: Ivan Leben
-## Version: 2.2
+## Version: 2.3
 ## SavedVariables: ChronoBars_Settings
 ## SavedVariablesPerCharacter: ChronoBars_CharSettings
 

@@ -15,7 +15,7 @@ local CB = ChronoBars;
 function ChronoBars.Button_New( name )
 
 	--Frame
-	local f = CreateFrame( "Button", name, nil, "UIPanelButtonTemplate2" );
+	local f = CreateFrame( "Button", name, nil, "UIPanelButtonTemplate" );
 	f:SetWidth( 100 );
 	f:SetHeight( 25 );
 	

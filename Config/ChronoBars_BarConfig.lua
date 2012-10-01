@@ -903,7 +903,7 @@ function ChronoBars.ShowConfigHeader()
     txt:Show();
 	
 	--Global button
-	local btnGlobal = CreateFrame( "Button", "ChronoBars.ConfigHeader.BtnGlobal", f, "UIPanelButtonTemplate2" );
+	local btnGlobal = CreateFrame( "Button", "ChronoBars.ConfigHeader.BtnGlobal", f, "UIPanelButtonTemplate" );
 	btnGlobal.frame = f;
 	btnGlobal:SetWidth( 120 );
 	btnGlobal:SetHeight( 22 );
@@ -912,7 +912,7 @@ function ChronoBars.ShowConfigHeader()
 	btnGlobal:SetScript( "OnClick", ChronoBars.ConfigHeader_Global_OnClick );
 	
     --Close button
-    local btnClose = CreateFrame( "Button", "ChronoBars.ConfigHeader.BtnClose", f, "UIPanelButtonTemplate2" );
+    local btnClose = CreateFrame( "Button", "ChronoBars.ConfigHeader.BtnClose", f, "UIPanelButtonTemplate" );
     btnClose.frame = f;
     btnClose:SetWidth( 120 );
     btnClose:SetHeight( 22 );
