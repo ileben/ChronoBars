@@ -16,6 +16,7 @@ local CB = ChronoBars;
 function ChronoBars.Container_New( f )
 	
 	--Private vars
+	f.updateQueue = 0;
 	f.spacing = 10;
 	f.width = 0;
 	f.height = 0;
@@ -163,6 +164,8 @@ function ChronoBars.Container_UpdateContent( frame )
 		frame.containerHeight = frame.container:GetHeight() or 0;
 	end
 	
+	--CB.Print("CONTAINER W " .. frame.containerWidth .. " CONTAINER H " .. frame.containerHeight);
+	
 	--Walk all the children
 	local numChildren = table.getn( frame.children );
 	for i=1,numChildren do
@@ -262,9 +265,9 @@ function ChronoBars.Container_UpdateContent( frame )
 	end
 	
 	--Resize
-	--CB.Print( "SIZING TO CONTENT ("..tostring(frame.contentHeight)..") "..frame:GetName() );
 	frame.contentWidth = w;
 	frame.contentHeight = y;
+	--CB.Print( "SIZING TO CONTENT ("..tostring(frame.contentHeight)..") "..frame:GetName() );
 	frame:SizeToContent();
 	
 	--Release update lock
@@ -319,11 +322,19 @@ end
 
 function ChronoBars.Container_QueueUpdate( frame )
 
+	--CB.Print("Queuing update for " .. frame:GetName());
+	
+	-- Update for 2 frames after queuing because frame.container:GetWidth() does not return the right value yet
+	-- in the same frame the container is reparented (after constructing a new gui)
+	frame.updateQueue = 2;
 	frame:SetScript( "OnUpdate", ChronoBars.Container_OnUpdate );
 end
 
 function ChronoBars.Container_OnUpdate( frame )	
 
+	frame.updateQueue = frame.updateQueue - 1;
 	frame:UpdateContent();
-	frame:SetScript( "OnUpdate", nil );
+	if (frame.updateQueue <= 0) then
+		frame:SetScript( "OnUpdate", nil );
+	end
 end

@@ -132,9 +132,7 @@ ChronoBars.Frame_Effect =
 
 	{ type="toggle",      text="Enabled",         var="bar|enabled" },
 	{ type="input",       text="Effect name",     var="bar|name" },
-	--{ type="options",     text="Effect type",     var="bar|type",   options="root|Options_EffectType",  update=true },
-	{ type="options",     text="Effect type",     var="bar|type",   options="root|Options_EffectType" },
-	
+	{ type="options",     text="Effect type",     var="bar|type",   options="root|Options_EffectType",  update=true },
 	
 	{ type="group",       text="Aura Settings",           frame="root|Frame_AuraSettings",
 	  conditionVar="bar|type", conditionValue = ChronoBars.EFFECT_TYPE_AURA },
@@ -159,7 +157,6 @@ ChronoBars.Frame_Effect =
 
 	{ type="group",       text="Enchant settings",     frame="root|Frame_EnchantSettings",
 	  conditionVar="bar|type", conditionValue = ChronoBars.EFFECT_TYPE_ENCHANT },
-	 
 	
 	{ type="header",      text="Override" },
 	{ type="toggle",      text="Use maximum time",           var="bar|fixed.enabled" },	
