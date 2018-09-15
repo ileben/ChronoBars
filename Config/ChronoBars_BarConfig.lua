@@ -132,7 +132,8 @@ ChronoBars.Frame_Effect =
 
 	{ type="toggle",      text="Enabled",         var="bar|enabled" },
 	{ type="input",       text="Effect name",     var="bar|name" },
-	{ type="options",     text="Effect type",     var="bar|type",   options="root|Options_EffectType",  update=true },
+	--{ type="options",     text="Effect type",     var="bar|type",   options="root|Options_EffectType",  update=true },
+	{ type="options",     text="Effect type",     var="bar|type",   options="root|Options_EffectType" },
 	
 	
 	{ type="group",       text="Aura Settings",           frame="root|Frame_AuraSettings",

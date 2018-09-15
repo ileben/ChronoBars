@@ -237,6 +237,45 @@ end
 --Aura
 --=================================================
 
+-- UnitAura doesn't take spell ID or spell name, so
+-- we have to go through the whole list to find it
+function ChronoBars.UnitAuraByIdNameOrder (unitid, queryId, queryName, queryOrder, filter)
+
+	local name, icon, count, debuffType, duration, expires, caster, canStealOrPurge, nameplateShowPersonal, id;
+	
+    --Walk all the auras on the unit matching the filter
+	local auraOrder = 1;
+    local auraIndex = 1;
+	local auraMatch;
+    while true do
+
+      --Get aura info by index
+	  --auraInfo = { UnitAura( set.aura.unit, auraIndex, filter ) };
+      name, icon, count, debuffType, duration, expires, caster, canStealOrPurge, nameplateShowPersonal, id =
+        UnitAura( unitid, auraIndex, filter );
+		
+      if (not name) then break end;
+      auraIndex = auraIndex + 1;
+
+      --Check if ID or name matches
+      if (queryId)
+      then auraMatch = (id == queryId);
+      else auraMatch = (name == queryName);
+      end
+
+      --Check if order is correct
+      if (auraMatch) then
+        if (auraOrder == queryOrder)
+		then return name, icon, count, debuffType, duration, expires, caster, canStealOrPurge, nameplateShowPersonal, id;
+		end
+        auraOrder = auraOrder + 1;
+      end
+    end
+	
+	return nil
+end
+
+
 function ChronoBars.Bar_InitStatusAura (bar, status)
 
 	--Init by spell description
@@ -256,8 +295,7 @@ function ChronoBars.Bar_UpdateStatusAura (bar, status, now)
     filter = filter.."|PLAYER";
   end
 
-  --UnitAura doesn't take spell ID :(
-  --If using ID or summing stacks we need to check all auras
+  -- Are we summing the stacks?
   if (set.aura.sum) then
 
     --Walk all the auras on the unit matching the filter
@@ -266,11 +304,11 @@ function ChronoBars.Bar_UpdateStatusAura (bar, status, now)
 
       --Get aura info by index
       local tempCount, tempDur, tempExp;
-      local tempName, _, tempIcon, tempCount, _, tempDur, tempExp, tempCaster, _, _, tempId =
+      local tempName, tempIcon, tempCount, _, tempDur, tempExp, tempCaster, _, _, tempId =
         UnitAura( set.aura.unit, auraIndex, filter );
       if (not tempName) then break end;
       auraIndex = auraIndex + 1;
-
+	
       --Check if ID or name matches
       local match;
       if (status.id)
@@ -295,37 +333,11 @@ function ChronoBars.Bar_UpdateStatusAura (bar, status, now)
       end
     end
 
-  elseif (status.id or set.aura.order > 1) then
-
-    --Walk all the auras on the unit matching the filter
-    local auraOrder = 1;
-    local auraIndex = 1;
-    while true do
-
-      --Get aura info by index
-      name, _, icon, count, _, duration, expires, caster, _, _, id =
-        UnitAura( set.aura.unit, auraIndex, filter );
-      if (not name) then break end;
-      auraIndex = auraIndex + 1;
-
-      --Check if ID or name matches
-      local match;
-      if (status.id)
-      then match = (id == status.id);
-      else match = (name == status.name);
-      end
-
-      --Check if order is correct
-      if (match) then
-        if (auraOrder == set.aura.order) then break end;
-        auraOrder = auraOrder + 1;
-      end
-    end
-
   else
-    --Get aura info by name
-    name, _, icon, count, _, duration, expires =
-      UnitAura( set.aura.unit, status.name, nil, filter );
+
+	name, icon, count, _, duration, expires = 
+		CB.UnitAuraByIdNameOrder(set.aura.unit, status.id, status.name, set.aura.order, filter);
+		
   end
   
   --Update status
@@ -438,7 +450,7 @@ function ChronoBars.Bar_UpdateStatusMultiAura (bar, status, now, event, ...)
       --Update time with true aura info
       local filter = set.aura.type;
       if (set.aura.byPlayer) then filter = filter.."|PLAYER"; end
-      duration, expires = select( 6, UnitAura( unitId, status.name, nil, filter ));
+      duration, expires = select( 5, CB.UnitAuraByIdNameOrder( unitId, nil, status.name, 1, filter ));
       if (duration == nil or expires == nil) then return end;
       
     else
@@ -472,7 +484,7 @@ function ChronoBars.Bar_UpdateStatusMultiAura (bar, status, now, event, ...)
     --Update time with true aura info
     local filter = set.aura.type;
     if (set.aura.byPlayer) then filter = filter.."|PLAYER"; end
-    duration, expires = select( 6, UnitAura( unitId, status.name, nil, filter ));
+    duration, expires = select( 5, CB.UnitAuraByIdNameOrder( unitId, nil, status.name, 1, filter ));
     if (duration == nil or expires == nil) then return end;
     
     --We only use these events for application
