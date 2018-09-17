@@ -302,6 +302,7 @@ ChronoBars.DEFAULT_CHAR_SETTINGS = {
   activeProfile    = "Default",
   primaryProfile   = nil,
   secondaryProfile = nil,
+  tertiaryProfile  = nil,
   
   minimapButtonEnabled = true,
   minimapButtonPos = 225,

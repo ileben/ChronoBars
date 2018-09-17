@@ -23,6 +23,7 @@ ChronoBars.Frame_MainRoot =
 	{ type="header",     text="Link profile to spec" },
 	{ type="options",    text="Primary spec",      var="char|primaryProfile",       options="func|Options_LinkProfile" },
 	{ type="options",    text="Secondary spec",    var="char|secondaryProfile",     options="func|Options_LinkProfile" },
+  { type="options",    text="Tertiary spec",     var="char|tertiaryProfile",      options="func|Options_LinkProfile" },
 
 	{ type="header",     text="Copy profile settings" },
 	{ type="options",    text="Copy from",         var="temp|copyProfile",          options="func|Options_CopyProfile" },
@@ -94,13 +95,17 @@ function ChronoBars.Var_ProfileName_Set( newName )
   ChronoBars_Settings.profiles[ oldName ] = nil;
   ChronoBars_CharSettings.activeProfile = newName;
   
-  --Update primary and secondary profile is set to this one
+  --Update char profile setting if set to this one
   if (ChronoBars_CharSettings.primaryProfile == oldName) then
     ChronoBars_CharSettings.primaryProfile = newName;
   end
   
   if (ChronoBars_CharSettings.secondaryProfile == oldName) then
     ChronoBars_CharSettings.secondaryProfile = newName;
+  end
+  
+  if (ChronoBars_CharSettings.tertiaryProfile == oldName) then
+    ChronoBars_CharSettings.tertiaryProfile = newName;
   end
   
   CB.UpdateMainConfig();

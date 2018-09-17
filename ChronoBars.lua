@@ -259,24 +259,30 @@ end
 function ChronoBars.MainFrame_ACTIVE_TALENT_GROUP_CHANGED ()
 
 	--Find index of the current spec
-	local spec = GetActiveTalentGroup( false, false );
+	local spec = GetSpecialization();
+	CB.Debug("ActiveSpecGroup " .. spec );
 
 	--Find name of the linked profile
 	local specProfile = nil;
-	if (spec == 1)
-	then specProfile = ChronoBars_CharSettings.primaryProfile;
-	else specProfile = ChronoBars_CharSettings.secondaryProfile;
+	if (spec == 1) then
+    specProfile = ChronoBars_CharSettings.primaryProfile;
+  elseif (spec == 2) then
+    specProfile = ChronoBars_CharSettings.secondaryProfile;
+  else
+    specProfile = ChronoBars_CharSettings.tertiaryProfile;
 	end
 
-	--Check that profile is linked and exists
+	--Check that profile is linked, exists, and isn't already selected
 	if (specProfile ~= nil) then
 		if (ChronoBars_Settings.profiles[ specProfile ] ~= nil) then
-
-			--Switch to linked profile
-			ChronoBars.Print( "Switching profile to '" .. specProfile .. "' to match spec." );
-			ChronoBars_CharSettings.activeProfile = specProfile;
-			CB.ModeDesign();
-			CB.ModeRun();
+      if (ChronoBars_CharSettings.activeProfile ~= specProfile) then
+      
+        --Switch to linked profile
+        ChronoBars.Print( "Switching profile to '" .. specProfile .. "' to match spec." );
+        ChronoBars_CharSettings.activeProfile = specProfile;
+        CB.ModeDesign();
+        CB.ModeRun();
+      end
 		end
 	end
 
