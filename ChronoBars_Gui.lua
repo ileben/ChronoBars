@@ -343,7 +343,7 @@ function ChronoBars.Bar_ApplySettings (bar, profile, groupId, barId)
 
   --Back and front color and texture
   local b = settings.style.bgColor;
-  bar.bg:SetTexture( b.r, b.g, b.b, b.a );
+  bar.bg:SetColorTexture( b.r, b.g, b.b, b.a );
 
   local f = settings.style.fgColor;
   bar.fg:SetHorizTile( true );
@@ -355,8 +355,8 @@ function ChronoBars.Bar_ApplySettings (bar, profile, groupId, barId)
   bar.fgBlink:SetGradientAlpha( "HORIZONTAL", f.r,f.g,f.b,0,  f.r,f.g,f.b,0 );
 
   if (settings.style.lsmTexHandle == "None") then
-    bar.fg:SetTexture( 1,1,1,1 );
-    bar.fgBlink:SetTexture( 1,1,1,1 );
+    bar.fg:SetColorTexture( 1,1,1,1 );
+    bar.fgBlink:SetColorTexture( 1,1,1,1 );
   else
     bar.fg:SetTexture( texPath );
     bar.fgBlink:SetTexture( texPath );
@@ -410,7 +410,7 @@ function ChronoBars.Bar_ApplySettings (bar, profile, groupId, barId)
 		--Back color
 		local b = isettings.bgColor;
 		if (isettings.inherit) then b = settings.style.bgColor end
-		bar.icon.bg:SetTexture( b.r, b.g, b.b, b.a );
+		bar.icon.bg:SetColorTexture( b.r, b.g, b.b, b.a );
 		
 		--Size
 		local s = CB.RoundToPixel( isettings.size );
@@ -856,7 +856,7 @@ function ChronoBars.Group_ApplySettings (grp, profile, groupId)
   
   --Back color
   local bgcol = settings.style.bgColor;
-  grp.bg:SetTexture( bgcol.r, bgcol.g, bgcol.b, bgcol.a );
+  grp.bg:SetColorTexture( bgcol.r, bgcol.g, bgcol.b, bgcol.a );
   
 end
 

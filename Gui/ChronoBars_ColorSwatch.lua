@@ -27,19 +27,19 @@ function ChronoBars.ColorSwatch_New( name )
 	t:SetPoint( "TOPLEFT", 0,0 );
 	t:SetWidth( size );
 	t:SetHeight( size );
-	t:SetTexture( 1,1,1, 1 );
+	t:SetColorTexture( 1,1,1, 1 );
 	t:SetDrawLayer( "ARTWORK", 1 );
 	
 	local t2 = f:CreateTexture( nil, "ARTWORK" );
 	t2:SetPoint( "BOTTOMLEFT", t, "BOTTOMLEFT", p,p );
 	t2:SetPoint( "TOPRIGHT", t, "TOPRIGHT", -p,-p );
-	t2:SetTexture( 0,0,0, 1 );
+	t2:SetColorTexture( 0,0,0, 1 );
 	t2:SetDrawLayer( "ARTWORK", 2 );
 	
 	local t3 = f:CreateTexture( nil, "ARTWORK" );
 	t3:SetPoint( "BOTTOMLEFT", t2, "BOTTOMLEFT", p,p );
 	t3:SetPoint( "TOPRIGHT", t2, "TOPRIGHT", -p,-p );
-	t3:SetTexture( 1,1,1, 1 );
+	t3:SetColorTexture( 1,1,1, 1 );
 	t3:SetDrawLayer( "ARTWORK", 3 );
 	
 	f.box = t3;
@@ -102,7 +102,7 @@ end
 function ChronoBars.ColorSwatch_SetColor( frame, r,g,b,a )
 	
 	CB.SetColor( frame.value, r,g,b,a );
-	frame.box:SetTexture( r,g,b,a );
+	frame.box:SetColorTexture( r,g,b,a );
 end
 
 function ChronoBars.ColorSwatch_GetColor( frame )
@@ -166,7 +166,9 @@ function ChronoBars.ColorSwatch_OnColorChange()
 
 	local newR, newG, newB = ColorPickerFrame:GetColorRGB();
 	local newA = OpacitySliderFrame:GetValue();
-
+  
+  CB.Debug("Color " .. newR .. ", " .. newG .. ", " .. newB .. ", " .. newA);
+  
 	local frame = ColorPickerFrame.frame;
 	frame:SetColor( newR, newG, newB, 1 - newA );
 
