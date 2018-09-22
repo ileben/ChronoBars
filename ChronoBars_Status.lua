@@ -371,6 +371,8 @@ end
 
 function ChronoBars.Bar_UpdateStatusMultiAura (bar, status, now, event, ...)
   
+  --CB.Print("Multi aura event " .. event);
+  
   local set = bar.settings;
   local applied, removed, refresh;
   local unitGuid, unitName, unitId;
@@ -378,17 +380,24 @@ function ChronoBars.Bar_UpdateStatusMultiAura (bar, status, now, event, ...)
   
   if (event == "CHRONOBARS_MULTI_AURA_UPDATE") then
      
-    --Update time and text
+    -- A duplicate multi-aura bar received status update from the main driver multi-aura bar
+    -- We know this is a duplicate bar because this event is only registered on those
+    
     local unitGuid, unitName, unitId, spellName, duration, expires = select( 1, ... );
-	status.name = spellName;
-	status.target = unitName;
+    status.name = spellName;
+    status.target = unitName;
     status.duration = duration;
     status.expires = expires;
+    
+    -- Early exit to avoid further processing of event
     return;
     
   elseif (event == "CHRONOBARS_BAR_DEACTIVATED") then
   
-    --Check if deactivated bar belongs to this multi-aura bar
+    -- The main driver multi-aura bar received deactivated event from one of the duplicate multi-aura bars
+    -- We know this is the main bar because we don't register this event on the duplicates
+    
+    -- Check if deactivated bar belongs to this multi-aura bar
     local auraBar = select( 1, ... );
     if (auraBar.multiBar == bar) then
       
@@ -397,36 +406,43 @@ function ChronoBars.Bar_UpdateStatusMultiAura (bar, status, now, event, ...)
       auraBar.unitGuid = nil;
       auraBar.multiBar = nil;
     end
+    
+    -- Early exit to avoid further processing of event
     return;
   
   elseif (event == "COMBAT_LOG_EVENT_UNFILTERED") then
   
+    local eventInfo = { CombatLogGetCurrentEventInfo() }
+    
     --Check the type of combat event
-    local combatEvent = select( 2, ... );
+    local combatEvent = eventInfo[2];
+    --CB.Print("Multi aura COMBAT event " .. (combatEvent or "nil"));
+    
+    -- From here on processing aura events
     applied = (combatEvent == "SPELL_AURA_APPLIED");
     removed = (combatEvent == "SPELL_AURA_REMOVED");
     refresh = (combatEvent == "SPELL_AURA_REFRESH");
     if (not (applied or removed or refresh)) then return end;
     
     --Check if source of event is player
-    local srcGuid = select( 4, ... );
+    local srcGuid = eventInfo[4];
     if (srcGuid ~= UnitGUID("player")) then return end;
     
     --Check if aura name matches effect
-    local spellName = select( 13, ... );
+    local spellName = eventInfo[13];
     if (spellName ~= status.name) then return end;
     
     --Check if aura type matches effect
-    local auraType = select( 15, ... );
+    local auraType = eventInfo[15];
     if (auraType == "BUFF"   and set.aura.type ~= CB.AURA_TYPE_BUFF) then return end;
     if (auraType == "DEBUFF" and set.aura.type ~= CB.AURA_TYPE_DEBUFF) then return end;
     
     --Get unit info
-    unitGuid = select( 8, ... );
-    unitName = select( 9, ... );
+    unitGuid = eventInfo[8];
+    unitName = eventInfo[9];
     
     --Get UnitID from UnitFlags
-    local unitFlags = select( 10, ... );
+    local unitFlags = eventInfo[10];
     if (bit.band( unitFlags, COMBATLOG_OBJECT_TARGET) > 0) then
       unitId = "target";
     elseif (bit.band( unitFlags, COMBATLOG_OBJECT_FOCUS) > 0) then
@@ -460,7 +476,7 @@ function ChronoBars.Bar_UpdateStatusMultiAura (bar, status, now, event, ...)
       expires = now + duration;
     end
     
-  else
+  else -- Any of the other registered events
     
     --Get UnitID
     if (event == "UNIT_AURA") then
@@ -492,7 +508,7 @@ function ChronoBars.Bar_UpdateStatusMultiAura (bar, status, now, event, ...)
     
   end
   
-  --Check for existing bar and create new if missing
+  --Find existing duplicate bar for this unit guid and create a new one if missing
   local auraBar = bar.auraBars[ unitGuid ];
   if (auraBar == nil) then
     
@@ -513,8 +529,8 @@ function ChronoBars.Bar_UpdateStatusMultiAura (bar, status, now, event, ...)
     --Register update event
     CB.RegisterBarEvent( auraBar, "CHRONOBARS_MULTI_AURA_UPDATE" );
   end
-
-  --Send update event
+  
+  --Send update event to the duplicate bar for this unit guid
   CB.SendBarEvent( auraBar, "CHRONOBARS_MULTI_AURA_UPDATE",
     unitGuid, unitName, unitId, status.name, duration, expires );
   
