@@ -250,9 +250,9 @@ end
 
 function ChronoBars.CreateNotch( bar )
   local notch = bar:CreateTexture( nil, "ARTWORK", nil, CB.LAYER_NOTCH );
-  notch:SetColorTexture( 1,1,1,1 );
-  notch:SetBlendMode("DISABLE");
-  notch:SetWidth( CB.RoundToPixel(1) );
+  --notch:SetTexture("Interface\\AddOns\\ChronoBars\\Textures\\Notch.tga");
+  notch:SetTexture("Interface\\AddOns\\ChronoBars\\Textures\\White.tga");
+  notch:SetWidth( 1 );
   notch:SetHeight( 10 );
   return notch;
 end
@@ -260,9 +260,12 @@ end
 function ChronoBars.ApplyNotchSettings( notch, settings, gsettings)
   local h = CB.RoundToPixel( gsettings.height );
   local p = CB.RoundToPixel( gsettings.padding );
-  --notch:SetWidth( settings.style.notch.width );
-  --notch:SetHeight( h * settings.style.notch.height );
-  notch:SetHeight( h - 2*p - 2 );
+  local c = settings.style.notch.color;
+  notch:SetWidth( settings.style.notch.width );
+  notch:SetHeight( (h - 2*p - 2) * settings.style.notch.height );
+  notch:SetGradientAlpha( "HORIZONTAL",
+      c.r, c.g, c.b, c.a,
+      c.r, c.g, c.b, c.a);
 end
 
 function ChronoBars.Bar_Create (name)
@@ -297,8 +300,10 @@ function ChronoBars.Bar_Create (name)
   local spark = CB.CreateSpark( bar );
   bar.spark = spark;
   
+  -- Start with 2 notches for preview, more created on demand
   bar.notches = {};
   bar.notches[1] = CB.CreateNotch( bar );
+  bar.notches[2] = CB.CreateNotch( bar );
 
   bar:SetPoint( "LEFT", 0,0 );
   bar:SetPoint( "BOTTOM", 0,0 );
@@ -402,7 +407,8 @@ function ChronoBars.Bar_ApplySettings (bar, profile, groupId, barId)
   bar.fgFade:SetColorTexture( 0,0,0, 0.5 );  
   
   --Make foreground half-full
-  local offWidth = (w - 2*pad) * 0.5;
+  local maxW = (w - 2*pad);
+  local offWidth = maxW * 0.5;
   bar.fg:ClearAllPoints();
   bar.fgBlink:ClearAllPoints();
   bar.fgFade:ClearAllPoints();
@@ -419,17 +425,18 @@ function ChronoBars.Bar_ApplySettings (bar, profile, groupId, barId)
     bar.fgBlink:SetPoint( "TOPRIGHT", bar.fg, "TOPLEFT", 0,0 );
   end
   
-  -- Cover half of the full side as if the 2/4 charges was just about to come off cooldown
+  -- Cover some of the foreground as if the 2nd of 3 charges was recharging
   if (settings.type == CB.EFFECT_TYPE_CHARGES and
       settings.style.fillUp) then
     
     if (settings.style.fullSide == CB.SIDE_RIGHT) then
-      bar.fgFade:SetPoint( "BOTTOMLEFT", bar.fg, "BOTTOMLEFT", offWidth * 0.5, 0);
+      bar.fgFade:SetPoint( "BOTTOMLEFT", bar.fg, "BOTTOMLEFT", maxW * 0.33, 0);
       bar.fgFade:SetPoint( "TOPRIGHT", bar.fg, "TOPRIGHT", 0,0 );
     else
-      bar.fgFade:SetPoint( "TOPRIGHT", bar.fg, "TOPRIGHT", -offWidth * 0.5, 0 );
+      bar.fgFade:SetPoint( "TOPRIGHT", bar.fg, "TOPRIGHT", -maxW * 0.33, 0 );
       bar.fgFade:SetPoint( "BOTTOMLEFT", bar.fg, "BOTTOMLEFT", 0, 0);
     end
+    bar.fgFade:Show();
   else
     bar.fgFade:Hide();
   end  
@@ -585,22 +592,25 @@ function ChronoBars.Bar_ApplySettings (bar, profile, groupId, barId)
   end
   
   -- Charge notches
-  if (settings.type == CB.EFFECT_TYPE_CHARGES and settings.style.spark.enabled) then
+  for t=1,table.getn(bar.notches) do
+    bar.notches[t]:Hide();
+  end
+    
+  if (settings.type == CB.EFFECT_TYPE_CHARGES and settings.style.notch.enabled) then
 
     CB.ApplyNotchSettings(bar.notches[1], settings, gsettings);
+    CB.ApplyNotchSettings(bar.notches[2], settings, gsettings);
     bar.notches[1]:Show();
+    bar.notches[2]:Show();
     
-    if (settings.style.fullSide == CB.SIDE_RIGHT)
-    then bar.notches[1]:SetPoint( "CENTER", bar.fgFade, "LEFT", 0,0 );
-    else bar.notches[1]:SetPoint( "CENTER", bar.fgFade, "RIGHT", 0,0 );
-    end
-      
-    for t=2,table.getn(bar.notches) do
-      bar.notches[t]:Hide();
-    end
-  else
-    for t=1,table.getn(bar.notches) do
-      bar.notches[t]:Hide();
+    local n3 = CB.RoundToPixel(0.33 * maxW);
+    local n6 = CB.RoundToPixel(0.66 * maxW);
+    if (settings.style.fullSide == CB.SIDE_RIGHT) then
+      bar.notches[1]:SetPoint( "CENTER", bar.fg, "LEFT", n3, 0 );
+      bar.notches[2]:SetPoint( "CENTER", bar.fg, "LEFT", n6, 0 );
+    else
+      bar.notches[1]:SetPoint( "CENTER", bar.fg, "RIGHT", -n3, 0 );
+      bar.notches[2]:SetPoint( "CENTER", bar.fg, "RIGHT", -n6, 0 );
     end
   end
 
@@ -742,23 +752,23 @@ function ChronoBars.Bar_UpdateUI (bar, now, interval)
       bar.notches[t]:Hide();
     end
     
-    -- Show a spark for each charge threshold between the first and the last
-    if (set.style.spark.enabled and bar.status.maxCount) then
-      local sparkCount = bar.status.maxCount - 1;
-      for t=1,sparkCount do
+    -- Show a notch for each charge threshold between the first and the last
+    if (set.style.notch.enabled and bar.status.maxCount) then
+      local notchCount = bar.status.maxCount - 1;
+      for t=1,notchCount do
         if (t > table.getn(bar.notches)) then
-          local spark = CB.CreateNotch( bar );
-          CB.ApplyNotchSettings(spark, bar.settings, bar.gsettings);
-          bar.notches[t] = spark;
+          local notch = CB.CreateNotch( bar );
+          CB.ApplyNotchSettings(notch, bar.settings, bar.gsettings);
+          bar.notches[t] = notch;
         end
-        local spark = bar.notches[t];
+        local notch = bar.notches[t];
+        local notchOffset = CB.RoundToPixel(t * (maxW / bar.status.maxCount));
         if (set.style.fullSide == ChronoBars.SIDE_RIGHT) then
-          spark:SetPoint( "CENTER", bar.fg, "LEFT", t * (maxW / bar.status.maxCount), 0 );
+          notch:SetPoint( "CENTER", bar.fg, "LEFT", notchOffset, 0 );
         elseif (set.style.fullSide == ChronoBars.SIDE_LEFT) then
-          spark:SetPoint( "CENTER", bar.fg, "RIGHT", -t * (maxW / bar.status.maxCount), 0 );
+          notch:SetPoint( "CENTER", bar.fg, "RIGHT", -notchOffset, 0 );
         end
-        spark:SetGradientAlpha("HORIZONTAL", 0.5,0.5,0.5,1,   0.5,0.5,0.5,1);
-        spark:Show();
+        notch:Show();
       end
     end
   end

@@ -375,7 +375,7 @@ function CB.UpgradeChar_2_1 ()
 	end
 end
 
--- 2.1
+-- 2.2
 
 function CB.Upgrade_2_2 ()
 
@@ -405,4 +405,26 @@ function CB.UpgradeChar_2_2 ()
 	if (save.minimapButtonEnabled == nil) then
 		save.minimapButtonEnabled = true;
 	end
+end
+
+-- 2.4
+
+function CB.Upgrade_2_4 ()
+
+	for pname, profile in pairs( ChronoBars_Settings.profiles ) do
+		for g=1,table.getn( profile.groups ) do
+			local grp = profile.groups[g];
+
+			for b=1,table.getn( profile.groups[g].bars ) do
+				local bar = profile.groups[g].bars[b];
+				
+        --Notch
+        bar.style.notch = CopyTable( CB.DEFAULT_BAR.style.notch );
+				
+			end
+		end
+	end
+end
+
+function CB.UpgradeChar_2_4 ()
 end

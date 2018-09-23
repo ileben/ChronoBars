@@ -12,8 +12,8 @@ local CB = ChronoBars;
 -- Version control
 --==============================================================
 
-ChronoBars.VERSION = "2.3";
-ChronoBars.UPGRADE_LIST = { "1.2","1.3","1.4","1.5","1.6","1.8", "1.9", "1.10", "1.12", "2.0", "2.1", "2.2" };
+ChronoBars.VERSION = "2.4";
+ChronoBars.UPGRADE_LIST = { "1.2","1.3","1.4","1.5","1.6","1.8", "1.9", "1.10", "1.12", "2.0", "2.1", "2.2", "2.4" };
 
 -- Define constants
 --==============================================================
@@ -259,6 +259,13 @@ ChronoBars.DEFAULT_BAR =
 							width = 20,
 							height = 1.8,
 						},
+            
+        notch = {
+              enabled = true,
+              width = 1,
+              height = 1,
+              color = { r = 1.0, g = 1.0, b = 1.0, a = 1.0 },
+            },
 				
 				anim  = {
 							up = true,

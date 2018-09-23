@@ -56,6 +56,7 @@ ChronoBars.Tabs_Root =
 	{ text="Bar",        frame="root|Frame_StyleBar" },
 	{ text="Icon",       frame="root|Frame_StyleIcon" },
 	{ text="Spark",      frame="root|Frame_StyleSpark" },
+  { text="Notches",    frame="root|Frame_StyleNotch" },
 	{ text="Text",       frame="root|Frame_StyleText" },
 	{ text="Animation",  frame="root|Frame_StyleAnimation" },
 	{ text="Visibility", frame="root|Frame_StyleVisibility" },
@@ -93,14 +94,15 @@ ChronoBars.Options_CopyPaste =
 	{ text="Back color",                value=2,	var="bar|style.bgColor",            temp="temp|color" },
 	{ text="Texture",                   value=3,	var="bar|style.lsmTexHandle",       temp="temp|tex" },
 	{ text="Icon",                      value=4,	var="bar|style.icon",               temp="temp|icon" },
-	{ text="Spark",						value=5,	var="bar|style.spark",	            temp="temp|spark" },
-	{ text="Text",                      value=6,	var="bar|style.text",               temp="temp|text" },
-	{ text="Visibility",                value=7,	var="bar|style.visibility",         temp="temp|visibility" },
-	{ text="Animation",                 value=8,	var="bar|style.anim",               temp="temp|anim" },
-	{ text="Entire style",              value=9,	var="bar|style",                    temp="temp|style" },
-	{ text="Style except front color",  value=10,	var="bar|style",                    temp="temp|style",    exception="bar|style.fgColor" },
-	{ text="All bar Settings",          value=11,	var="group|bars[temp|barId]",       temp="temp|bar" },
-	{ text="Group settings",            value=12,	var="group" },
+	{ text="Spark",                     value=5,	var="bar|style.spark",	            temp="temp|spark" },
+  { text="Notches",                   value=6,  var="bar|style.notch",              temp="temp|notch" },
+	{ text="Text",                      value=7,	var="bar|style.text",               temp="temp|text" },
+	{ text="Visibility",                value=8,	var="bar|style.visibility",         temp="temp|visibility" },
+	{ text="Animation",                 value=9,	var="bar|style.anim",               temp="temp|anim" },
+	{ text="Entire style",              value=10,	var="bar|style",                    temp="temp|style" },
+	{ text="Style except front color",  value=11,	var="bar|style",                    temp="temp|style",    exception="bar|style.fgColor" },
+	{ text="All bar Settings",          value=12,	var="group|bars[temp|barId]",       temp="temp|bar" },
+	{ text="Group settings",            value=13,	var="group" },
 };
 
 --Bar
@@ -357,6 +359,16 @@ ChronoBars.Frame_StyleSpark =
 	{ type="toggle",   text="Enabled",  var="bar|style.spark.enabled" },
 	{ type="numinput", text="Width",    var="bar|style.spark.width" },
 	{ type="numinput", text="Height",   var="bar|style.spark.height"  },
+};
+
+ChronoBars.Frame_StyleNotch =
+{
+	{ type="scroll" },
+	{ type="header",   text="Notches" },
+	{ type="toggle",   text="Enabled",  var="bar|style.notch.enabled" },
+	{ type="numinput", text="Width",    var="bar|style.notch.width" },
+	{ type="numinput", text="Height",   var="bar|style.notch.height"  },
+  { type="color",    text="Color",    var="bar|style.notch.color" },
 };
 
 ChronoBars.Frame_StyleText =
