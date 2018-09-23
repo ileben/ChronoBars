@@ -31,6 +31,7 @@ ChronoBars.EFFECT_TYPE_CUSTOM       = 6;
 ChronoBars.EFFECT_TYPE_MULTI_AURA   = 7;
 ChronoBars.EFFECT_TYPE_AUTO         = 8;
 ChronoBars.EFFECT_TYPE_ENCHANT      = 9;
+ChronoBars.EFFECT_TYPE_CHARGES      = 10;
 
 ChronoBars.AURA_UNIT_PLAYER          = "player";
 ChronoBars.AURA_UNIT_TARGET          = "target";
@@ -107,6 +108,12 @@ ChronoBars.POS_LEFT_BOTTOM  = 12;
 ChronoBars.POS_RIGHT_TOP    = 13;
 ChronoBars.POS_RIGHT_MIDDLE = 14;
 ChronoBars.POS_RIGHT_BOTTOM = 15;
+
+ChronoBars.LAYER_FG         = 0;
+ChronoBars.LAYER_FG_FADE    = 1;
+ChronoBars.LAYER_NOTCH      = 2;
+ChronoBars.LAYER_TEXT       = 3;
+ChronoBars.LAYER_SPARK      = 4;
 
 
 -- Define defaults

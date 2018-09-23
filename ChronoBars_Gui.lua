@@ -233,6 +233,37 @@ function ChronoBars.BarIcon_OnDragStop( icon )
 	CB.Bar_OnDragStop( icon.bar );
 end
 
+function ChronoBars.CreateSpark ( bar )
+  local spark = bar:CreateTexture( nil, "ARTWORK", nil, CB.LAYER_SPARK );
+  spark:SetTexture( "Interface\\CastingBar\\UI-CastingBar-Spark" );
+  spark:SetBlendMode( "ADD" );
+  spark:SetWidth( 32 );
+  spark:SetHeight( 60 );
+  return spark;
+end
+
+function ChronoBars.ApplySparkSettings(spark, settings, gsettings)
+  local h = CB.RoundToPixel( gsettings.height );
+  spark:SetWidth( settings.style.spark.width );
+  spark:SetHeight( h * settings.style.spark.height );
+end
+
+function ChronoBars.CreateNotch( bar )
+  local notch = bar:CreateTexture( nil, "ARTWORK", nil, CB.LAYER_NOTCH );
+  notch:SetColorTexture( 1,1,1,1 );
+  notch:SetBlendMode("DISABLE");
+  notch:SetWidth( CB.RoundToPixel(1) );
+  notch:SetHeight( 10 );
+  return notch;
+end
+
+function ChronoBars.ApplyNotchSettings( notch, settings, gsettings)
+  local h = CB.RoundToPixel( gsettings.height );
+  local p = CB.RoundToPixel( gsettings.padding );
+  --notch:SetWidth( settings.style.notch.width );
+  --notch:SetHeight( h * settings.style.notch.height );
+  notch:SetHeight( h - 2*p - 2 );
+end
 
 function ChronoBars.Bar_Create (name)
 
@@ -241,11 +272,14 @@ function ChronoBars.Bar_Create (name)
   local bg = bar:CreateTexture( nil, "BACKGROUND" );
   bar.bg = bg;
 
-  local fg = bar:CreateTexture( nil, "ARTWORK" );
+  local fg = bar:CreateTexture( nil, "ARTWORK", nil, CB.LAYER_FG );
   bar.fg = fg;
 
   local fgBlink = bar:CreateTexture( nil, "ARTWORK" );
   bar.fgBlink = fgBlink;
+  
+  local fgFade = bar:CreateTexture( nil, "ARTWORK", nil, CB.LAYER_FG_FADE);
+  bar.fgFade = fgFade;
   
   local icon = CreateFrame( "Frame", name.."IconFrame" );
   icon:SetParent( bar );
@@ -260,12 +294,11 @@ function ChronoBars.Bar_Create (name)
   iconTex:SetAllPoints( icon );
   icon.tex = iconTex;
 
-  local spark = bar:CreateTexture( nil, "OVERLAY" );
-  spark:SetTexture( "Interface\\CastingBar\\UI-CastingBar-Spark" );
-  spark:SetBlendMode( "ADD" );
-  spark:SetWidth( 32 );
-  spark:SetHeight( 60 );
+  local spark = CB.CreateSpark( bar );
   bar.spark = spark;
+  
+  bar.notches = {};
+  bar.notches[1] = CB.CreateNotch( bar );
 
   bar:SetPoint( "LEFT", 0,0 );
   bar:SetPoint( "BOTTOM", 0,0 );
@@ -316,14 +349,17 @@ function ChronoBars.Bar_ApplySettings (bar, profile, groupId, barId)
   bar.status.name = nil;
   bar.status.icon = nil;
   bar.status.count = nil;
+  bar.status.maxCount = nil;
   bar.status.target = nil;
   bar.status.duration = nil;
   bar.status.expires = nil;
+  bar.status.chargeDuration = nil;
+  bar.status.chargeExpires = nil;
   bar.status.left = 0.0;
   bar.status.ratio = 0.0;
   bar.status.active = false;
+  bar.status.deactivated = false;
   bar.status.animating = true;
-  
   
   --Init effect status
   CB.Bar_InitEffect( bar );
@@ -361,11 +397,15 @@ function ChronoBars.Bar_ApplySettings (bar, profile, groupId, barId)
     bar.fg:SetTexture( texPath );
     bar.fgBlink:SetTexture( texPath );
   end
-
+  
+  --TODO: allow choosing colour of charge fade
+  bar.fgFade:SetColorTexture( 0,0,0, 0.5 );  
+  
   --Make foreground half-full
   local offWidth = (w - 2*pad) * 0.5;
   bar.fg:ClearAllPoints();
   bar.fgBlink:ClearAllPoints();
+  bar.fgFade:ClearAllPoints();
 
   if (settings.style.fullSide == CB.SIDE_RIGHT) then
     bar.fg:SetPoint( "BOTTOMLEFT", pad, pad );
@@ -378,6 +418,21 @@ function ChronoBars.Bar_ApplySettings (bar, profile, groupId, barId)
     bar.fgBlink:SetPoint( "BOTTOMLEFT", pad, pad );
     bar.fgBlink:SetPoint( "TOPRIGHT", bar.fg, "TOPLEFT", 0,0 );
   end
+  
+  -- Cover half of the full side as if the 2/4 charges was just about to come off cooldown
+  if (settings.type == CB.EFFECT_TYPE_CHARGES and
+      settings.style.fillUp) then
+    
+    if (settings.style.fullSide == CB.SIDE_RIGHT) then
+      bar.fgFade:SetPoint( "BOTTOMLEFT", bar.fg, "BOTTOMLEFT", offWidth * 0.5, 0);
+      bar.fgFade:SetPoint( "TOPRIGHT", bar.fg, "TOPRIGHT", 0,0 );
+    else
+      bar.fgFade:SetPoint( "TOPRIGHT", bar.fg, "TOPRIGHT", -offWidth * 0.5, 0 );
+      bar.fgFade:SetPoint( "BOTTOMLEFT", bar.fg, "BOTTOMLEFT", 0, 0);
+    end
+  else
+    bar.fgFade:Hide();
+  end  
   
 
 	--Create layout table if missing
@@ -463,6 +518,7 @@ function ChronoBars.Bar_ApplySettings (bar, profile, groupId, barId)
 		--Create new text if missing
 		if (t > table.getn( bar.text )) then
 			local newText = bar:CreateFontString( bar:GetName().."Text"..tostring(t) );
+      newText:SetDrawLayer("ARTWORK", CB.LAYER_TEXT);
 			newText:SetShadowOffset( 1, -1 );
 			newText:SetWordWrap( false );
 			newText:Hide();
@@ -514,19 +570,38 @@ function ChronoBars.Bar_ApplySettings (bar, profile, groupId, barId)
 	until true
 	end
 	
-
   --Spark
   if (settings.style.spark.enabled) then
-    bar.spark:SetWidth( settings.style.spark.width );
-    bar.spark:SetHeight( h * settings.style.spark.height );
-    bar.spark:Show();
 
+    CB.ApplySparkSettings(bar.spark, settings, gsettings);
+    bar.spark:Show();
+      
     if (settings.style.fullSide == CB.SIDE_RIGHT)
     then bar.spark:SetPoint( "CENTER", bar.fg, "RIGHT", 0,0 );
     else bar.spark:SetPoint( "CENTER", bar.fg, "LEFT", 0,0 );
     end
   else
     bar.spark:Hide();
+  end
+  
+  -- Charge notches
+  if (settings.type == CB.EFFECT_TYPE_CHARGES and settings.style.spark.enabled) then
+
+    CB.ApplyNotchSettings(bar.notches[1], settings, gsettings);
+    bar.notches[1]:Show();
+    
+    if (settings.style.fullSide == CB.SIDE_RIGHT)
+    then bar.notches[1]:SetPoint( "CENTER", bar.fgFade, "LEFT", 0,0 );
+    else bar.notches[1]:SetPoint( "CENTER", bar.fgFade, "RIGHT", 0,0 );
+    end
+      
+    for t=2,table.getn(bar.notches) do
+      bar.notches[t]:Hide();
+    end
+  else
+    for t=1,table.getn(bar.notches) do
+      bar.notches[t]:Hide();
+    end
   end
 
   --Set half-transparent if disabled
@@ -586,12 +661,13 @@ function ChronoBars.Bar_UpdateUI (bar, now, interval)
         blinkSpeed = 3.0;
       end
     
-    --Check if bar has infinite duration
+    --Check if bar does not have an infinite duration
     elseif (bar.status.duration > 0) then
 
-      --Find time to start blinking (half bar or 5 seconds if bar longer)
+      --Slow blink threshold is half bar or 5 seconds, whichever is smaller
       local blinkSlow = 0.5 * bar.status.duration
       if (blinkSlow > 5) then blinkSlow = 5 end;
+      --Fast blink threshold is always 1 second
       local blinkFast = 1.0;
 
       --Blink when bar time below threshold
@@ -647,6 +723,8 @@ function ChronoBars.Bar_UpdateUI (bar, now, interval)
   --UI
   --===============================
 
+  local maxW = w - 2 * p;
+  
   --Hide spark for no-duration and expired bars
   if (bar.status.duration == 0 or bar.anim.ratio == 0) then
     bar.spark:Hide();
@@ -655,10 +733,37 @@ function ChronoBars.Bar_UpdateUI (bar, now, interval)
       bar.spark:Show();
     end
   end
+  
+  --Charge notches
+  if (set.type == CB.EFFECT_TYPE_CHARGES) then
+  
+    -- Start by hiding all the notches
+    for t=1,table.getn(bar.notches) do
+      bar.notches[t]:Hide();
+    end
+    
+    -- Show a spark for each charge threshold between the first and the last
+    if (set.style.spark.enabled and bar.status.maxCount) then
+      local sparkCount = bar.status.maxCount - 1;
+      for t=1,sparkCount do
+        if (t > table.getn(bar.notches)) then
+          local spark = CB.CreateNotch( bar );
+          CB.ApplyNotchSettings(spark, bar.settings, bar.gsettings);
+          bar.notches[t] = spark;
+        end
+        local spark = bar.notches[t];
+        if (set.style.fullSide == ChronoBars.SIDE_RIGHT) then
+          spark:SetPoint( "CENTER", bar.fg, "LEFT", t * (maxW / bar.status.maxCount), 0 );
+        elseif (set.style.fullSide == ChronoBars.SIDE_LEFT) then
+          spark:SetPoint( "CENTER", bar.fg, "RIGHT", -t * (maxW / bar.status.maxCount), 0 );
+        end
+        spark:SetGradientAlpha("HORIZONTAL", 0.5,0.5,0.5,1,   0.5,0.5,0.5,1);
+        spark:Show();
+      end
+    end
+  end
 
   --Scale front to match ratio
-  local maxW = w - 2 * p;
-
   local offW;
   if (set.style.fillUp)
   then offW = bar.anim.ratio * maxW;
@@ -670,16 +775,32 @@ function ChronoBars.Bar_UpdateUI (bar, now, interval)
   elseif (set.style.fullSide == ChronoBars.SIDE_LEFT) then
     bar.fg:SetPoint( "BOTTOMLEFT", p + offW, p );
   end
+  
+  --Cover the next charge coming off cooldown with the foreground fade
+  if (set.type == CB.EFFECT_TYPE_CHARGES and bar.status.count and bar.status.maxCount) then
+    local chargeRatio = bar.status.count / bar.status.maxCount;
+    if (set.style.fullSide == ChronoBars.SIDE_RIGHT) then
+      bar.fgFade:SetPoint( "BOTTOMLEFT", bar.fg, "BOTTOMLEFT", maxW * chargeRatio, 0);
+    else
+      bar.fgFade:SetPoint( "TOPRIGHT", bar.fg, "TOPRIGHT", -maxW * chargeRatio, 0);
+    end
+    bar.fgFade:Show();
+  else
+    bar.fgFade:Hide();
+  end
 
   --Get front color and blink alpha
   local f = set.style.fgColor;
   local blinkA = math.abs( bar.anim.blink );
-
-  --Apply blink to full portion if no-duration, exhausted portion otherwise
-  if (bar.status.duration == 0) then
+  -- Apply blink to foreground fade of the current charge
+  if (set.type == CB.EFFECT_TYPE_CHARGES) then
+    bar.fgFade:SetColorTexture( 0,0,0, (1 - blinkA) * 0.5 );
+   --Apply blink to full portion if infinite duration
+  elseif (bar.status.duration == 0) then
     bar.fg:SetGradientAlpha( "HORIZONTAL",
       f.r,f.g,f.b, blinkA * f.a,
       f.r,f.g,f.b, blinkA * f.a );
+  --Apply blink to exhausted portion otherwise    
   else
     bar.fgBlink:SetGradientAlpha( "HORIZONTAL",
       f.r,f.g,f.b, 0.75 * blinkA * f.a,
@@ -706,8 +827,8 @@ function ChronoBars.Bar_UpdateUI (bar, now, interval)
 		displayDuration = bar.status.duration;
 	end
 
-	--Show count if bigger than 1
-	if (bar.status.count and bar.status.count > 1) then
+	--Show count
+	if (bar.status.count ~= nil) then
 		displayCount = bar.status.count;
 	end
 	
@@ -984,25 +1105,28 @@ function ChronoBars.Group_OnUpdate (grp)
   
   --Walk all bars in the group
   local numBars = table.getn( grp.bars );
-  local numAnimatingBars = 0;
+  local numUpdatingBars = 0;
   for b = 1, numBars do
     
-    --Check if bar active
+    --Bar needs update if currently active, just deactivated, or still animating out
     local bar = grp.bars[b];
-    if (bar.status.active or bar.status.animating) then
+    if (bar.status.active or bar.status.deactivated or bar.status.animating) then
      
       --Update time left and animate UI
       CB.Bar_UpdateTime( bar, now );
       CB.Bar_UpdateUI( bar, now, interval );
-      numAnimatingBars = numAnimatingBars + 1;
+      numUpdatingBars = numUpdatingBars + 1;
     end
+    
+    -- Clear just-deactivated flag here - they got their last update
+    bar.status.deactivated = false;
   end
   
   --Update group (after bars to sort visible bars)
   CB.Group_UpdateUI( grp, now, interval );
   
-  --Disable group update if no bars animating
-  if (numAnimatingBars == 0) then
+  --Disable group update if no bars updating
+  if (numUpdatingBars == 0) then
     CB.Group_DisableUpdate( grp );
   end
   
@@ -1052,17 +1176,23 @@ function ChronoBars.Bar_EnableEvents (bar)
     bar:RegisterEvent( "ACTIONBAR_UPDATE_COOLDOWN" );
     bar:RegisterEvent( "PET_BAR_UPDATE_COOLDOWN" );
     
+  elseif (set.type == CB.EFFECT_TYPE_CHARGES) then
+    bar:RegisterEvent( "SPELL_UPDATE_COOLDOWN" );
+    bar:RegisterEvent( "ACTIONBAR_UPDATE_COOLDOWN" );
+    bar:RegisterEvent( "PET_BAR_UPDATE_COOLDOWN" );
+
+    
   elseif (set.type == CB.EFFECT_TYPE_USABLE) then
     bar:RegisterEvent( "SPELL_UPDATE_USABLE" );
     bar:RegisterEvent( "SPELL_UPDATE_COOLDOWN" );
     bar:RegisterEvent( "ACTIONBAR_UPDATE_COOLDOWN" );
-    
+      
     --Enable blacklist timer, since SPELL_UPDATE_COOLDOWN
     --is not being triggered at end of cooldown
     if (set.usable.includeCd) then
       CB.Bar_EnableEffectTimer( bar );
     end
-
+    
   elseif (set.type == CB.EFFECT_TYPE_TOTEM) then
     bar:RegisterEvent( "PLAYER_TOTEM_UPDATE" );
 
@@ -1150,7 +1280,7 @@ function ChronoBars.Bar_OnEvent (bar, event, ...)
   CB.Bar_UpdateEffect( bar, now, event, ... );
   
   --Enable group update if bar active
-  if (bar.status.active) then
+  if (bar.status.active or bar.status.deactivated) then
     CB.Group_EnableUpdate( CB.groups[ bar.groupId ] );
   end
   

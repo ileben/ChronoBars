@@ -142,6 +142,9 @@ ChronoBars.Frame_Effect =
 	  
 	{ type="group",       text="Cooldown settings", frame="root|Frame_CooldownSettings",
 	  conditionVar="bar|type", conditionValue = ChronoBars.EFFECT_TYPE_CD },
+    
+	{ type="group",       text="Charge cooldown settings",   frame="root|Frame_CooldownSettings",
+	conditionVar="bar|type", conditionValue = ChronoBars.EFFECT_TYPE_CHARGES },
 
 	{ type="group",       text="Usable settings",   frame="root|Frame_UsableSettings",
 	conditionVar="bar|type", conditionValue = ChronoBars.EFFECT_TYPE_USABLE },
@@ -168,6 +171,7 @@ ChronoBars.Options_EffectType =
   { text="Aura",               value = ChronoBars.EFFECT_TYPE_AURA },
   { text="Multi Aura",         value = ChronoBars.EFFECT_TYPE_MULTI_AURA },
   { text="Cooldown",           value = ChronoBars.EFFECT_TYPE_CD },
+  { text="Charge cooldown",    value = ChronoBars.EFFECT_TYPE_CHARGES },
   { text="Usable",             value = ChronoBars.EFFECT_TYPE_USABLE },
   { text="Totem",              value = ChronoBars.EFFECT_TYPE_TOTEM },
   { text="Custom",             value = ChronoBars.EFFECT_TYPE_CUSTOM },

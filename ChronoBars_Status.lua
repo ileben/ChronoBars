@@ -38,12 +38,15 @@ function ChronoBars.Bar_InitEffect (bar)
     
     --Reset effect status
     local status = bar.effectStatus[ i ];
-	status.desc = bar.effectDesc[ i ];
+    status.desc = bar.effectDesc[ i ];
     status.id = tonumber( status.desc );
     status.name = nil;
     status.count = nil;
+    status.maxCount = nil;
     status.duration = nil;
     status.expires = nil;
+    status.chargeDuration = nil;
+    status.chargeExpires = nil;
     status.usableCdExpires = nil;
     
     --Init effect status
@@ -57,6 +60,9 @@ function ChronoBars.Bar_InitEffect (bar)
 
     elseif (set.type == CB.EFFECT_TYPE_CD) then
       CB.Bar_InitStatusCd( bar, status );
+      
+    elseif (set.type == CB.EFFECT_TYPE_CHARGES) then
+      CB.Bar_InitStatusCharges( bar, status );
 
     elseif (set.type == CB.EFFECT_TYPE_USABLE) then
       CB.Bar_InitStatusUsable( bar, status );
@@ -72,6 +78,7 @@ function ChronoBars.Bar_InitEffect (bar)
       
     elseif (set.type == CB.EFFECT_TYPE_ENCHANT) then
       CB.Bar_InitStatusEnchant( bar, status );
+      
     end
     
     --Init bar status to first effect
@@ -89,6 +96,7 @@ function ChronoBars.Bar_UpdateEffect (bar, now, event, ...)
 
   local set = bar.settings;
   local maxExpires = nil;
+  local effectDeactivated = false;
 
   --Walk the list of effects
   for i=1,bar.numEffectStatus do
@@ -104,6 +112,9 @@ function ChronoBars.Bar_UpdateEffect (bar, now, event, ...)
 
     elseif (set.type == CB.EFFECT_TYPE_CD) then
       CB.Bar_UpdateStatusCd( bar, status, now, event, ... );
+      
+    elseif (set.type == CB.EFFECT_TYPE_CHARGES) then
+      CB.Bar_UpdateStatusCharges( bar, status, now, event, ... );
 
     elseif (set.type == CB.EFFECT_TYPE_USABLE) then
       CB.Bar_UpdateStatusUsable( bar, status, now, event, ... );
@@ -120,17 +131,20 @@ function ChronoBars.Bar_UpdateEffect (bar, now, event, ...)
     elseif (set.type == CB.EFFECT_TYPE_ENCHANT) then
       CB.Bar_UpdateStatusEnchant( bar, status, now, event, ... );
     end
-
+     
     --Check if this effect is the last to expire
     if (maxExpires == nil or (status.expires ~= nil and status.expires > maxExpires)) then
       
       --Copy to bar status
-	  bar.status.name = status.name;
+      bar.status.name = status.name;
       bar.status.icon = status.icon;
       bar.status.count = status.count;
-	  bar.status.target = status.target;
+      bar.status.maxCount = status.maxCount;
+      bar.status.target = status.target;
       bar.status.duration = status.duration;
       bar.status.expires = status.expires;
+      bar.status.chargeDuration = status.chargeDuration;
+      bar.status.chargeExpires = status.chargeExpires;
       
       --Update maximum expiration time
       if (status.expires ~= nil)
@@ -138,6 +152,9 @@ function ChronoBars.Bar_UpdateEffect (bar, now, event, ...)
       else maxExpires = 0;
       end
     end
+    
+    --Track if any of effects just deactivated and needs the last update
+    effectDeactivated = effectDeactivated or status.deactivated;
   end
   
   --Check if bar active and if the active status changed
@@ -145,6 +162,7 @@ function ChronoBars.Bar_UpdateEffect (bar, now, event, ...)
   local reActive = (newActive and (not bar.status.active));
   local deActive = ((not newActive) and bar.status.active);
   bar.status.active = newActive;
+  bar.status.deactivated = effectDeactivated or deActive;
   
   --Let other bars know if this bar just activated
   if (reActive and set.type ~= CB.EFFECT_TYPE_CUSTOM) then
@@ -159,12 +177,15 @@ function ChronoBars.Bar_UpdateEffect (bar, now, event, ...)
 end
 
 function ChronoBars.Bar_UpdateTime (bar, now)
-
+ 
   local set = bar.settings;
   bar.status.left = 0.0;
   bar.status.ratio = 0.0;
 
   if (bar.status.active) then
+  
+    --CB.Print("Bar_UpdateTime  now " .. now .. " expires " .. (bar.status.expires or nil));
+    
     if (bar.status.duration == 0 and bar.status.expires == 0) then
 
       --It's an infinite-duration bar
@@ -186,12 +207,16 @@ function ChronoBars.Bar_UpdateTime (bar, now)
         effectiveDuration = set.fixed.duration;
       end
 
-      --Calculate time ratio
+       --Calculate time ratio
       bar.status.left = bar.status.expires - now;
       if (effectiveDuration > 0.0) then
         bar.status.ratio = bar.status.left / effectiveDuration;
       end
-
+      
+      -- Override time left for display with the current charge cooldown
+      if (set.type == CB.EFFECT_TYPE_CHARGES) then
+        bar.status.left = bar.status.chargeExpires - now;
+      end
     end
   end
 
@@ -214,9 +239,12 @@ function ChronoBars.InitStatusSpell( status )
     status.name = select( 1, GetSpellInfo( status.id ) );
     status.icon = select( 3, GetSpellInfo( status.id ) );
   else
-	status.name = status.desc;
+    status.name = status.desc;
     status.icon = CB.Util_GetSpellIcon( status.desc );
   end
+  
+  local spellId = status.id or status.name;
+  _, status.maxCount, _, _ = GetSpellCharges(spellId);
   
 end
 
@@ -341,11 +369,11 @@ function ChronoBars.Bar_UpdateStatusAura (bar, status, now)
   end
   
   --Update status
-  status.count = count;
   status.duration = duration;
   status.expires = expires;
   status.target = UnitName( set.aura.unit );
   if (icon) then status.icon = icon; end
+  if (count and count > 1) then status.count = count; end
   
 end
 
@@ -597,6 +625,83 @@ function ChronoBars.Bar_UpdateStatusCd (bar, status, now)
   end
   
 end
+
+--Charges
+--===================================================
+
+function ChronoBars.Bar_InitStatusCharges (bar, status)
+      
+  if (bar.settings.cd.type == CB.CD_TYPE_SPELL) then
+  
+	--Init by spell description
+	CB.InitStatusSpell( status );
+    
+  elseif (bar.settings.cd.type == CB.CD_TYPE_ITEM) then
+  
+	--Init by item description
+	CB.InitStatusItem( status );
+	
+  end
+end
+
+function ChronoBars.Bar_UpdateStatusCharges (bar, status, now)
+
+  local set = bar.settings;
+  local start, duration, curCharges, maxCharges;
+       
+  if (set.cd.type == CB.CD_TYPE_SPELL) then
+      
+    --Get spell cooldown by ID or name   
+    local spellId = status.id or status.name;
+    curCharges, maxCharges, start, duration = GetSpellCharges(spellId);
+    
+  elseif (set.cd.type == CB.CD_TYPE_ITEM) then
+  
+    --Get item cooldown by ID or name
+    if (status.id)
+    then start, duration = GetItemCooldown( status.id );
+    else start, duration = nil; --doesn't work with item name anymore :(
+    end
+  end
+
+  --CB.Print(" Bar_UpdateStatusCharges start " .. (start or "nil") .. " duration " .. (duration or "nil") .. " curCharges " .. (curCharges or "nil") .. " maxCharges " .. (maxCharges or "nil")); 
+ 
+  if (curCharges == nil or maxCharges == nil) then
+  
+    status.expires = nil;
+    status.duration = nil;
+    status.count = nil;
+    status.maxCount = nil;
+   
+  elseif (curCharges == maxCharges) then
+
+    status.expires = nil;
+    status.duration = nil;
+    status.count = curCharges;
+    status.maxCount = maxCharges;
+    
+    --Update UI one last time
+    status.deactivated = true;
+    
+  else
+  
+    --Sub-cooldown for the current charge
+    status.chargeExpires = start + duration;
+    status.chargeDuration = duration;
+    
+    --Cooldown for the whole bar includes all charges
+    local totalStart = start - curCharges * duration;
+    local totalDuration = maxCharges * duration;
+    status.expires = totalStart + totalDuration;
+    status.duration = totalDuration;
+    
+    status.count = curCharges;
+    status.maxCount = maxCharges;
+    
+  end
+  
+end
+
 
 --Usable
 --===================================================
