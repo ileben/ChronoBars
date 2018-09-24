@@ -252,6 +252,7 @@ function ChronoBars.CreateNotch( bar )
   local notch = bar:CreateTexture( nil, "ARTWORK", nil, CB.LAYER_NOTCH );
   --notch:SetTexture("Interface\\AddOns\\ChronoBars\\Textures\\Notch.tga");
   notch:SetTexture("Interface\\AddOns\\ChronoBars\\Textures\\White.tga");
+  --notch:SetTexture("Interface\\AddOns\\ChronoBars\\Textures\\Notch2.tga");
   notch:SetWidth( 1 );
   notch:SetHeight( 10 );
   return notch;
@@ -594,6 +595,7 @@ function ChronoBars.Bar_ApplySettings (bar, profile, groupId, barId)
   -- Charge notches
   for t=1,table.getn(bar.notches) do
     bar.notches[t]:Hide();
+    bar.notches[t]:ClearAllPoints();
   end
     
   if (settings.type == CB.EFFECT_TYPE_CHARGES and settings.style.notch.enabled) then
@@ -603,14 +605,14 @@ function ChronoBars.Bar_ApplySettings (bar, profile, groupId, barId)
     bar.notches[1]:Show();
     bar.notches[2]:Show();
     
-    local n3 = CB.RoundToPixel(0.33 * maxW);
-    local n6 = CB.RoundToPixel(0.66 * maxW);
+    local n3 = CB.RoundToPixel(0.33 * maxW - bar.notches[1]:GetWidth()/2);
+    local n6 = CB.RoundToPixel(0.66 * maxW - bar.notches[1]:GetWidth()/2);
     if (settings.style.fullSide == CB.SIDE_RIGHT) then
-      bar.notches[1]:SetPoint( "CENTER", bar.fg, "LEFT", n3, 0 );
-      bar.notches[2]:SetPoint( "CENTER", bar.fg, "LEFT", n6, 0 );
+      bar.notches[1]:SetPoint( "LEFT", bar.fg, "LEFT", n3, 0 );
+      bar.notches[2]:SetPoint( "LEFT", bar.fg, "LEFT", n6, 0 );
     else
-      bar.notches[1]:SetPoint( "CENTER", bar.fg, "RIGHT", -n3, 0 );
-      bar.notches[2]:SetPoint( "CENTER", bar.fg, "RIGHT", -n6, 0 );
+      bar.notches[1]:SetPoint( "RIGHT", bar.fg, "RIGHT", -n3, 0 );
+      bar.notches[2]:SetPoint( "RIGHT", bar.fg, "RIGHT", -n6, 0 );
     end
   end
 
@@ -750,6 +752,7 @@ function ChronoBars.Bar_UpdateUI (bar, now, interval)
     -- Start by hiding all the notches
     for t=1,table.getn(bar.notches) do
       bar.notches[t]:Hide();
+      bar.notches[t]:ClearAllPoints();
     end
     
     -- Show a notch for each charge threshold between the first and the last
@@ -762,11 +765,11 @@ function ChronoBars.Bar_UpdateUI (bar, now, interval)
           bar.notches[t] = notch;
         end
         local notch = bar.notches[t];
-        local notchOffset = CB.RoundToPixel(t * (maxW / bar.status.maxCount));
+        local notchOffset = CB.RoundToPixel(t * (maxW / bar.status.maxCount) - notch:GetWidth()/2);
         if (set.style.fullSide == ChronoBars.SIDE_RIGHT) then
-          notch:SetPoint( "CENTER", bar.fg, "LEFT", notchOffset, 0 );
+          notch:SetPoint( "LEFT", bar.fg, "LEFT", notchOffset, 0 );
         elseif (set.style.fullSide == ChronoBars.SIDE_LEFT) then
-          notch:SetPoint( "CENTER", bar.fg, "RIGHT", -notchOffset, 0 );
+          notch:SetPoint( "RIGHT", bar.fg, "RIGHT", -notchOffset, 0 );
         end
         notch:Show();
       end
