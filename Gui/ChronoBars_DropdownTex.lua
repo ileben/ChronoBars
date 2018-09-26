@@ -28,6 +28,8 @@ end
 function ChronoBars.TexDrop_Init( frame )
 
 	ChronoBars.Drop_Init( frame );
+  
+  frame:AddItem("None", "None");
 
 	--Get list of texture handles from LibSharedMedia
 	local texHandles = ChronoBars.LSM:List( "statusbar" );
@@ -67,9 +69,15 @@ end
 function ChronoBars.TexDrop_UpdateItem( frame, item, text, value )
 
 	--Update item text and texture
-	local texPath = ChronoBars.LSM:Fetch( "statusbar", value );
-	item.texture:SetTexture( texPath );
-	item.label:SetText( text );
+  item.label:SetText( text );
+  
+  if ((not value) or (value == "None")) then
+    item.texture:SetColorTexture(1,1,1,1);
+  else
+    local texPath = ChronoBars.LSM:Fetch( "statusbar", value );
+    item.texture:SetTexture( texPath );
+  end
+  
 end
 
 function ChronoBars.TexDrop_UpdateSelection( frame, index )
