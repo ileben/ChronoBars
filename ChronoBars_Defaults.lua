@@ -262,7 +262,7 @@ ChronoBars.DEFAULT_BAR =
             
         notch = {
               enabled = true,
-              width = 1,
+              width = 2,
               height = 1,
               color = { r = 1.0, g = 1.0, b = 1.0, a = 1.0 },
             },

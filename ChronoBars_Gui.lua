@@ -251,9 +251,10 @@ end
 function ChronoBars.CreateNotch( bar )
   local notch = bar:CreateTexture( nil, "ARTWORK", nil, CB.LAYER_NOTCH );
   --notch:SetTexture("Interface\\AddOns\\ChronoBars\\Textures\\Notch.tga");
-  notch:SetTexture("Interface\\AddOns\\ChronoBars\\Textures\\White.tga");
+  --notch:SetTexture("Interface\\AddOns\\ChronoBars\\Textures\\White.tga");
   --notch:SetTexture("Interface\\AddOns\\ChronoBars\\Textures\\Notch2.tga");
-  notch:SetWidth( 1 );
+  notch:SetTexture("Interface\\AddOns\\ChronoBars\\Textures\\NotchLeft.tga");
+  notch:SetWidth( 2 );
   notch:SetHeight( 10 );
   return notch;
 end
