@@ -254,6 +254,7 @@ function ChronoBars.CreateNotch( bar )
   --notch:SetTexture("Interface\\AddOns\\ChronoBars\\Textures\\White.tga");
   --notch:SetTexture("Interface\\AddOns\\ChronoBars\\Textures\\Notch2.tga");
   notch:SetTexture("Interface\\AddOns\\ChronoBars\\Textures\\NotchLeft.tga");
+  --notch:SetTexture("Interface\\AddOns\\ChronoBars\\Textures\\NotchTriangle.tga");
   notch:SetWidth( 2 );
   notch:SetHeight( 10 );
   return notch;
@@ -263,6 +264,9 @@ function ChronoBars.ApplyNotchSettings( notch, settings, gsettings)
   local h = CB.RoundToPixel( gsettings.height );
   local p = CB.RoundToPixel( gsettings.padding );
   local c = settings.style.notch.color;
+  --local hh = (h - 2*p - 2) * settings.style.notch.height;
+  --notch:SetWidth( hh );
+  --notch:SetHeight( hh );
   notch:SetWidth( settings.style.notch.width );
   notch:SetHeight( (h - 2*p - 2) * settings.style.notch.height );
   notch:SetGradientAlpha( "HORIZONTAL",
@@ -295,10 +299,20 @@ function ChronoBars.Bar_Create (name)
   iconBg:SetAllPoints( icon );
   icon.bg = iconBg;
   
-  local iconTex = icon:CreateTexture( nil, "ARTWORK" );
+  local iconTex = icon:CreateTexture( nil, "ARTWORK", nil, 0  );
   iconTex:SetAllPoints( icon );
   icon.tex = iconTex;
-
+  
+  local iconFade = icon:CreateTexture( nil, "ARTWORK", nil, 1 );
+  iconFade:SetAllPoints( icon );
+  iconFade:Hide();
+  icon.fade = iconFade;
+  
+  local iconCd = CreateFrame("Cooldown", "CBIconCooldown", icon, "CooldownFrameTemplate");
+  iconCd:SetAllPoints( icon );
+  iconCd:Show();
+  icon.cd = iconCd;
+  
   local spark = CB.CreateSpark( bar );
   bar.spark = spark;
   
@@ -362,6 +376,9 @@ function ChronoBars.Bar_ApplySettings (bar, profile, groupId, barId)
   bar.status.expires = nil;
   bar.status.chargeDuration = nil;
   bar.status.chargeExpires = nil;
+  bar.status.iconDuration = nil;
+  bar.status.iconStart = nil;
+  bar.status.iconUsable = true;
   bar.status.left = 0.0;
   bar.status.ratio = 0.0;
   bar.status.active = false;
@@ -475,7 +492,15 @@ function ChronoBars.Bar_ApplySettings (bar, profile, groupId, barId)
 		local b = isettings.bgColor;
 		if (isettings.inherit) then b = settings.style.bgColor end
 		bar.icon.bg:SetColorTexture( b.r, b.g, b.b, b.a );
-		
+    
+    --Fade overlay
+    bar.icon.fade:SetColorTexture( 0,0,0, 0.5 );
+    bar.icon.fade:Hide();
+    
+    --Reset last cooldown info
+    bar.icon.start = nil;
+    bar.icon.duration = nil;
+    
 		--Size
 		local s = CB.RoundToPixel( isettings.size );
 		if (isettings.inherit) then s = h end
@@ -629,7 +654,8 @@ function ChronoBars.Bar_ApplySettings (bar, profile, groupId, barId)
   
 end
 
-
+-- This function is called from Group_UpdateUI only on bars that are currently active (duration not nil)
+-- The group will do that in every OnUpdate which runs as long as any of its bars are active
 function ChronoBars.Bar_UpdateUI (bar, now, interval)
 
   local p = CB.RoundToPixel( bar.gsettings.padding );
@@ -790,7 +816,7 @@ function ChronoBars.Bar_UpdateUI (bar, now, interval)
     bar.fg:SetPoint( "BOTTOMLEFT", p + offW, p );
   end
   
-  --Cover the next charge coming off cooldown with the foreground fade
+   --Cover the next charge coming off cooldown with the foreground fade
   if (set.type == CB.EFFECT_TYPE_CHARGES and bar.status.count and bar.status.maxCount) then
     local chargeRatio = bar.status.count / bar.status.maxCount;
     if (set.style.fullSide == ChronoBars.SIDE_RIGHT) then
@@ -828,7 +854,7 @@ function ChronoBars.Bar_UpdateUI (bar, now, interval)
   if (bar.status.icon) then
     bar.icon.tex:SetTexture( bar.status.icon );
   end
-
+  
 	--Formatting input
 	local displayLeft = nil;
 	local displayDuration = nil;
@@ -865,6 +891,29 @@ function ChronoBars.Bar_UpdateUI (bar, now, interval)
   bar:EnableMouse( false );
   bar.icon:EnableMouse( false );
 
+end
+
+-- This function is called by Bar_UpdateEffect on every event
+function ChronoBars.Bar_UpdateIcon (bar)
+
+  -- It's important to only SetCooldown on the spinner widget when the values change, otherwise it unnecessarily flickers.
+  -- The widget template will continue to animate itself after SetCooldown.
+  if (bar.status.iconStart and bar.status.iconDuration and
+      bar.status.iconStart > 0 and bar.status.iconDuration > 0 and
+      (bar.status.iconStart ~= bar.icon.start or bar.status.iconDuration ~= bar.icon.duration)) then
+      
+    --CB.Print("ICON CD UPDATE start " .. bar.status.iconStart .. " duration " .. bar.status.iconDuration);
+    bar.icon.cd:SetCooldown(bar.status.iconStart, bar.status.iconDuration, 1);
+    bar.icon.start = bar.status.iconStart;
+    bar.icon.duration = bar.status.iconDuration;
+  end
+  
+  -- Add an extra fade behind the cooldown spinner when unusable
+  if (bar.status.iconUsable) then
+    bar.icon.fade:Hide();
+  else
+    bar.icon.fade:Show();
+  end
 end
 
 function ChronoBars_BarSmaller (a,b)
@@ -995,7 +1044,8 @@ function ChronoBars.Group_ApplySettings (grp, profile, groupId)
   
 end
 
-
+-- This is called from Group_OnUpdate which is set to run on every frame whenever any of the bars
+-- in the group are active, and is disabled when the last bar deactivates
 function ChronoBars.Group_UpdateUI (grp, now, interval)
 
   local x = CB.RoundToPixel( grp:GetLeft() );
@@ -1186,15 +1236,16 @@ function ChronoBars.Bar_EnableEvents (bar)
     CB.RegisterBarEvent( bar, "CHRONOBARS_BAR_DEACTIVATED" );
 
   elseif (set.type == CB.EFFECT_TYPE_CD) then
+    bar:RegisterEvent( "SPELL_UPDATE_USABLE" );
     bar:RegisterEvent( "SPELL_UPDATE_COOLDOWN" );
     bar:RegisterEvent( "ACTIONBAR_UPDATE_COOLDOWN" );
     bar:RegisterEvent( "PET_BAR_UPDATE_COOLDOWN" );
     
   elseif (set.type == CB.EFFECT_TYPE_CHARGES) then
+    bar:RegisterEvent( "SPELL_UPDATE_USABLE" );
     bar:RegisterEvent( "SPELL_UPDATE_COOLDOWN" );
     bar:RegisterEvent( "ACTIONBAR_UPDATE_COOLDOWN" );
     bar:RegisterEvent( "PET_BAR_UPDATE_COOLDOWN" );
-
     
   elseif (set.type == CB.EFFECT_TYPE_USABLE) then
     bar:RegisterEvent( "SPELL_UPDATE_USABLE" );

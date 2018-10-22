@@ -47,6 +47,9 @@ function ChronoBars.Bar_InitEffect (bar)
     status.expires = nil;
     status.chargeDuration = nil;
     status.chargeExpires = nil;
+    status.iconDuration = nil;
+    status.iconStart = nil;
+    status.iconUsable = true;
     status.usableCdExpires = nil;
     
     --Init effect status
@@ -145,6 +148,9 @@ function ChronoBars.Bar_UpdateEffect (bar, now, event, ...)
       bar.status.expires = status.expires;
       bar.status.chargeDuration = status.chargeDuration;
       bar.status.chargeExpires = status.chargeExpires;
+      bar.status.iconDuration = status.iconDuration;
+      bar.status.iconStart = status.iconStart;
+      bar.status.iconUsable = status.iconUsable;
       
       --Update maximum expiration time
       if (status.expires ~= nil)
@@ -173,6 +179,9 @@ function ChronoBars.Bar_UpdateEffect (bar, now, event, ...)
   if (deActive) then
     CB.BroadcastBarEvent( "CHRONOBARS_BAR_DEACTIVATED", bar );
   end
+  
+  -- Update icon cooldown spinner on every event
+  CB.Bar_UpdateIcon(bar)
   
 end
 
@@ -260,6 +269,54 @@ function ChronoBars.InitStatusItem( status )
 		status.icon = GetItemIcon( status.desc );
     end
 	
+end
+
+function ChronoBars.GetActionUsable( actionType, status )
+
+  local usable = nil;
+  
+  if (actionType  == CB.ACTION_TYPE_SPELL) then
+
+    --Check if spell usable by ID or name
+    if (status.id)
+    then usable = IsUsableSpell( status.id );
+    else usable = IsUsableSpell( status.name );
+    end
+    
+  elseif (actionType == CB.ACTION_TYPE_ITEM) then
+  
+    --Check if item usable by ID or name
+    if (status.id)
+    then usable = IsUsableItem( status.id );
+    else usable = IsUsableItem( status.name );
+    end
+  end
+  
+  return usable;
+end
+
+function ChronoBars.GetActionCooldown( actionType, status )
+
+  local start, duration;
+  
+  if (actionType == CB.ACTION_TYPE_SPELL) then
+      
+    --Get spell cooldown by ID or name
+    if (status.id)
+    then start, duration = GetSpellCooldown( status.id );
+    else start, duration = GetSpellCooldown( status.name );
+    end
+    
+  elseif (actionType == CB.ACTION_TYPE_ITEM) then
+  
+    --Get item cooldown by ID or name
+    if (status.id)
+    then start, duration = GetItemCooldown( status.id );
+    else start, duration = nil; --doesn't work with item name anymore :(
+    end
+  end
+  
+  return start, duration;
 end
 
 --Aura
@@ -586,23 +643,13 @@ function ChronoBars.Bar_UpdateStatusCd (bar, status, now)
 
   local set = bar.settings;
   local start, duration;
-       
-  if (set.cd.type == CB.CD_TYPE_SPELL) then
-      
-    --Get spell cooldown by ID or name
-    if (status.id)
-    then start, duration = GetSpellCooldown( status.id );
-    else start, duration = GetSpellCooldown( status.name );
-    end
-    
-  elseif (set.cd.type == CB.CD_TYPE_ITEM) then
   
-    --Get item cooldown by ID or name
-    if (status.id)
-    then start, duration = GetItemCooldown( status.id );
-    else start, duration = nil; --doesn't work with item name anymore :(
-    end
-  end
+  start, duration = CB.GetActionCooldown(set.cd.type, status);
+  
+  --Pass unfiltered cooldown and usability to icon
+  status.iconStart = start;
+  status.iconDuration = duration;
+  status.iconUsable = CB.GetActionUsable(set.cd.type, status);
 
   --Update bar time unless it is a global cooldown.
   if (start == nil or duration == nil) then
@@ -663,8 +710,12 @@ function ChronoBars.Bar_UpdateStatusCharges (bar, status, now)
     else start, duration = nil; --doesn't work with item name anymore :(
     end
   end
-
-  --CB.Print(" Bar_UpdateStatusCharges start " .. (start or "nil") .. " duration " .. (duration or "nil") .. " curCharges " .. (curCharges or "nil") .. " maxCharges " .. (maxCharges or "nil")); 
+  
+  --Pass unfiltered cooldown and usability to icon
+  status.iconUsable = CB.GetActionUsable(set.cd.type, status);
+  status.iconStart, status.iconDuration = CB.GetActionCooldown(set.cd.type, status);
+  
+  --CB.Print(" Bar_UpdateStatusCharges usable " .. (tostring(status.iconUsable) or "nil") .. " start " .. (start or "nil") .. " duration " .. (duration or "nil") .. " curCharges " .. (curCharges or "nil") .. " maxCharges " .. (maxCharges or "nil"));
  
   if (curCharges == nil or maxCharges == nil) then
   
@@ -726,42 +777,16 @@ function ChronoBars.Bar_UpdateStatusUsable (bar, status, now)
   local set = bar.settings;
   local usable, start, duration;
 
-  if (set.usable.type == CB.USABLE_TYPE_SPELL) then
-
-    --Check if spell usable by ID or name
-    if (status.id)
-    then usable = IsUsableSpell( status.id );
-    else usable = IsUsableSpell( status.name );
-    end
-    
-  elseif (set.usable.type == CB.USABLE_TYPE_ITEM) then
+  usable = CB.GetActionUsable(set.usable.type, status);
+  start, duration = CB.GetActionCooldown(set.usable.type, status);
   
-    --Check if item usable by ID or name
-    if (status.id)
-    then usable = IsUsableItem( status.id );
-    else usable = IsUsableItem( status.name );
-    end
-  end
-
+  --Pass unfiltered cooldown and usability to icon
+  status.iconStart = start;
+  status.iconDuration = duration;
+  status.iconUsable = usable;
+  
   if (set.usable.includeCd) then
-    
-    if (set.usable.type == CB.USABLE_TYPE_SPELL) then
-
-      --Get spell cooldown by ID or name
-      if (status.id)
-      then start, duration = GetSpellCooldown( status.id );
-      else start, duration = GetSpellCooldown( status.name );
-      end
-      
-    elseif (set.usable.type == CB.USABLE_TYPE_ITEM) then
-    
-      --Get item cooldown by ID or name
-      if (status.id)
-      then start, duration = GetItemCooldown( status.id );
-      else start, duration = GetItemCooldown( status.name );
-      end
-    end
-    
+  
     --Update usable cd unless it is global cooldown
     if (start == nil or duration == nil) then
       status.usableCdExpires = nil;

@@ -44,13 +44,17 @@ ChronoBars.AURA_UNIT_PET_TARGET      = "pettarget";
 ChronoBars.AURA_TYPE_BUFF    = "HELPFUL";
 ChronoBars.AURA_TYPE_DEBUFF  = "HARMFUL";
 
-ChronoBars.CD_TYPE_SPELL      = 1;
-ChronoBars.CD_TYPE_PET_SPELL  = 2;
-ChronoBars.CD_TYPE_ITEM       = 3;
+ChronoBars.ACTION_TYPE_SPELL       = 1
+ChronoBars.ACTION_TYPE_PET_SPELL   = 2;
+ChronoBars.ACTION_TYPE_ITEM        = 3;
 
-ChronoBars.USABLE_TYPE_SPELL      = 1;
-ChronoBars.USABLE_TYPE_PET_SPELL  = 2;
-ChronoBars.USABLE_TYPE_ITEM       = 3;
+ChronoBars.CD_TYPE_SPELL          = ChronoBars.ACTION_TYPE_SPELL;
+ChronoBars.CD_TYPE_PET_SPELL      = ChronoBars.ACTION_TYPE_PET_SPELL;
+ChronoBars.CD_TYPE_ITEM           = ChronoBars.ACTION_TYPE_ITEM;
+
+ChronoBars.USABLE_TYPE_SPELL      = ChronoBars.ACTION_TYPE_SPELL;
+ChronoBars.USABLE_TYPE_PET_SPELL  = ChronoBars.ACTION_TYPE_PET_SPELL;
+ChronoBars.USABLE_TYPE_ITEM       = ChronoBars.ACTION_TYPE_ITEM;
 
 ChronoBars.TOTEM_TYPE_FIRE    = 1;
 ChronoBars.TOTEM_TYPE_EARTH   = 2;
